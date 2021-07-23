@@ -113,7 +113,16 @@ namespace CanvasRendering
                 };
                 VertexShader.inputLayoutImgui = DeviceResources.device.CreateInputLayout(inputElementDescriptions, VertexShader.data);
             }
-
+            if (samplerState == null)
+            {
+                samplerState = DeviceResources.device.CreateSamplerState(new SamplerDescription(Filter.MinMagMipLinear, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap));
+            }
+            if (rasterizerState == null)
+            {
+                rasterizerState = DeviceResources.device.CreateRasterizerState(new RasterizerDescription(CullMode.None, FillMode.Solid) { ScissorEnable = true });
+            }
+            DeviceResources.d3dContext.PSSetSampler(0, samplerState);
+            DeviceResources.d3dContext.RSSetState(rasterizerState);
             DeviceResources.d3dContext.IASetInputLayout(VertexShader.inputLayoutImgui);
 
             context.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
@@ -123,6 +132,8 @@ namespace CanvasRendering
         public Vortice.Mathematics.Color4 color;
         public DeviceResources DeviceResources { get; private set; } = new DeviceResources();
         public ID3D11BlendState defaultBlendState;
+        public ID3D11SamplerState samplerState;
+        ID3D11RasterizerState rasterizerState;
 
         public VertexShader VertexShader;
         public PixelShader PixelShader;

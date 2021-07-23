@@ -16,6 +16,8 @@ namespace DirectCanvas.UI
         public static RenderTexture FontAtlas;
         public static ConstantBuffer constantBuffer;
         public static Mesh mesh;
+        public static int selectedIndex = -1;
+        //public static long TimeCost;
         public static void InputProcess()
         {
             var io = ImGui.GetIO();
@@ -80,6 +82,8 @@ namespace DirectCanvas.UI
                         Core.BlendMode blendMode = canvasCase.blendModes[i];
                         bool selected = blendMode.Guid == canvasCase.SelectedLayout.BlendMode;
                         ImGui.Selectable(string.Format("{0}###{1}", blendMode.Name, blendMode.Guid), ref selected);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip(blendMode.Description);
                         if (blendMode.Guid != canvasCase.SelectedLayout.BlendMode && selected)
                         {
                             canvasCase.SetBlendMode(canvasCase.SelectedLayout, blendMode);
@@ -88,15 +92,7 @@ namespace DirectCanvas.UI
                 }
                 ImGui.End();
 
-                //ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-                //ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
-                //ImGui.Begin("图层");
-                //ImGui.Button("新建图层");
-                //ImGui.SameLine();
-                //ImGui.Button("移除图层");
-                //ImGui.BeginChildFrame(1, new Vector2(150, 150));
-                //ImGui.EndChildFrame();
-                //ImGui.End();
+                LayoutsPanel();
                 BrushParametersPanel();
                 BrushPanel();
             }
@@ -112,12 +108,81 @@ namespace DirectCanvas.UI
             Input.penInputData.Clear();
         }
 
+        static void LayoutsPanel()
+        {
+            var canvasCase = AppController.Instance?.CurrentCanvasCase;
+            //var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
+            ImGui.Begin("图层");
+            if (ImGui.Button("新建"))
+            {
+                if (selectedIndex != -1)
+                {
+                    canvasCase.NewStandardLayout(selectedIndex, 0);
+                }
+                else if (canvasCase != null)
+                {
+                    canvasCase.NewStandardLayout(0, 0);
+                }
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("新建图层");
+            ImGui.SameLine();
+            if (ImGui.Button("复制"))
+            {
+                if (selectedIndex != -1)
+                    canvasCase.CopyLayout(selectedIndex);
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("删除"))
+            {
+                if (selectedIndex != -1)
+                    canvasCase.DeleteLayout(selectedIndex);
+            }
+
+            if (canvasCase != null)
+            {
+                selectedIndex = -1;
+                var layouts = canvasCase.Layouts;
+                for (int i = 0; i < layouts.Count; i++)
+                {
+                    var layout = layouts[i];
+
+                    bool selected = layout == canvasCase.SelectedLayout;
+                    ImGui.Selectable(string.Format("{0}###{1}", layout.Name, layout.guid), ref selected);
+                    if (selected)
+                    {
+                        if (layout is Layout.StandardLayout standardLayout && layout != canvasCase.SelectedLayout)
+                            canvasCase.SetActivatedLayout(standardLayout);
+                        canvasCase.SelectedLayout = layout;
+                        selectedIndex = i;
+                    }
+                    if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
+                    {
+                        int n_next = i + (ImGui.GetMouseDragDelta(0).Y < 0.0f ? -1 : 1);
+                        if (n_next >= 0 && n_next < layouts.Count)
+                        {
+                            layouts[i] = layouts[n_next];
+                            layouts[n_next] = layout;
+                            ImGui.ResetMouseDragDelta();
+                        }
+                    }
+
+                }
+            }
+
+            ImGui.EndChildFrame();
+            ImGui.End();
+        }
+
         static void BrushParametersPanel()
         {
             var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(), ImGuiCond.FirstUseEver);
             ImGui.Begin("笔刷参数");
+            //ImGui.Text(TimeCost.ToString());
             ImGui.SliderFloat("笔刷尺寸", ref paintAgent._brushSize, 1, 300);
             ImGui.ColorEdit4("颜色", ref paintAgent._color);
             ImGui.ColorEdit4("颜色2", ref paintAgent._color2);
@@ -150,6 +215,8 @@ namespace DirectCanvas.UI
                 Core.Brush brush = brushes[i];
                 bool selected = brush == paintAgent.currentBrush;
                 ImGui.Selectable(brush.Name, ref selected);
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(brush.Description);
                 if (selected)
                 {
                     paintAgent.SetBrush(brush);
@@ -201,7 +268,11 @@ namespace DirectCanvas.UI
                     byte[] indexDatas = new byte[indexBytes];
                     new Span<byte>(cmdList.VtxBuffer.Data.ToPointer(), vertBytes).CopyTo(vertexDatas);
                     new Span<byte>(cmdList.IdxBuffer.Data.ToPointer(), indexBytes).CopyTo(indexDatas);
+                    //System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+                    //stopwatch.Start();
                     mesh.Update(vertexDatas, indexDatas);
+                    //stopwatch.Stop();
+                    //TimeCost = stopwatch.ElapsedTicks;
                     context.SetMesh(mesh);
                     for (int j = 0; j < cmdList.CmdBuffer.Size; j++)
                     {
@@ -221,6 +292,7 @@ namespace DirectCanvas.UI
             var imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(imguiContext);
             var io = ImGui.GetIO();
+            //io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             var device = AppController.Instance.graphicsContext.DeviceResources;
             constantBuffer = new ConstantBuffer(device, 64);
             mesh = new Mesh(device, 20);
@@ -236,7 +308,7 @@ namespace DirectCanvas.UI
 
                 FontAtlas.Create2(device, width, height, Vortice.DXGI.Format.R8G8B8A8_UNorm, false, data);
             }
-
+            io.Fonts.TexID = new IntPtr(1);
         }
     }
 }

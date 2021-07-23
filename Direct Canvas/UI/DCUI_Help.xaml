@@ -1,0 +1,22 @@
+﻿<UserControl
+    x:Class="DirectCanvas.UI.DCUI_Help"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DirectCanvas.UI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+    
+    <ScrollViewer>
+        <RichTextBlock>
+            <Paragraph>操作说明：</Paragraph>
+            <Paragraph>1.左键或右键画图，中键或Alt+左键移动画布，Alt+右键旋转画布，使用滚轮缩放。</Paragraph>
+            <Paragraph>2.软件在极少数情况下有崩溃的情况发生，请经常保存文档。</Paragraph>
+            <Paragraph>3.如果需要对文档进行压缩，请右键点击文件夹->属性->在“常规”选项卡点击高级->勾选“压缩内容以便节省空间”。这通常能够为DIrect Canvas文档节省60%的空间但是极轻微的降低保存速度。</Paragraph>
+            <Paragraph>4.编写笔刷和图层混合模式请使用hlsl SM5.0语法。发生编译错误时程序会退出，请自行检查语法错误。笔刷存放在文档的"Brushes"文件夹，图层混合模式存放在"BlendModes"文件夹。图层混合模式需要Guid，仅需与其他图层混合模式的Guid不同即可。</Paragraph>
+            <Paragraph>5.画布大小不能调整，创建时请直接创建足够大的画布。画布大小和渲染缓冲区大小等信息存放在"Document.xml"文件中</Paragraph>
+        </RichTextBlock>
+    </ScrollViewer>
+</UserControl>

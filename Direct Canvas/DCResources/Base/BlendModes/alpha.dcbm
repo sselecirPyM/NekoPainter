@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BlendMode Guid="9c9f90ac-752c-4db5-bcb5-0880c35c50bf">
+<!--
+Texture2D<float4> RefTexture
+RWTexture2D<float4> DC_Target
+cbuffer DC_Parameters
+{
+	int4 Parameters[8];
+};
+-->
+  <Name>Alpha</Name>
+  <Description></Description>
+  <Name Culture="zh-cn">正常</Name>
+  <Description Culture="zh-cn"></Description>
+  <Code>
+float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
+{
+  float4 color = layoutColor;
+  if(color.a &gt; 0.000001f)
+  {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    return float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a)/aalpha + color.rgb*color.a/aalpha,saturate(aalpha));
+  }
+  return bufferColor;
+}
+  </Code>
+</BlendMode>

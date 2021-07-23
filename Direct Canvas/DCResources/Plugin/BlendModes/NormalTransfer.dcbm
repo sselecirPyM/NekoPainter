@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BlendMode Guid="99c0a297-8a4a-42b7-a727-dce4b3d1af73">
+  <Name>NormalTransfer</Name>
+  <Description>将法线数据从引用缓冲区转移并转换成颜色。</Description>
+  <Code>
+float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
+{
+  float4 color = float4(RefTexture[position].rgb,RefTexture[position].a*layoutColor.a);
+  color=float4(color.rgb*0.5+0.5,color.a);
+  if(color.a &gt; 0.000001f)
+  {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    return float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a)/aalpha + color.rgb*color.a/aalpha,saturate(aalpha));
+  }
+  return bufferColor;
+}
+  </Code>
+</BlendMode>

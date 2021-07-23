@@ -1,0 +1,110 @@
+﻿<Page
+    x:Class="DirectCanvas.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DirectCanvas"
+    xmlns:local2="using:DirectCanvas.UI.Widgets"
+    xmlns:local3="using:DirectCanvas.UI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    KeyDown="Page_KeyDown">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <MenuBar>
+                <MenuBarItem x:Name="_MenuItem_File" x:Uid="M_File">
+                    <MenuFlyoutItem x:Name="_MenuItem_New" x:Uid="M_New"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Open" x:Uid="M_Open"/>
+                    <MenuFlyoutSeparator/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Save" x:Uid="M_Save"/>
+                    <!--<MenuFlyoutItem x:Name="_MenuItem_SaveAs" Text="Save As..."/>-->
+                    <MenuFlyoutSeparator/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Import" x:Uid="M_Import"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Export" x:Uid="M_Export"/>
+                    <MenuFlyoutSeparator/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Exit" x:Uid="M_Exit" Click="ExitApp"/>
+                </MenuBarItem>
+                <MenuBarItem x:Name="_MenuItem_Edit" x:Uid="M_Edit">
+                    <MenuFlyoutItem x:Name="_MenuItem_Undo" x:Uid="M_Undo"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Redo" x:Uid="M_Redo"/>
+                    <!--<MenuFlyoutSeparator/>-->
+                    <!--<MenuFlyoutItem x:Name="_MenuItem_Copy" Text="Copy"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Paste" Text="Paste"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Delete" Text="Delete"/>-->
+                </MenuBarItem>
+                <MenuBarItem x:Name="_MenuItem_View" x:Uid="m_View">
+                    <MenuFlyoutItem x:Name="_MenuItem_FullScreen" x:Uid="M_FullScreenSwitch" Click="_FullScreenButton_Click"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_ResetCanvasPosition" x:Uid="M_ResetCanvasPosition"/>
+                    <MenuFlyoutSeparator/>
+                    <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FBrushPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_BrushPanel" x:Uid="M_BrushPanel"/>-->
+                    <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FColorPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_ColorPanel" x:Uid="M_ColorPanel"/>-->
+                    <ToggleMenuFlyoutItem IsChecked="{x:Bind FLayoutPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_LayoutPanel" x:Uid="M_LayoutPanel"/>
+                    <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FLayoutInfoPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_LayoutInfoPanel" x:Uid="M_LayoutInfoPanel"/>-->
+                    <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FBlendModePanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_BlendModePanel" x:Uid="M_BlendModePanel"/>-->
+                </MenuBarItem>
+                <MenuBarItem x:Name="_MenuItem_Tools" AccessKey="T" Title="工具">
+                    <MenuFlyoutItem x:Name="_MenuItem_Settings" AccessKey="S" Text="设置..." Click="_MenuItem_Settings_Click"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_ReferencePicture" AccessKey="R" Text="参考图片..." Click="_MenuItem_ReferencePicture_Click"/>
+                    <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FAnimationController.Visible,Mode=TwoWay}" x:Name="_MenuItem_Animation" AccessKey="A" Text="动画控制器"/>
+                    <ToggleMenuFlyoutItem IsChecked="{x:Bind FTimeline.Visible,Mode=TwoWay}" x:Name="_MenuItem_Timeline" AccessKey="T" Text="时间线"/>-->
+                </MenuBarItem>
+                <MenuBarItem x:Name="_MenuItem_Help" x:Uid="M_Help">
+                    <MenuFlyoutItem x:Name="_MenuItem_About" x:Uid="M_About" Click="_MenuItem_About_Click"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_HelpHelp" x:Uid="M_HelpHelp" Click="_MenuItem_HelpHelp_Click"/>
+                </MenuBarItem>
+            </MenuBar>
+            <TextBlock Grid.Column="1" x:Name="DocumentTitle" Text="未加载文档" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <!--画布-->
+            <local3:DCUI_Canvas x:Name="DCUI_Canvas"/>
+            <Canvas>
+                <local3:FloatingPanel x:Name="FLayoutPanel" Header="图层" Canvas.Top="400" Width="200" Height="200" GotFocus="Panel_GotFocus" PointerPressed="FLayoutPanel_PointerPressed" Click="Panel_GotFocus">
+                    <local2:LayoutsPanel x:Name="LayoutsPanel"/>
+                </local3:FloatingPanel>
+                <!--<local3:FloatingPanel x:Name="FBrushPanel" Header="笔刷" Canvas.ZIndex="2" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Left="400" Canvas.Top="50" Width="180" Height="250" MinWidth="100" MinHeight="100">
+                    <local2:BrushPanel x:Name="BrushPanel"/>
+                </local3:FloatingPanel>-->
+                <!--<local3:FloatingPanel x:Name="FColorPanel" Header="颜色（向下滚动设置更多颜色）" Canvas.ZIndex="3" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Top="200" Width="230" Height="460" MinWidth="230" MinHeight="240">
+                    <local2:ColorAndOtherPanel x:Name="ColorAndOtherPanel"/>
+                </local3:FloatingPanel>-->
+                <!--<local3:FloatingPanel x:Name="FBlendModePanel" Header="混合模式" Canvas.ZIndex="4" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Top="400" Canvas.Left="400" Width="240" Height="260" MinWidth="240" MinHeight="240">
+                    <local2:BlendModePanel x:Name="BlendModePanel"/>
+                </local3:FloatingPanel>-->
+                <!--<local3:FloatingPanel x:Name="FLayoutInfoPanel" Header="图层信息" Canvas.ZIndex="5" GotFocus="Panel_GotFocus" PointerPressed="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Top="300" Canvas.Left="200" Width="270" Height="260" MinWidth="240" MinHeight="270">
+                    <local2:LayoutInfoPanel CurrentPictureLayout="{x:Bind LayoutsPanel.SelectedPictureLayout,Mode=OneWay}" x:Name="LayoutInfoPanel"/>
+                </local3:FloatingPanel>-->
+                <!--<local3:FloatingPanel x:Name="FAnimationController" Header="动画控制器" Canvas.ZIndex="6" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus"  Canvas.Top="150" Canvas.Left="230" Width="550" Height="300" MinWidth="250" MinHeight="200" Visible="False">
+                    <local2:AnimationController x:Name="animationController"/>
+                </local3:FloatingPanel>
+                <local3:FloatingPanel x:Name="FTimeline" Header="时间线" Canvas.ZIndex="7" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus"  Canvas.Top="150" Canvas.Left="230" Width="550" Height="300" MinWidth="250" MinHeight="200" Visible="False">
+                    <local2:TimelinePlayer/>
+                </local3:FloatingPanel>-->
+                <local3:FloatingPanel x:Name="FHelp" Header="帮助" Canvas.ZIndex="8" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus"  Canvas.Top="300" Canvas.Left="200" Width="400" Height="300" MinWidth="400" MinHeight="300" Visibility="Collapsed">
+                    <local3:DCUI_Help x:Name="DCUI_Help"/>
+                </local3:FloatingPanel>
+            </Canvas>
+            <Frame x:Name="frame"/>
+        </Grid>
+        <Border Grid.RowSpan="2" Background="Transparent" x:Name="SavingDisplay" Visibility="Collapsed">
+            <Border Background="AliceBlue" Width="400" Height="300" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="2">
+                <Grid>
+                    <Image Source="ms-appx:///Assets/DC chan square.png"/>
+                    <TextBlock Text="正在保存" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="22"/>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</Page>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BlendMode Guid="862bd2df-1132-4d0c-8c6f-791b589f2c9f">
+  <Name>Color to Normal</Name>
+  <Description>颜色到法线</Description>
+  <Code>
+float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
+{
+	float4 color = float4(layoutColor.xyz*2-1,layoutColor.a);
+  if(color.a &gt; 0.000001f)
+  {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    return float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a)/aalpha + color.rgb*color.a/aalpha,saturate(aalpha));
+  }
+  return bufferColor;
+}
+  </Code>
+</BlendMode>

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Brush>
+  <Parameter Index="0" Type="Slider" MaxValue="180" MinValue="-179">
+    <Name>X旋转</Name>
+    <Description>X旋转</Description>
+  </Parameter>
+  <Parameter Index="1" Type="Slider" MaxValue="90" MinValue="-90">
+    <Name>Y旋转</Name>
+    <Description>Y旋转</Description>
+  </Parameter>
+  <Parameter Index="2" Type="Slider" MaxValue="90" MinValue="-90">
+    <Name>扭曲</Name>
+    <Description>曲折程度</Description>
+  </Parameter>
+  <Parameter Index="15" Type="Slider" MaxValue="100" MinValue="0">
+    <Name>硬/软 画笔</Name>
+    <Description>画笔边缘的软硬程度。100为软画笔。</Description>
+  </Parameter>
+  <ParametersGroup>
+    <Name>法线笔1</Name>
+    <Description></Description>
+  </ParametersGroup>
+  <ParametersGroup>
+    <Name>法线笔2</Name>
+    <Description></Description>
+  </ParametersGroup>
+  <Code Stage="Begin">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	return bufferColor;
+}
+  </Code>
+  <Code Stage="Doing">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float2 rr=radians(Parameters[0].xy);
+	float4 color = float4(sin(rr.x)*cos(rr.y),sin(rr.y),cos(rr.x)*cos(rr.y),BrushColor.a);
+	float2 mp=InputDatas[0].Position.xy-InputDatas[1].Position.xy;
+	float mrad = atan2(mp.y,mp.x);
+	float4x4 transform9=
+	{
+		cos(mrad),-sin(mrad),0.0f,0.0f,
+		sin(mrad),cos(mrad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float4 rPos=mul(float4(position+float2(0.5f,0.5f)-InputDatas[1].Position.xy,0,1),transform9);
+	float rSize=BrushSize*InputDatas[0].Pressure;
+
+	float3 NCrossProduct=cross(float3(position-InputDatas[1].Position.xy,0),normalize(float3(mp,0)));
+	float rAlpha=length(NCrossProduct)/rSize*saturate(sign(NCrossProduct.z));
+	float rRotateRad=rAlpha*Parameters[0].z*0.0174532925;
+	float4x4 transformX=
+	{
+		1.0f,0.0f,0.0f,0.0f,
+		0.0f,cos(rRotateRad),sin(rRotateRad),0.0f,
+		0.0f,-sin(rRotateRad),cos(rRotateRad),0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float4x4 transform6=
+	{
+		cos(mrad),sin(mrad),0.0f,0.0f,
+		-sin(mrad),cos(mrad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	color=mul(mul(mul(color,transform9),transformX),transform6);
+	float rl=sqrt(saturate(1-(rPos.y/rSize)*(rPos.y/rSize)));
+	float rl2=rl*rSize;
+	float rDistance=(1-saturate((-rPos.x+rl2)/rl2*0.5f)-saturate((rPos.x-length(mp)+rl2)/rl2*0.5f));
+	color.a=(1- pow(2.718281828f,(rl*Parameters[3].w*0.01f+1.0f-Parameters[3].w*0.01f)*log(1.0f-color.a*0.9999f)*rDistance));
+
+	if (abs(rPos.y)&lt;=rSize&amp;&amp;rPos.x&gt;=0&amp;&amp;rPos.x&lt;=length(mp)||distance(rPos,float2(0,0))&lt;=rSize||distance(rPos,float2(length(mp),0))&lt;=rSize)
+	{
+		if(color.a &gt; 0.00000001f)
+		{
+			float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+			color = float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a) / aalpha + color.rgb*color.a / aalpha, aalpha);
+		}
+		else
+		{
+			color = bufferColor;
+		}
+	}
+	else
+	{
+		color = bufferColor;
+	}
+	return color;
+}
+  </Code>
+  <Code Stage="End">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	return bufferColor;
+}
+  </Code>
+  <Code Stage="Doing">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float2 rr=radians(Parameters[0].xy);
+	float4 color = float4(sin(rr.x)*cos(rr.y),sin(rr.y),cos(rr.x)*cos(rr.y),BrushColor.a);
+	float2 mp=InputDatas[0].Position.xy-InputDatas[1].Position.xy;
+	float mrad = atan2(mp.y,mp.x);
+	float4x4 transform9=
+	{
+		cos(mrad),-sin(mrad),0.0f,0.0f,
+		sin(mrad),cos(mrad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float4 rPos=mul(float4(position+float2(0.5f,0.5f)-InputDatas[1].Position.xy,0,1),transform9);
+	float rSize=BrushSize*InputDatas[0].Pressure;
+
+	float3 NCrossProduct=cross(float3(position-InputDatas[1].Position.xy,0),normalize(float3(mp,0)));
+	float rAlpha=length(NCrossProduct)/rSize*saturate(sign(NCrossProduct.z));
+	float rRotateRad=rAlpha*Parameters[0].z*0.0174532925;
+	float4x4 transformX=
+	{
+		1.0f,0.0f,0.0f,0.0f,
+		0.0f,cos(rRotateRad),sin(rRotateRad),0.0f,
+		0.0f,-sin(rRotateRad),cos(rRotateRad),0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float4x4 transform6=
+	{
+		cos(mrad),sin(mrad),0.0f,0.0f,
+		-sin(mrad),cos(mrad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	color=mul(mul(mul(color,transform9),transformX),transform6);
+	float rl=sqrt(saturate(1-(rPos.y/rSize)*(rPos.y/rSize)));
+	float rl2=rl*rSize;
+	float rDistance=(1-saturate((-rPos.x+rl2)/rl2*0.5f)-saturate((rPos.x-length(mp)+rl2)/rl2*0.5f));
+	color.a=(1- pow(2.718281828f,(rl*Parameters[3].w*0.01f+1.0f-Parameters[3].w*0.01f)*log(0.9975f-color.a*0.997f)*rDistance));
+
+	if (abs(rPos.y)&lt;=rSize&amp;&amp;rPos.x&gt;=0&amp;&amp;rPos.x&lt;=length(mp)||distance(rPos,float2(0,0))&lt;=rSize||distance(rPos,float2(length(mp),0))&lt;=rSize)
+	{
+		if(color.a &gt; 0.00000001f)
+		{
+			float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+			color = float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a) / aalpha + color.rgb*color.a / aalpha, aalpha);
+		}
+		else
+		{
+			color = bufferColor;
+		}
+	}
+	else
+	{
+		color = bufferColor;
+	}
+	return color;
+}
+  </Code>
+</Brush>

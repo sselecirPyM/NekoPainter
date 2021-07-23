@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BlendMode Guid="612bb027-a5f0-49b1-b210-c28d470120ce">
+  <Name>LinearToSRGB</Name>
+  <Description>乘0.4545次幂</Description>
+  <Code>
+float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
+{
+	float4 color = float4(pow(bufferColor.rgb*layoutColor.rgb,0.4545),layoutColor.a);
+  if(color.a &gt; 0.000001f)
+  {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    return float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a)/aalpha + color.rgb*color.a/aalpha,bufferColor.a);
+  }
+  return bufferColor;
+}
+  </Code>
+</BlendMode>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BlendMode Guid="da467cfd-2fd0-48d7-827e-a749dde269a0">
+  <Name>Multiple</Name>
+  <Description></Description>
+  <Name Culture="zh-cn">相乘</Name>
+  <Description Culture="zh-cn">颜色乘法混合（正片叠底）</Description>
+  <Code>
+float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
+{
+	float4 color = float4(bufferColor.rgb*layoutColor.rgb,layoutColor.a);
+  if(color.a &gt; 0.000001f)
+  {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    return float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a)/aalpha + color.rgb*color.a/aalpha,saturate(aalpha));
+  }
+  return bufferColor;
+}
+  </Code>
+</BlendMode>

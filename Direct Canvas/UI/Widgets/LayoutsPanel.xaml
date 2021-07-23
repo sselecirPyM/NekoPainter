@@ -1,0 +1,174 @@
+﻿<UserControl
+    x:Class="DirectCanvas.UI.Widgets.LayoutsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DirectCanvas.UI.Widgets"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:data="using:DirectCanvas.Layout"
+    xmlns:controller="using:DirectCanvas.UI.Controller"
+    xmlns:dcUtil="using:DirectCanvas.Util"
+    xmlns:uiCommand="using:DirectCanvas.UICommand"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+    <UserControl.Resources>
+        <uiCommand:Command_LayoutHidden x:Key="layoutHidden"/>
+        <DataTemplate x:Name="LayoutListViewTemplate" x:DataType="data:PictureLayout">
+            <Grid>
+                <!--<Grid.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="重命名"/>
+                    </MenuFlyout>
+                </Grid.ContextFlyout>-->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <ToggleButton Grid.Column="0"
+                        x:Name="Btn_eye" Content="&#xE7B3;"
+                        Background="Transparent"
+                        FontFamily="Segoe MDL2 Assets"
+                        Padding="2"
+                        IsChecked="{x:Bind Hidden}"
+                        Command="{StaticResource layoutHidden}"
+                        CommandParameter="{x:Bind}"/>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="layoutNameTextBlock"
+                         Text="{x:Bind Name,Mode=OneWay}"
+                               FontSize="13"
+                         x:Phase="1"/>
+                </Grid>
+                <TextBox Grid.Column="1"
+                         x:Name="layoutNameTextBox"
+                         Visibility="Collapsed"
+                         Text="{x:Bind Name,Mode=TwoWay}"
+                         x:Phase="1"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Padding="2">
+                </TextBox>
+                <!--<Button Grid.Column="3"
+                        x:Name="Btn_Lock"
+                        Content="&#xE72E;"
+                        Background="Transparent"
+                        FontFamily="Segoe MDL2 Assets"
+                        Padding="2"/>-->
+                <!--<TextBlock  Grid.Column="2"
+                            Text="{x:Bind RenderBufferNum}" 
+                            x:Phase="2"
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Margin="2,2,2,2"/>-->
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="1" 
+                    BorderThickness="1,1,1,1" 
+                    BorderBrush="#CC808080" Padding="0,3,0,3">
+            <ListView x:Name="LayoutsListView"
+                          Grid.Row="1"
+                          AllowDrop="True"
+                          CanReorderItems="True"
+                          IsSwipeEnabled="True"
+                          ItemTemplate="{StaticResource LayoutListViewTemplate}"
+                          SelectionMode="Single"
+                          ShowsScrollingPlaceholders="True"
+                          HorizontalContentAlignment="Stretch"
+                          SelectedItem="{x:Bind SelectedPictureLayout,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <!--<Setter Property="MinHeight" Value="25"/>-->
+                        <Setter Property="Padding" Value="0 0 0 0"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </Border>
+        <StackPanel Orientation="Horizontal" Grid.Row="2">
+            <Button ToolTipService.ToolTip="新建标准图层"
+                        Background="#33FFFFFF"
+                        Content="&#xE7C3;"  
+                        FontFamily="Segoe MDL2 Assets"
+                        Padding="1"
+                        Click="NewLayout"/>
+            <Button ToolTipService.ToolTip="新建图层"
+                        Background="#33FFFFFF"
+                        Content="&#xE109;"  
+                        FontFamily="Segoe MDL2 Assets"
+                        Padding="1"
+                        Click="ShowFlyoutMenu">
+                <Button.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="标准图层" Click="NewLayout"/>
+                        <MenuFlyoutItem Text="纯色图层" Click="NewPureLayout"/>
+                    </MenuFlyout>
+                </Button.ContextFlyout>
+            </Button>
+            <Button ToolTipService.ToolTip="复制图层"
+                            Background="#33FFFFFF"
+                            Content="&#xE8C8;"  
+                        Click="CopyLayout"
+                            FontFamily="Segoe MDL2 Assets"
+                        Padding="1"/>
+            <Button ToolTipService.ToolTip="复制缓冲区0为图层"
+                            Background="#33FFFFFF"
+                            Content="&#xE114;"  
+                        Click="CopyBuffer0"
+                            FontFamily="Segoe MDL2 Assets"
+                        Padding="1"/>
+            <!--<Button ToolTipService.ToolTip="Paste"
+                            Background="#33FFFFFF"
+                            Content="&#xE77F;" 
+                            FontFamily="Segoe MDL2 Assets"
+                        Padding="1"/>-->
+            <Button Content="&#xE74D;"  
+                        FontFamily="Segoe MDL2 Assets"
+                        ToolTipService.ToolTip="删除"
+                        Background="#33FFFFFF"
+                        Padding="1"
+                        Click="DeleteLayout"/>
+            <!--<Button Content="&#xE8FD;" 
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTipService.ToolTip="Property"
+                            Background="#33FFFFFF" HorizontalContentAlignment="Left"
+                        FontSize="10"/>
+                <Button Content="&#xE74A;" 
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTipService.ToolTip="Moveup"
+                            Background="#33FFFFFF"
+                        FontSize="10"/>
+                <Button Content="&#xE74B;" 
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTipService.ToolTip="MoveDown"
+                            Background="#33FFFFFF"
+                        FontSize="10"/>
+                <Button Content="&#xE8E5;" 
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTipService.ToolTip="Add"
+                            Background="#33FFFFFF"
+                        FontSize="10"/>
+                <Button Content="&#xED25;"  
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTipService.ToolTip="Grouped"
+                            Background="#33FFFFFF"
+                        FontSize="10"/>-->
+        </StackPanel>
+    </Grid>
+
+</UserControl>

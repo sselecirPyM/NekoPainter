@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Brush>
+  <Parameter Index="0">
+    <Name>间距</Name>
+    <Description>晶胞边长</Description>
+  </Parameter>
+  <Parameter Index="1">
+    <Name>大小</Name>
+    <Description>正方形边长</Description>
+  </Parameter>
+  <Parameter Index="2">
+    <Name>X方向变化率</Name>
+    <Description>X方向边长变化率</Description>
+  </Parameter>
+  <Parameter Index="3">
+    <Name>Y方向变化率</Name>
+    <Description>Y方向边长变化率</Description>
+  </Parameter>
+  <Parameter Index="15" Type="Slider" MaxValue="100" MinValue="0">
+    <Name>硬/软 画笔</Name>
+    <Description>画笔边缘的软硬程度。100为软画笔。</Description>
+  </Parameter>
+  <ParametersGroup Image="DC Grid1.png" Parameter1="60" Parameter2="50">
+    <Name>Pattern-Grid1</Name>
+    <Description></Description>
+    <Name Culture="zh-cn">图案-网格1</Name>
+    <Description Culture="zh-cn">正方形网格效果。颜色2为正方形颜色</Description>
+  </ParametersGroup>
+  <ParametersGroup Image="DC Grid1G.png" Parameter1="60" Parameter2="10" Parameter3="100" Parameter4="100">
+    <Name>Pattern-Grid1G</Name>
+    <Description></Description>
+    <Name Culture="zh-cn">图案-渐变网格1</Name>
+    <Description Culture="zh-cn">渐变正方形网格效果。颜色2为正方形颜色。参数3为x方向变化率，参数4为y方向变化率。</Description>
+  </ParametersGroup>
+  <Code Stage="Begin">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	return bufferColor;
+}
+  </Code>
+  <Code Stage="Doing">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float4 color = BrushColor;
+	float2 m0 = float2(Parameters[0].x*1.0f,Parameters[0].x*1.0f);
+	float2 m1 = m0*0.5f;
+	float2 ingrid = position%m0-m1;
+	float girdSize=(Parameters[0].y+(position.x/Parameters[0].x)*Parameters[0].z*0.01f+(position.y/Parameters[0].x)*Parameters[0].w*0.01f)*0.5f;
+	if(abs(ingrid.x) &lt; girdSize&amp;&amp;abs(ingrid.y) &lt; girdSize)
+	{
+		color = BrushColor2;
+	}
+	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+}
+  </Code>
+  <Code Stage="End">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float4 color = BrushColor;
+	float2 m0 = float2(Parameters[0].x*1.0f,Parameters[0].x*1.0f);
+	float2 m1 = m0*0.5f;
+	float2 ingrid = position%m0-m1;
+	float girdSize=(Parameters[0].y+(position.x/Parameters[0].x)*Parameters[0].z*0.01f+(position.y/Parameters[0].x)*Parameters[0].w*0.01f)*0.5f;
+	if(abs(ingrid.x) &lt; girdSize&amp;&amp;abs(ingrid.y) &lt; girdSize)
+	{
+		color = BrushColor2;
+	}
+	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+}
+  </Code>
+</Brush>

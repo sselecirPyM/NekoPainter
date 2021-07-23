@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Brush>
+  <ParametersGroup>
+    <Name>DC Brush Spray</Name>
+    <Description></Description>
+    <Name Culture="zh-cn">画笔 喷枪（线性衰减）</Name>
+    <Description Culture="zh-cn"></Description>
+  </ParametersGroup>
+  <Code Stage="Begin">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	return bufferColor;
+}
+  </Code>
+  <Code Stage="Doing">
+float SprayPath(float2 p)
+{
+	float sl=length(p);
+	return p.x-(p.x*sl+p.y*p.y*log(p.x+sl))*0.5;
+}
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float4 color = BrushColor;
+	float2 mp = InputDatas[0].Position.xy - InputDatas[1].Position.xy;
+	float mrad = atan2(mp.y, mp.x);
+	float4x4 transform9 =
+	{
+		cos(mrad),-sin(mrad),0.0f,0.0f,
+		sin(mrad),cos(mrad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float4 rPos = mul(float4(position + float2(0.5f, 0.5f) - InputDatas[1].Position.xy, 0, 1), transform9);
+	float rSize = BrushSize * InputDatas[0].Pressure;
+	float rl = sqrt(saturate(1 - (rPos.y / rSize)*(rPos.y / rSize)));
+	float bx1=clamp(rPos.x/rSize,-rl,rl);
+	float bx2=clamp(rPos.x/rSize-length(mp)/rSize,-rl,rl);
+	float ss=SprayPath(float2(bx1,rPos.y/rSize))-SprayPath(float2(bx2,rPos.y/rSize));
+	color.a = (1 - pow(2.718281828f, (ss)*log(1.0f - color.a*0.99999f)));
+
+	if (abs(rPos.y) &lt;= rSize &amp;&amp; rPos.x &gt;= 0 &amp;&amp; rPos.x &lt;= length(mp) || distance(rPos, float2(0, 0))&lt;= rSize || distance(rPos, float2(length(mp), 0)) &lt;= rSize)
+	{
+		if (color.a &gt; 0.00000001f)
+		{
+			float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+			color = float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a) / aalpha + color.rgb*color.a / aalpha, aalpha);
+		}
+		else
+		{
+			color = bufferColor;
+		}
+	}
+	else
+	{
+		color = bufferColor;
+	}
+	return color;
+}
+  </Code>
+  <Code Stage="End">
+float SprayPath(float2 p)
+{
+	float sl=length(p);
+	return p.x-(p.x*sl+p.y*p.y*log(p.x+sl))*0.5;
+}
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float4 color = BrushColor;
+	float2 mp = InputDatas[0].Position.xy - InputDatas[1].Position.xy;
+	float mrad = atan2(mp.y, mp.x);
+	float4x4 transform9 =
+	{
+		cos(mrad),-sin(mrad),0.0f,0.0f,
+		sin(mrad),cos(mrad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float4 rPos = mul(float4(position + float2(0.5f, 0.5f) - InputDatas[1].Position.xy, 0, 1), transform9);
+	float rSize = BrushSize * InputDatas[0].Pressure;
+	float rl = sqrt(saturate(1 - (rPos.y / rSize)*(rPos.y / rSize)));
+	float bx1=clamp(rPos.x/rSize,-rl,rl);
+	float bx2=clamp(rPos.x/rSize-length(mp)/rSize,-rl,rl);
+	float ss=SprayPath(float2(bx1,rPos.y/rSize))-SprayPath(float2(bx2,rPos.y/rSize));
+	color.a = (1 - pow(2.718281828f, (ss)*log(1.0f - color.a*0.99999f)));
+
+	if (abs(rPos.y) &lt;= rSize &amp;&amp; rPos.x &gt;= 0 &amp;&amp; rPos.x &lt;= length(mp) || distance(rPos, float2(0, 0))&lt;= rSize || distance(rPos, float2(length(mp), 0)) &lt;= rSize)
+	{
+		if (color.a &gt; 0.00000001f)
+		{
+			float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+			color = float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a) / aalpha + color.rgb*color.a / aalpha, aalpha);
+		}
+		else
+		{
+			color = bufferColor;
+		}
+	}
+	else
+	{
+		color = bufferColor;
+	}
+	return color;
+}
+  </Code>
+</Brush>

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Brush>
+  <Parameter Index="0" Type="Slider" MaxValue="180" MinValue="-179">
+    <Name>X旋转</Name>
+    <Description>X旋转</Description>
+  </Parameter>
+  <Parameter Index="1" Type="Slider" MaxValue="90" MinValue="-90">
+    <Name>Y旋转</Name>
+    <Description>Y旋转</Description>
+  </Parameter>
+  <Parameter Index="15" Type="Slider" MaxValue="100" MinValue="0">
+    <Name>硬/软 画笔</Name>
+    <Description>画笔边缘的软硬程度。100为软画笔。</Description>
+  </Parameter>
+  <ParametersGroup>
+    <Name>DC Normal BrushH</Name>
+    <Description>法线画笔 硬边缘 路径积分模型</Description>
+  </ParametersGroup>
+  <ParametersGroup Parameter16="100">
+    <Name>DC Normal BrushS</Name>
+    <Description>法线画笔 软边缘 路径积分模型</Description>
+  </ParametersGroup>
+  <Code Stage="Begin">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	return bufferColor;
+}
+  </Code>
+  <Code Stage="Doing">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float2 rr=Parameters[0].xy*0.0174532925;
+	float4 color = float4(sin(rr.x)*cos(rr.y),sin(rr.y),cos(rr.x)*cos(rr.y),BrushColor.a);
+	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+}
+  </Code>
+  <Code Stage="End">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float2 rr=Parameters[0].xy*0.0174532925;
+	float4 color = float4(sin(rr.x)*cos(rr.y),sin(rr.y),cos(rr.x)*cos(rr.y),BrushColor.a);
+	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+}
+  </Code>
+</Brush>

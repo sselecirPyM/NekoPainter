@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Brush>
+  <Parameter Index="0">
+    <Name>间距</Name>
+    <Description>圆与圆之间的距离</Description>
+  </Parameter>
+  <Parameter Index="1">
+    <Name>大小</Name>
+    <Description>圆的大小</Description>
+  </Parameter>
+  <Parameter Index="2">
+    <Name>X方向变化率</Name>
+    <Description>X方向圆变化率</Description>
+  </Parameter>
+  <Parameter Index="3">
+    <Name>Y方向变化率</Name>
+    <Description>Y方向圆变化率</Description>
+  </Parameter>
+  <Parameter Index="4" Type="fTextBox">
+    <Name>旋转角</Name>
+    <Description>旋转的角度</Description>
+  </Parameter>
+  <Parameter Index="6" Type="fTextBox">
+    <Name>偏移X</Name>
+    <Description></Description>
+  </Parameter>
+  <Parameter Index="7" Type="fTextBox">
+    <Name>偏移Y</Name>
+    <Description></Description>
+  </Parameter>
+  <Parameter Index="15" Type="Slider" MaxValue="100" MinValue="0">
+    <Name>硬/软 画笔</Name>
+    <Description>画笔边缘的软硬程度。100为软画笔。</Description>
+  </Parameter>
+  <ParametersGroup Image="DC Ring2G.png" Parameter1="60" Parameter2="10" Parameter3="200" Parameter4="200">
+    <Name>Pattern-Ring2G</Name>
+    <Description></Description>
+    <Name Culture="zh-cn">图案-渐变圆2</Name>
+    <Description Culture="zh-cn">渐变圆平铺效果2。颜色2为圆内颜色。</Description>
+  </ParametersGroup>
+  <ParametersGroup Image="DC Ring2.png" Parameter1="60" Parameter2="20">
+    <Name>Pattern-Ring2</Name>
+    <Description></Description>
+    <Name Culture="zh-cn">图案-圆2</Name>
+    <Description Culture="zh-cn">圆平铺效果。颜色2为圆内颜色</Description>
+  </ParametersGroup>
+  <Code Stage="Begin">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	return bufferColor;
+}
+  </Code>
+  <Code Stage="Doing">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float4 color = BrushColor;
+	float2 m0 = float2(Parameters[0].x*1.0f,Parameters[0].x*1.0f);
+	float2 m1 = m0*0.5f;
+	float rad = asfloat(Parameters[1].x)*0.017453292f;
+	float4x4 transform0=
+	{
+		cos(rad),-sin(rad),0.0f,0.0f,
+		sin(rad),cos(rad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float2 xPos=mul(position-asfloat(Parameters[1].zw),transform0).xy;
+	float2 ingrid = (xPos%m0+m0)%m0-m1;
+	float ringSize=(Parameters[0].y+(xPos.x/Parameters[0].x)*Parameters[0].z*0.01f+(xPos.y/Parameters[0].x)*Parameters[0].w*0.01f)*0.5f;
+	if(length(ingrid) &lt; ringSize)
+	{
+		color = BrushColor2;
+	}
+	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+}
+  </Code>
+  <Code Stage="End">
+float4 brush(float4 bufferColor, uint2 position)
+{
+	float4 color = BrushColor;
+	float2 m0 = float2(Parameters[0].x*1.0f,Parameters[0].x*1.0f);
+	float2 m1 = m0*0.5f;
+	float rad = asfloat(Parameters[1].x)*0.017453292f;
+	float4x4 transform0=
+	{
+		cos(rad),-sin(rad),0.0f,0.0f,
+		sin(rad),cos(rad),0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
+	};
+	float2 xPos=mul(position-asfloat(Parameters[1].zw),transform0).xy;
+	float2 ingrid = (xPos%m0+m0)%m0-m1;
+	float ringSize=(Parameters[0].y+(xPos.x/Parameters[0].x)*Parameters[0].z*0.01f+(xPos.y/Parameters[0].x)*Parameters[0].w*0.01f)*0.5f;
+	if(length(ingrid) &lt; ringSize)
+	{
+		color = BrushColor2;
+	}
+	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+}
+  </Code>
+</Brush>

@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:mobile="http://schemas.microsoft.com/appx/manifest/mobile/windows10" xmlns:uap6="http://schemas.microsoft.com/appx/manifest/uap/windows10/6" xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4" IgnorableNamespaces="uap mp mobile uap6">
+  <Identity Name="c08e2ae1-ee6a-4961-91be-27c56f74050f" Publisher="CN=eveev" Version="1.0.14.0" />
+  <mp:PhoneIdentity PhoneProductId="c08e2ae1-ee6a-4961-91be-27c56f74050f" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Properties>
+    <DisplayName>Direct Canvas</DisplayName>
+    <PublisherDisplayName>eveev</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="Direct_Canvas.App" desktop4:SupportsMultipleInstances="true">
+      <uap:VisualElements DisplayName="Direct Canvas" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Direct Canvas是一个功能强大的绘画软件，你可以通过编写hlsl代码控制图层与笔刷的表现，让你的创意不受制于软件功能的限制。只需几行代码，每一个像素就尽在掌握之中，不再限于圆与规。" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square310x310Logo="Assets\LargeTile.png" Square71x71Logo="Assets\SmallTile.png">
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.fileOpenPicker">
+          <uap:FileOpenPicker>
+            <uap:SupportedFileTypes>
+              <uap:SupportsAnyFileType />
+            </uap:SupportedFileTypes>
+          </uap:FileOpenPicker>
+        </uap:Extension>
+        <uap:Extension Category="windows.fileSavePicker">
+          <uap:FileSavePicker>
+            <uap:SupportedFileTypes>
+              <uap:SupportsAnyFileType />
+            </uap:SupportedFileTypes>
+          </uap:FileSavePicker>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>

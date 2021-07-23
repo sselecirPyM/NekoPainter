@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BlendMode Guid="26284462-2cae-402f-84d4-d3786aa61a5f">
+  <Name>Transfer</Name>
+  <Description></Description>
+  <Name Culture="zh-cn">转移</Name>
+  <Description Culture="zh-cn">从引用缓冲区获取像素。</Description>
+  <Code>
+float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
+{
+  float4 color = float4(RefTexture[position].rgb,RefTexture[position].a*layoutColor.a);
+  if(color.a &gt; 0.000001f)
+  {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    return float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a)/aalpha + color.rgb*color.a/aalpha,saturate(aalpha));
+  }
+  return bufferColor;
+}
+  </Code>
+</BlendMode>

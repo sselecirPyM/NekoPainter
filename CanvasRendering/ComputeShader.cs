@@ -47,6 +47,11 @@ namespace CanvasRendering
             DeviceResources.d3dContext.CSSetConstantBuffer(slot, constantBuffer.m_buffer);
         }
 
+        public void SetCBV(ConstantBuffer constantBuffer, int slot, int ofs, int size)
+        {
+            DeviceResources.d3dContext.CSSetConstantBuffer1(slot, constantBuffer.m_buffer, new[] { ofs / 16 }, new[] { size / 16 });
+        }
+
         public void Dispatch(int x, int y, int z)
         {
             DeviceResources.d3dContext.CSSetShader(computeShader);

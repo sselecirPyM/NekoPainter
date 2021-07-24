@@ -149,7 +149,10 @@ namespace DirectCanvas.UI
                     var layout = layouts[i];
 
                     bool selected = layout == canvasCase.SelectedLayout;
-                    ImGui.Selectable(string.Format("{0}###{1}", layout.Name, layout.guid), ref selected);
+                    //if (ImGui.Button(string.Format("{0}###0{1}", layout.Hidden ? "显示" : "隐藏", layout.guid)))
+                    //    layout.Hidden = !layout.Hidden;
+                    //ImGui.SameLine();
+                    ImGui.Selectable(string.Format("{0}###1{1}", layout.Name, layout.guid), ref selected);
                     if (selected)
                     {
                         if (layout is Layout.StandardLayout standardLayout && layout != canvasCase.SelectedLayout)

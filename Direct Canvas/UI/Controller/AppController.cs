@@ -25,7 +25,7 @@ namespace DirectCanvas.UI.Controller
         {
             if (Instance != null) throw new Exception("InnerERR: Too Many Controller");
             Instance = this;
-            LoadResourceTask = LoadResourceFun().AsAsyncAction();
+            LoadResourceTask = LoadResourceFun();
 
             fileOpenPicker.FileTypeFilter.Add(".bmp");
             fileOpenPicker.FileTypeFilter.Add(".jpg");
@@ -124,7 +124,7 @@ namespace DirectCanvas.UI.Controller
             {
                 ViewUIs.InputProcess();
             }
-            if (LoadResourceTask.Status == AsyncStatus.Completed)
+            if (LoadResourceTask.Status == TaskStatus.RanToCompletion)
             {
                 ViewUIs.Draw();
             }
@@ -170,7 +170,7 @@ namespace DirectCanvas.UI.Controller
 
                 graphicsContext.ClearScreen();
                 dcUI_Canvas.RenderContent();
-                if (LoadResourceTask.Status == AsyncStatus.Completed)
+                if (LoadResourceTask.Status == TaskStatus.RanToCompletion)
                 {
                     ViewUIs.Render();
                 }
@@ -224,7 +224,7 @@ namespace DirectCanvas.UI.Controller
         public DirectCanvasDocument CurrentDCDocument { get; private set; }
 
         #region Resources
-        IAsyncAction LoadResourceTask;
+        Task LoadResourceTask;
         async Task LoadResourceFun()
         {
             await Task.WhenAll(Brush.LoadStaticResourcesAsync(), BlendMode.LoadStaticResourcesAsync());
@@ -264,7 +264,7 @@ namespace DirectCanvas.UI.Controller
 
         async Task ApplyAllResources()
         {
-            if (LoadResourceTask.Status != AsyncStatus.Completed)
+            if (LoadResourceTask.Status != TaskStatus.RanToCompletion)
                 await LoadResourceTask;
             TiledTexture.Texture2TT = computeShaders["Texture2TT"];
             TiledTexture.TextureEmptyTest = computeShaders["TextureEmptyTest"];

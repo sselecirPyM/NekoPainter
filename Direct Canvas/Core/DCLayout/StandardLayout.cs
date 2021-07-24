@@ -41,10 +41,7 @@ namespace DirectCanvas.Layout
             if (activated) return;
             activated = true;
             PaintingTexture.Clear();
-            if (tiledTexture != null)
-            {
-                tiledTexture.UnzipToTexture(PaintingTexture);
-            }
+            tiledTexture?.UnzipToTexture(PaintingTexture);
         }
         public void Deactivate(RenderTexture PaintingTexture)
         {
@@ -59,14 +56,14 @@ namespace DirectCanvas.Layout
         {
             if (activated)
             {
-                before = new TiledTexture(PaintingTexture, tt.TilesList);
+                before = new TiledTexture(PaintingTexture, tt.TilePositionList);
                 tt.UnzipToTexture(PaintingTexture);
             }
             else if (tiledTexture != null && tiledTexture.tilesCount > 0)
             {
                 PaintingTextureTemp.Clear();
                 tiledTexture.UnzipToTexture(PaintingTextureTemp);
-                before = new TiledTexture(PaintingTextureTemp, tt.TilesList);
+                before = new TiledTexture(PaintingTextureTemp, tt.TilePositionList);
                 tt.UnzipToTexture(PaintingTextureTemp);
 
                 tiledTexture?.Dispose();
@@ -75,7 +72,7 @@ namespace DirectCanvas.Layout
             else
             {
                 PaintingTextureTemp.Clear();
-                before = new TiledTexture(PaintingTextureTemp, tt.TilesList);
+                before = new TiledTexture(PaintingTextureTemp, tt.TilePositionList);
                 tiledTexture = new TiledTexture(tt);
             }
         }

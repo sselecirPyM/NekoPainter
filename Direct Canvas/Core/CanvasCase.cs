@@ -204,6 +204,7 @@ namespace DirectCanvas
         public int Height { get; private set; }
         public readonly ObservableCollection<PictureLayout> Layouts;
         public readonly Dictionary<System.Guid, PictureLayout> LayoutsMap = new Dictionary<System.Guid, PictureLayout>();
+        public readonly Dictionary<System.Guid, TiledTexture> LayoutTex = new Dictionary<System.Guid, TiledTexture>();
         /// <summary>
         /// 图像渲染在此进行，并代表图像最终渲染结果。
         /// </summary>

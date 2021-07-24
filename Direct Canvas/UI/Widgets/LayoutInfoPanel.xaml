@@ -25,7 +25,7 @@
                 <!--<TextBox x:Name="LBNum" Header="渲染缓冲区编号" Text="{x:Bind CurrentPictureLayout.RenderBufferNum,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" TextChanged="TextChanged"/>-->
                 <!--<TextBox x:Name="LRBNum" Header="引用缓冲区编号" Text="{x:Bind CurrentPictureLayout.RefBufferNum,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" TextChanged="TextChanged"/>-->
                 <TextBlock x:Name="title1" Text="颜色" Visibility="Collapsed"/>
-                <ColorPicker x:Name="colorPicker1" IsAlphaEnabled="True" Style="{StaticResource DCColorPickerStyle1}" Visibility="Collapsed" ColorChanged="ColorPicker1_ColorChanged"/>
+                <ColorPicker x:Name="colorPicker1" IsAlphaEnabled="True" Visibility="Collapsed" ColorChanged="ColorPicker1_ColorChanged"/>
                 <ListView x:Name="ParameterListView"
                                   Header="混合模式自定义参数"
                                   Grid.Row="1"

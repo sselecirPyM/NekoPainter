@@ -40,7 +40,6 @@ namespace DirectCanvas.FileFormat
         public StorageFolder animationsFolder;
         public StorageFolder layoutsFolder;
 
-        //Dictionary<Guid, Core.BlendMode> blendmodesMap = new Dictionary<Guid, Core.BlendMode>();
         Dictionary<Guid, StorageFile> layoutFileMap = new Dictionary<Guid, StorageFile>();
 
         Guid defaultBlendModeGuid;
@@ -90,13 +89,16 @@ namespace DirectCanvas.FileFormat
             {
                 PictureLayout layout = canvasCase.Layouts[ia];
                 if (layout is StandardLayout)
+                {
                     writer.WriteStartElement("Layout");
+
+                }
                 else if (layout is PureLayout pureLayout)
                 {
                     writer.WriteStartElement("PureLayout");
-                    System.Numerics.Vector4 color = pureLayout.Color;
-                    writer.WriteAttributeString("Color", string.Format("{0} {1} {2} {3}", color.X, color.Y, color.Z, color.W));
                 }
+                System.Numerics.Vector4 color = layout.Color;
+                writer.WriteAttributeString("Color", string.Format("{0} {1} {2} {3}", color.X, color.Y, color.Z, color.W));
                 writer.WriteAttributeString("Name", layout.Name);
                 writer.WriteAttributeString("Guid", layout.guid.ToString());
                 writer.WriteAttributeString("Hidden", layout.Hidden.ToString());
@@ -176,32 +178,48 @@ namespace DirectCanvas.FileFormat
                     switch (xmlReader.Name)
                     {
                         case "Layout":
-                            guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                            StandardLayout standardLayout = (StandardLayout)canvasCase.LayoutsMap[guid];
-                            LoadLayoutInfo(xmlReader, standardLayout);
-
-                            canvasCase.Layouts.Add(standardLayout);
-                            break;
-                        case "PureLayout":
-                            guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                            if (guid == Guid.Empty)
-                                guid = Guid.NewGuid();
-                            PureLayout pureLayout = new PureLayout() { guid = guid };
-                            LoadLayoutInfo(xmlReader, pureLayout);
-                            string colorString = xmlReader.GetAttribute("Color");
-                            if (!string.IsNullOrEmpty(colorString))
                             {
-                                string[] colorG = colorString.Split(" ");
-                                float.TryParse(colorG[0], out float cR);
-                                float.TryParse(colorG[1], out float cG);
-                                float.TryParse(colorG[2], out float cB);
-                                float.TryParse(colorG[3], out float cA);
-                                pureLayout.Color = new System.Numerics.Vector4(cR, cG, cB, cA);
-                            }
 
-                            canvasCase.LayoutsMap.Add(guid, pureLayout);
-                            canvasCase.Layouts.Add(pureLayout);
-                            break;
+                                guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
+                                StandardLayout standardLayout = (StandardLayout)canvasCase.LayoutsMap[guid];
+                                LoadLayoutInfo(xmlReader, standardLayout);
+
+                                string colorString = xmlReader.GetAttribute("Color");
+                                if (!string.IsNullOrEmpty(colorString))
+                                {
+                                    string[] colorG = colorString.Split(" ");
+                                    float.TryParse(colorG[0], out float cR);
+                                    float.TryParse(colorG[1], out float cG);
+                                    float.TryParse(colorG[2], out float cB);
+                                    float.TryParse(colorG[3], out float cA);
+                                    standardLayout.Color = new System.Numerics.Vector4(cR, cG, cB, cA);
+                                }
+
+                                canvasCase.Layouts.Add(standardLayout);
+                                break;
+                            }
+                        case "PureLayout":
+                            {
+                                guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
+                                if (guid == Guid.Empty)
+                                    guid = Guid.NewGuid();
+                                PureLayout pureLayout = new PureLayout() { guid = guid };
+                                LoadLayoutInfo(xmlReader, pureLayout);
+                                string colorString = xmlReader.GetAttribute("Color");
+                                if (!string.IsNullOrEmpty(colorString))
+                                {
+                                    string[] colorG = colorString.Split(" ");
+                                    float.TryParse(colorG[0], out float cR);
+                                    float.TryParse(colorG[1], out float cG);
+                                    float.TryParse(colorG[2], out float cB);
+                                    float.TryParse(colorG[3], out float cA);
+                                    pureLayout.Color = new System.Numerics.Vector4(cR, cG, cB, cA);
+                                }
+
+                                canvasCase.LayoutsMap.Add(guid, pureLayout);
+                                canvasCase.Layouts.Add(pureLayout);
+                                break;
+                            }
                     }
                 }
             }
@@ -238,12 +256,14 @@ namespace DirectCanvas.FileFormat
         private async Task LoadBrushes()
         {
             IReadOnlyList<StorageFile> brushFiles = await brushesFolder.GetFilesAsync();
+
+
             List<Task> asyncOperations = new List<Task>();
             List<Core.Brush> brushesList = new List<Core.Brush>();
             foreach (StorageFile brushFile in brushFiles)
             {
                 if (!".dcbf".Equals(brushFile.FileType, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var op2 = Core.Brush.LoadFromFileAsync(canvasCase.DeviceResources, brushFile).AsTask().ContinueWith((_) =>
+                var op2 = Core.Brush.LoadFromFileAsync(canvasCase.DeviceResources, brushFile).ContinueWith((_) =>
                    {
                        lock (brushesList)
                        {

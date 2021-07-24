@@ -195,7 +195,6 @@
     <Compile Include="UICommand\Command_AniRailMute.cs" />
     <Compile Include="UICommand\Command_LayoutHidden.cs" />
     <Compile Include="UICommand\Command_New.cs" />
-    <Compile Include="GameContent\GameContent.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -207,7 +206,6 @@
       <DependentUpon>AnimationTagViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Controller\AppController.cs" />
-    <Compile Include="UI\DCColorPicker.cs" />
     <Compile Include="UI\DCUI_Canvas.xaml.cs">
       <DependentUpon>DCUI_Canvas.xaml</DependentUpon>
     </Compile>
@@ -223,9 +221,6 @@
       <DependentUpon>TimelineViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\ViewUIs.cs" />
-    <Compile Include="UI\Widgets\BlendModePanel.xaml.cs">
-      <DependentUpon>BlendModePanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UI\Widgets\DCUIControl_Parameter.xaml.cs">
       <DependentUpon>DCUIControl_Parameter.xaml</DependentUpon>
     </Compile>
@@ -301,7 +296,7 @@
     <Content Include="DCResources\Base\Brushes\DC Rhombus1.dcbf" />
     <Content Include="DCResources\Base\Brushes\DC Ring1.dcbf" />
     <Content Include="DCResources\Base\Brushes\DC Ring2.dcbf" />
-    <Content Include="DCResources\Base\BlendModes\Transfer.dcbm" />
+    <Content Include="DCResources\Plugin\BlendModes\Transfer.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\NormalTransfer.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
@@ -389,10 +384,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Styles\DCColorPickerStyle.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -422,10 +413,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\AnimationControls\TimelineViewer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Widgets\BlendModePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

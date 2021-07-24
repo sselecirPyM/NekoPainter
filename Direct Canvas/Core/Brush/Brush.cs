@@ -73,141 +73,137 @@ namespace DirectCanvas.Core
             componentCode1 = await DCUtil.ReadStringAsync("Shaders\\brush_c1.hlsl");
         }
 
-        public static IAsyncOperation<Brush[]> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
+        public static async Task<Brush[]> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
         {
-            return Task.Run(async () =>
+            Stream stream = (await file.OpenAsync(FileAccessMode.Read)).AsStream();
+            XmlReaderSettings setting1 = new XmlReaderSettings();
+            setting1.IgnoreComments = true;
+            XmlReader xmlReader = XmlReader.Create(stream, setting1);
+            Dictionary<string, string> code = new Dictionary<string, string>();
+            List<CreateBrushHelper> createBrushHelpers = new List<CreateBrushHelper>();
+            List<DCParameter> dcBrushParameters = new List<DCParameter>();
+            bool isSelectionBrush = false;
+            for (int i = 0; i < c_parameterCount; i++)
             {
-                Stream stream = (await file.OpenAsync(FileAccessMode.Read)).AsStream();
-                XmlReaderSettings setting1 = new XmlReaderSettings();
-                setting1.IgnoreComments = true;
-                XmlReader xmlReader = XmlReader.Create(stream, setting1);
-                Dictionary<string, string> code = new Dictionary<string, string>();
-                List<CreateBrushHelper> createBrushHelpers = new List<CreateBrushHelper>();
-                List<DCParameter> dcBrushParameters = new List<DCParameter>();
-                bool isSelectionBrush = false;
-                for (int i = 0; i < c_parameterCount; i++)
+                dcBrushParameters.Add(new DCParameter() { Name = string.Format("参数{0}", i + 1) });
+            }
+            while (xmlReader.Read())
+            {
+                if (xmlReader.NodeType == XmlNodeType.Element)
                 {
-                    dcBrushParameters.Add(new DCParameter() { Name = string.Format("参数{0}", i + 1) });
-                }
-                while (xmlReader.Read())
-                {
-                    if (xmlReader.NodeType == XmlNodeType.Element)
+                    switch (xmlReader.Name)
                     {
-                        switch (xmlReader.Name)
-                        {
-                            case "Brush":
-                                bool.TryParse(xmlReader.GetAttribute("SelectionBrush"), out isSelectionBrush);
-                                break;
-                            case "Code":
-                                string stage = xmlReader.GetAttribute("Stage");
-                                code[stage] = xmlReader.ReadElementContentAsString();
-                                break;
-                            case "Parameter":
-                                int.TryParse(xmlReader.GetAttribute("Index"), out int index);
-                                dcBrushParameters[index].Type = xmlReader.GetAttribute("Type");
-                                if (string.IsNullOrEmpty(dcBrushParameters[index].Type))
-                                    dcBrushParameters[index].Type = "TextBox";
-                                if (int.TryParse(xmlReader.GetAttribute("MaxValue"), out int maxValue)) dcBrushParameters[index].MaxValue = maxValue;
-                                else dcBrushParameters[index].MaxValue = int.MaxValue;
-                                if (int.TryParse(xmlReader.GetAttribute("MinValue"), out int minValue)) dcBrushParameters[index].MinValue = minValue;
-                                else dcBrushParameters[index].MinValue = int.MinValue;
-                                while (xmlReader.Read())
+                        case "Brush":
+                            bool.TryParse(xmlReader.GetAttribute("SelectionBrush"), out isSelectionBrush);
+                            break;
+                        case "Code":
+                            string stage = xmlReader.GetAttribute("Stage");
+                            code[stage] = xmlReader.ReadElementContentAsString();
+                            break;
+                        case "Parameter":
+                            int.TryParse(xmlReader.GetAttribute("Index"), out int index);
+                            dcBrushParameters[index].Type = xmlReader.GetAttribute("Type");
+                            if (string.IsNullOrEmpty(dcBrushParameters[index].Type))
+                                dcBrushParameters[index].Type = "TextBox";
+                            if (int.TryParse(xmlReader.GetAttribute("MaxValue"), out int maxValue)) dcBrushParameters[index].MaxValue = maxValue;
+                            else dcBrushParameters[index].MaxValue = int.MaxValue;
+                            if (int.TryParse(xmlReader.GetAttribute("MinValue"), out int minValue)) dcBrushParameters[index].MinValue = minValue;
+                            else dcBrushParameters[index].MinValue = int.MinValue;
+                            while (xmlReader.Read())
+                            {
+                                if (xmlReader.NodeType == XmlNodeType.Element)
                                 {
-                                    if (xmlReader.NodeType == XmlNodeType.Element)
+                                    switch (xmlReader.Name)
                                     {
-                                        switch (xmlReader.Name)
-                                        {
-                                            case "Name":
-                                                if (CultureCheck2(dcBrushParameters[index], xmlReader.GetAttribute("Culture")))
-                                                {
-                                                    dcBrushParameters[index].Name = xmlReader.ReadElementContentAsString();
-                                                }
-                                                break;
-                                            case "Description":
-                                                if (CultureCheck2(dcBrushParameters[index], xmlReader.GetAttribute("Culture")))
-                                                {
-                                                    dcBrushParameters[index].Description = xmlReader.ReadElementContentAsString();
-                                                }
-                                                break;
-                                        }
+                                        case "Name":
+                                            if (CultureCheck2(dcBrushParameters[index], xmlReader.GetAttribute("Culture")))
+                                            {
+                                                dcBrushParameters[index].Name = xmlReader.ReadElementContentAsString();
+                                            }
+                                            break;
+                                        case "Description":
+                                            if (CultureCheck2(dcBrushParameters[index], xmlReader.GetAttribute("Culture")))
+                                            {
+                                                dcBrushParameters[index].Description = xmlReader.ReadElementContentAsString();
+                                            }
+                                            break;
                                     }
-                                    else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "Parameter")
-                                        break;
                                 }
-                                break;
-                            case "ParametersGroup":
-                                CreateBrushHelper createBrushHelper = new CreateBrushHelper();
-                                createBrushHelper.ImagePath = xmlReader.GetAttribute("Image");
-                                for (int i = 0; i < c_refTextureCount; i++)
-                                    createBrushHelper.refTexturePath[i] = xmlReader.GetAttribute(string.Format("RefTexture{0}", i + 1));
-                                if (!float.TryParse(xmlReader.GetAttribute("DefaultSize"), out createBrushHelper.BrushSize)) createBrushHelper.BrushSize = 40.0f;
-                                for (int i = 0; i < c_parameterCount; i++)
+                                else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "Parameter")
+                                    break;
+                            }
+                            break;
+                        case "ParametersGroup":
+                            CreateBrushHelper createBrushHelper = new CreateBrushHelper();
+                            createBrushHelper.ImagePath = xmlReader.GetAttribute("Image");
+                            for (int i = 0; i < c_refTextureCount; i++)
+                                createBrushHelper.refTexturePath[i] = xmlReader.GetAttribute(string.Format("RefTexture{0}", i + 1));
+                            if (!float.TryParse(xmlReader.GetAttribute("DefaultSize"), out createBrushHelper.BrushSize)) createBrushHelper.BrushSize = 40.0f;
+                            for (int i = 0; i < c_parameterCount; i++)
+                            {
+                                int.TryParse(xmlReader.GetAttribute(string.Format("Parameter{0}", i + 1)), out createBrushHelper.parametersValue[i]);
+                            }
+                            while (xmlReader.Read())
+                            {
+                                if (xmlReader.NodeType == XmlNodeType.Element)
                                 {
-                                    int.TryParse(xmlReader.GetAttribute(string.Format("Parameter{0}", i + 1)), out createBrushHelper.parametersValue[i]);
-                                }
-                                while (xmlReader.Read())
-                                {
-                                    if (xmlReader.NodeType == XmlNodeType.Element)
+                                    switch (xmlReader.Name)
                                     {
-                                        switch (xmlReader.Name)
-                                        {
-                                            case "Name":
-                                                if (CultureCheck1(createBrushHelper, xmlReader.GetAttribute("Culture")))
-                                                {
-                                                    createBrushHelper.Name = xmlReader.ReadElementContentAsString();
-                                                }
-                                                continue;
-                                            case "Description":
-                                                if (CultureCheck1(createBrushHelper, xmlReader.GetAttribute("Culture")))
-                                                {
-                                                    createBrushHelper.Description = xmlReader.ReadElementContentAsString();
-                                                }
-                                                continue;
-                                        }
-                                        xmlReader.Skip();
+                                        case "Name":
+                                            if (CultureCheck1(createBrushHelper, xmlReader.GetAttribute("Culture")))
+                                            {
+                                                createBrushHelper.Name = xmlReader.ReadElementContentAsString();
+                                            }
+                                            continue;
+                                        case "Description":
+                                            if (CultureCheck1(createBrushHelper, xmlReader.GetAttribute("Culture")))
+                                            {
+                                                createBrushHelper.Description = xmlReader.ReadElementContentAsString();
+                                            }
+                                            continue;
                                     }
-                                    else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "ParametersGroup")
-                                        break;
+                                    xmlReader.Skip();
                                 }
-                                createBrushHelpers.Add(createBrushHelper);
-                                break;
-                        }
+                                else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "ParametersGroup")
+                                    break;
+                            }
+                            createBrushHelpers.Add(createBrushHelper);
+                            break;
                     }
                 }
-                string x = componentCode1;
-                var t21 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Begin"])));
-                var t22 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Doing"])));
-                var t23 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["End"])));
+            }
+            string x = componentCode1;
+            var t21 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Begin"])));
+            var t22 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Doing"])));
+            var t23 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["End"])));
 
-                Brush[] brushes = new Brush[createBrushHelpers.Count];
-                for (int i = 0; i < createBrushHelpers.Count; i++)
+            Brush[] brushes = new Brush[createBrushHelpers.Count];
+            for (int i = 0; i < createBrushHelpers.Count; i++)
+            {
+                Brush brush = new Brush(t21, t22, t23);
+                brush.Name = createBrushHelpers[i].Name;
+                brush.Description = createBrushHelpers[i].Description;
+                brush.ImagePath = createBrushHelpers[i].ImagePath;
+                brush.Size = createBrushHelpers[i].BrushSize;
+                for (int j = 0; j < c_refTextureCount; j++)
+                    brush.RefTexturePath[j] = createBrushHelpers[i].refTexturePath[j];
+                for (int j = 0; j < c_parameterCount; j++)
                 {
-                    Brush brush = new Brush(t21, t22, t23);
-                    brush.Name = createBrushHelpers[i].Name;
-                    brush.Description = createBrushHelpers[i].Description;
-                    brush.ImagePath = createBrushHelpers[i].ImagePath;
-                    brush.Size = createBrushHelpers[i].BrushSize;
-                    for (int j = 0; j < c_refTextureCount; j++)
-                        brush.RefTexturePath[j] = createBrushHelpers[i].refTexturePath[j];
-                    for (int j = 0; j < c_parameterCount; j++)
-                    {
-                        brush.Parameters[j].Name = dcBrushParameters[j].Name;
-                        brush.Parameters[j].Description = dcBrushParameters[j].Description;
-                        brush.Parameters[j].Type = dcBrushParameters[j].Type;
-                        brush.Parameters[j].MaxValue = dcBrushParameters[j].MaxValue;
-                        brush.Parameters[j].MinValue = dcBrushParameters[j].MinValue;
-                        brush.Parameters[j].Value = createBrushHelpers[i].parametersValue[j];
-                    }
-                    brushes[i] = brush;
+                    brush.Parameters[j].Name = dcBrushParameters[j].Name;
+                    brush.Parameters[j].Description = dcBrushParameters[j].Description;
+                    brush.Parameters[j].Type = dcBrushParameters[j].Type;
+                    brush.Parameters[j].MaxValue = dcBrushParameters[j].MaxValue;
+                    brush.Parameters[j].MinValue = dcBrushParameters[j].MinValue;
+                    brush.Parameters[j].Value = createBrushHelpers[i].parametersValue[j];
                 }
-                return brushes;
-            }).AsAsyncOperation();
+                brushes[i] = brush;
+            }
+            return brushes;
         }
 
-        public IAsyncAction SaveToFileAsync(StorageFile file)
+        public async Task SaveToFileAsync(StorageFile file)
         {
 
-            return null;
         }
 
         public void Dispose()

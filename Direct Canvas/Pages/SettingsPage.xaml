@@ -33,11 +33,8 @@
                 <StackPanel>
                     <!--<UI:DCColorPicker Width="200" Height="500" Header="Text"/>-->
                     <TextBlock Text="背景颜色"/>
-                    <ColorPicker x:Name="BackgroundColorPicker" Style="{StaticResource DCColorPickerStyle1}" HorizontalAlignment="Left" ColorChanged="ColorPicker_ColorChanged"/>
+                    <ColorPicker x:Name="BackgroundColorPicker" HorizontalAlignment="Left" ColorChanged="ColorPicker_ColorChanged"/>
                 </StackPanel>
-            </PivotItem>
-            <PivotItem Header="测试">
-                <UI:TimelineViewer/>
             </PivotItem>
         </Pivot>
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10" HorizontalAlignment="Right" >

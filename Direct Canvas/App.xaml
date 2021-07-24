@@ -7,7 +7,6 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Styles/DCColorPickerStyle.xaml"/>
                 <ResourceDictionary Source="/Styles/FloatingPanelStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

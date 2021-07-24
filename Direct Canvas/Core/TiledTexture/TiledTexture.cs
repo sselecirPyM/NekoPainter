@@ -31,7 +31,7 @@ namespace DirectCanvas
         //public Dictionary<Int2,int> TilesStatus;
         public TileIndexCollection TilesStatus;
 
-        public List<Int2> TilesList;
+        public List<Int2> TilePositionList;
 
         public TiledTexture(RenderTexture tex)
         {
@@ -51,31 +51,31 @@ namespace DirectCanvas
             TextureEmptyTest.Dispatch(x, y, 1);
             tResult.GetData<int>(oData);
             tResult.Dispose();
-            TilesList = new List<Int2>();
+            TilePositionList = new List<Int2>();
             for (int i = 0; i < tilesmax; i++)
             {
                 if (oData[i] != 0)
                 {
                     Int2 a = new Int2((i % x2) * 8, (i / x2) * 8);
-                    TilesList.Add(a);
+                    TilePositionList.Add(a);
                 }
             }
-            tilesCount = TilesList.Count;
+            tilesCount = TilePositionList.Count;
             if (tilesCount == 0) return;
 
             BlocksData = new ComputeBuffer(tex.GetDeviceResources(), tilesCount, 1024);
 
-            BlocksOffsetsData = new ComputeBuffer(tex.GetDeviceResources(), tilesCount, 8, TilesList.ToArray());
+            BlocksOffsetsData = new ComputeBuffer(tex.GetDeviceResources(), tilesCount, 8, TilePositionList.ToArray());
 
             Texture2TT.SetSRV(tex, 0);
             Texture2TT.SetSRV(BlocksOffsetsData, 1);
             Texture2TT.SetUAV(BlocksData, 0);
             Texture2TT.Dispatch(1, 1, (tilesCount + 15) / 16);
-            tileRect = new TileRect(TilesList);
+            tileRect = new TileRect(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect);
-            for (int i = 0; i < TilesList.Count; i++)
+            for (int i = 0; i < TilePositionList.Count; i++)
             {
-                TilesStatus.Add(TilesList[i], i);
+                TilesStatus.Add(TilePositionList[i], i);
             }
         }
         public TiledTexture(RenderTexture tex, List<Int2> tiles)
@@ -89,12 +89,12 @@ namespace DirectCanvas
             Texture2TT.SetUAV(BlocksData, 0);
             Texture2TT.Dispatch(1, 1, (tilesCount + 15) / 16);
 
-            TilesList = new List<Int2>(tiles);
-            tileRect = new TileRect(TilesList);
+            TilePositionList = new List<Int2>(tiles);
+            tileRect = new TileRect(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect);
-            for (int i = 0; i < TilesList.Count; i++)
+            for (int i = 0; i < TilePositionList.Count; i++)
             {
-                TilesStatus.Add(TilesList[i], i);
+                TilesStatus.Add(TilePositionList[i], i);
             }
         }
 
@@ -104,14 +104,14 @@ namespace DirectCanvas
             tileRect = tiledTexture.tileRect;
             if (tiledTexture.BlocksData == null)
             {
-                TilesList = new List<Int2>(1);
+                TilePositionList = new List<Int2>(1);
                 TilesStatus = new TileIndexCollection(new TileRect());
                 tilesCount = 0;
             }
             else
             {
                 tilesCount = tiledTexture.tilesCount;
-                TilesList = new List<Int2>(tiledTexture.TilesList);
+                TilePositionList = new List<Int2>(tiledTexture.TilePositionList);
                 TilesStatus = new TileIndexCollection(tiledTexture.TilesStatus);
                 BlocksData = new ComputeBuffer(tiledTexture.BlocksData);
                 BlocksOffsetsData = new ComputeBuffer(tiledTexture.BlocksOffsetsData);
@@ -122,7 +122,7 @@ namespace DirectCanvas
         {
             deviceResources = tiledTexture.deviceResources;
             tilesCount = tiles.Count;
-            TilesList = new List<Int2>(tiles);
+            TilePositionList = new List<Int2>(tiles);
             List<int> indexs = new List<int>();
             if (tilesCount == 0)
             {
@@ -165,11 +165,11 @@ namespace DirectCanvas
                 TTPartCopy.Dispatch(1, 1, (tilesCount + 15) / 16);
                 indicates.Dispose();
             }
-            tileRect = new TileRect(TilesList);
+            tileRect = new TileRect(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect);
-            for (int i = 0; i < TilesList.Count; i++)
+            for (int i = 0; i < TilePositionList.Count; i++)
             {
-                TilesStatus.Add(TilesList[i], i);
+                TilesStatus.Add(TilePositionList[i], i);
             }
         }
 
@@ -184,20 +184,20 @@ namespace DirectCanvas
         {
             this.deviceResources = deviceResources;
             tilesCount = offsetsData.Length / 8;
-            TilesList = new List<Int2>(tilesCount);
+            TilePositionList = new List<Int2>(tilesCount);
             if (tilesCount == 0) return;
             for (int i = 0; i < tilesCount; i++)
             {
                 Int2 vector2 = new Int2(System.BitConverter.ToInt32(offsetsData, i * 8), System.BitConverter.ToInt32(offsetsData, i * 8 + 4));
-                TilesList.Add(vector2);
+                TilePositionList.Add(vector2);
             }
             BlocksData = new ComputeBuffer(deviceResources, tilesCount, 1024, data);
             BlocksOffsetsData = new ComputeBuffer(deviceResources, tilesCount, 8, offsetsData);
-            tileRect = new TileRect(TilesList);
+            tileRect = new TileRect(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect);
-            for (int i = 0; i < TilesList.Count; i++)
+            for (int i = 0; i < TilePositionList.Count; i++)
             {
-                TilesStatus.Add(TilesList[i], i);
+                TilesStatus.Add(TilePositionList[i], i);
             }
         }
 

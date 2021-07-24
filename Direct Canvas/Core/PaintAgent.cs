@@ -210,11 +210,9 @@ namespace DirectCanvas
             rect = new TileRect() { minX = minx, minY = miny, maxX = maxx + 32, maxY = maxy + 32 };
 
             Vector2 NS2E = start - end;
-            Vector2 OSS = new Vector2(16.0f, 16.0f) - start;
             Vector2 OSS2 = new Vector2(4.0f, 4.0f) - start;
             Vector2 normalizedRS2E = Vector2.Normalize(new Vector2(NS2E.Y, -NS2E.X));
-            float sRange = _brushSize + 23f;//23大于16*sqrt2=22.627417
-            float dRange = _brushSize - 23f;
+
             float sRange2 = _brushSize + 6f;//6大于4*sqrt2=5.656854
 
             for (int x = minx; x < maxx; x += 8)

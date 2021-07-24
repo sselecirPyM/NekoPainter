@@ -72,101 +72,98 @@ namespace DirectCanvas.Core
             else return false;
         }
 
-        public static IAsyncOperation<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
+        public static async Task<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
         {
-            return Task.Run(async () =>
+            Stream stream = (await file.OpenAsync(FileAccessMode.Read)).AsStream();
+            XmlReaderSettings setting1 = new XmlReaderSettings();
+            setting1.IgnoreComments = true;
+            XmlReader xmlReader = XmlReader.Create(stream, setting1);
+            string code = null;
+            string name = "";
+            string description = "";
+            string imagePath = "";
+            Guid guid = Guid.Empty;
+            //DCParameter[] dcParameters = new DCParameter[c_parameterCount];
+            //for (int i = 0; i < c_parameterCount; i++)
+            //{
+            //    dcParameters[i] = new DCParameter();
+            //}
+            while (xmlReader.Read())
             {
-                Stream stream = (await file.OpenAsync(FileAccessMode.Read)).AsStream();
-                XmlReaderSettings setting1 = new XmlReaderSettings();
-                setting1.IgnoreComments = true;
-                XmlReader xmlReader = XmlReader.Create(stream, setting1);
-                string code = null;
-                string name = "";
-                string description = "";
-                string imagePath = "";
-                Guid guid = Guid.Empty;
-                //DCParameter[] dcParameters = new DCParameter[c_parameterCount];
-                //for (int i = 0; i < c_parameterCount; i++)
-                //{
-                //    dcParameters[i] = new DCParameter();
-                //}
-                while (xmlReader.Read())
+                if (xmlReader.NodeType == XmlNodeType.Element)
                 {
-                    if (xmlReader.NodeType == XmlNodeType.Element)
+                    switch (xmlReader.Name)
                     {
-                        switch (xmlReader.Name)
-                        {
-                            case "BlendMode":
-                                guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                                imagePath = xmlReader.GetAttribute("Image");
-                                break;
-                            case "Code":
-                                code = xmlReader.ReadElementContentAsString();
-                                break;
-                            //case "Parameter":
-                            //    int.TryParse(xmlReader.GetAttribute("Index"), out int index);
-                            //    dcParameters[index].Type = xmlReader.GetAttribute("Type");
-                            //    if (string.IsNullOrEmpty(dcParameters[index].Type))
-                            //        dcParameters[index].Type = "TextBox";
-                            //    if (int.TryParse(xmlReader.GetAttribute("MaxValue"), out int maxValue)) dcParameters[index].MaxValue = maxValue;
-                            //    else dcParameters[index].MaxValue = int.MaxValue;
-                            //    if (int.TryParse(xmlReader.GetAttribute("MinValue"), out int minValue)) dcParameters[index].MinValue = minValue;
-                            //    else dcParameters[index].MinValue = int.MinValue;
-                            //    while (xmlReader.Read())
-                            //    {
-                            //        if (xmlReader.NodeType == XmlNodeType.Element)
-                            //        {
-                            //            switch (xmlReader.Name)
-                            //            {
-                            //                case "Name":
-                            //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
-                            //                    {
-                            //                        dcParameters[index].Name = xmlReader.ReadElementContentAsString();
-                            //                    }
-                            //                    continue;
-                            //                case "Description":
-                            //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
-                            //                    {
-                            //                        dcParameters[index].Description = xmlReader.ReadElementContentAsString();
-                            //                    }
-                            //                    continue;
-                            //            }
-                            //            xmlReader.Skip();
-                            //        }
-                            //        else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "Parameter")
-                            //            break;
-                            //    }
-                            //    break;
-                            case "Name":
-                                name = xmlReader.ReadElementContentAsString();
-                                break;
-                            case "Description":
-                                description = xmlReader.ReadElementContentAsString();
-                                break;
-                        }
+                        case "BlendMode":
+                            guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
+                            imagePath = xmlReader.GetAttribute("Image");
+                            break;
+                        case "Code":
+                            code = xmlReader.ReadElementContentAsString();
+                            break;
+                        //case "Parameter":
+                        //    int.TryParse(xmlReader.GetAttribute("Index"), out int index);
+                        //    dcParameters[index].Type = xmlReader.GetAttribute("Type");
+                        //    if (string.IsNullOrEmpty(dcParameters[index].Type))
+                        //        dcParameters[index].Type = "TextBox";
+                        //    if (int.TryParse(xmlReader.GetAttribute("MaxValue"), out int maxValue)) dcParameters[index].MaxValue = maxValue;
+                        //    else dcParameters[index].MaxValue = int.MaxValue;
+                        //    if (int.TryParse(xmlReader.GetAttribute("MinValue"), out int minValue)) dcParameters[index].MinValue = minValue;
+                        //    else dcParameters[index].MinValue = int.MinValue;
+                        //    while (xmlReader.Read())
+                        //    {
+                        //        if (xmlReader.NodeType == XmlNodeType.Element)
+                        //        {
+                        //            switch (xmlReader.Name)
+                        //            {
+                        //                case "Name":
+                        //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
+                        //                    {
+                        //                        dcParameters[index].Name = xmlReader.ReadElementContentAsString();
+                        //                    }
+                        //                    continue;
+                        //                case "Description":
+                        //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
+                        //                    {
+                        //                        dcParameters[index].Description = xmlReader.ReadElementContentAsString();
+                        //                    }
+                        //                    continue;
+                        //            }
+                        //            xmlReader.Skip();
+                        //        }
+                        //        else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "Parameter")
+                        //            break;
+                        //    }
+                        //    break;
+                        case "Name":
+                            name = xmlReader.ReadElementContentAsString();
+                            break;
+                        case "Description":
+                            description = xmlReader.ReadElementContentAsString();
+                            break;
                     }
                 }
-                ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
-                for (int i = 0; i < c_csBlendCount; i++)
-                {
-                    shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", code)));
-                }
-                BlendMode blendMode = new BlendMode(shaders);
-                blendMode.Name = name;
-                blendMode.Guid = guid;
-                blendMode.Description = description;
-                //for (int j = 0; j < c_parameterCount; j++)
-                //{
-                //    blendMode.Parameters[j] = new DCParameter();
-                //    blendMode.Parameters[j].Name = dcParameters[j].Name;
-                //    blendMode.Parameters[j].Description = dcParameters[j].Description;
-                //    blendMode.Parameters[j].Type = dcParameters[j].Type;
-                //    blendMode.Parameters[j].MaxValue = dcParameters[j].MaxValue;
-                //    blendMode.Parameters[j].MinValue = dcParameters[j].MinValue;
-                //    blendMode.Parameters[j].Value = 0;
-                //}
-                return blendMode;
-            }).AsAsyncOperation();
+            }
+            ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
+            for (int i = 0; i < c_csBlendCount; i++)
+            {
+                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", code)));
+            }
+            BlendMode blendMode = new BlendMode(shaders);
+            blendMode.Name = name;
+            blendMode.Guid = guid;
+            blendMode.Description = description;
+            //for (int j = 0; j < c_parameterCount; j++)
+            //{
+            //    blendMode.Parameters[j] = new DCParameter();
+            //    blendMode.Parameters[j].Name = dcParameters[j].Name;
+            //    blendMode.Parameters[j].Description = dcParameters[j].Description;
+            //    blendMode.Parameters[j].Type = dcParameters[j].Type;
+            //    blendMode.Parameters[j].MaxValue = dcParameters[j].MaxValue;
+            //    blendMode.Parameters[j].MinValue = dcParameters[j].MinValue;
+            //    blendMode.Parameters[j].Value = 0;
+            //}
+            return blendMode;
         }
 
         public void Blend(RenderTexture source, RenderTexture target, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
@@ -209,7 +206,7 @@ namespace DirectCanvas.Core
                 if (refs[i] != null)
                     csBlend[2].SetSRV(refs[0], 2 + i);
             csBlend[2].SetUAV(target, 0);
-            csBlend[2].SetCBV(parametersData, 0,ofs,size);
+            csBlend[2].SetCBV(parametersData, 0, ofs, size);
             csBlend[2].Dispatch(1, 1, z);
             buf_Part.Dispose();
         }
@@ -240,7 +237,7 @@ namespace DirectCanvas.Core
                 if (refs[i] != null)
                     csBlend[3].SetSRV(refs[0], 3 + i);
             csBlend[3].SetUAV(target, 0);
-            csBlend[3].SetCBV(parametersData, 0,ofs,size);
+            csBlend[3].SetCBV(parametersData, 0, ofs, size);
             csBlend[3].Dispatch(1, 1, z);
             buf_Index.Dispose();
         }
@@ -257,7 +254,7 @@ namespace DirectCanvas.Core
                 if (refs[i] != null)
                     csBlend[3].SetSRV(refs[0], 3 + i);
             csBlend[3].SetUAV(target, 0);
-            csBlend[3].SetCBV(parametersData, 0,ofs,size);
+            csBlend[3].SetCBV(parametersData, 0, ofs, size);
             csBlend[3].Dispatch(1, 1, z);
             buf_Index.Dispose();
         }

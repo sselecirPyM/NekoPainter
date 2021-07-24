@@ -25,7 +25,7 @@ namespace DirectCanvas
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
                 PictureLayout selectedLayout = ManagedLayout[i];
-                if (LayoutsHiddenData[i] == true)
+                if (ManagedLayout[i].Hidden == true)
                 {
                     ofs += 256;
                     continue;
@@ -128,10 +128,6 @@ namespace DirectCanvas
                 constantBuffer1 = new ConstantBuffer(DeviceResources, bufferSize);
                 cpuBuffer = new byte[bufferSize];
             }
-            while (LayoutsHiddenData.Count < ManagedLayout.Count)
-            {
-                LayoutsHiddenData.Add(false);
-            }
 
             int ofs = 0;
             int[] data = new int[Core.BlendMode.c_parameterCount];
@@ -139,7 +135,6 @@ namespace DirectCanvas
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
                 GetData(ManagedLayout[i], data);
-                LayoutsHiddenData[i] = ManagedLayout[i].Hidden;
                 Vector4 color = ManagedLayout[i].Color;
                 MemoryMarshal.Write(new System.Span<byte>(cpuBuffer, ofs, 16), ref color);
                 dataSpan.CopyTo(new System.Span<byte>(cpuBuffer, ofs + 16, dataSpan.Length));
@@ -156,7 +151,6 @@ namespace DirectCanvas
             //}
         }
 
-        public List<bool> LayoutsHiddenData = new List<bool>();
         IReadOnlyList<RenderTexture> RenderTarget { get { return CanvasCase.RenderTarget; } }
         RenderTexture PaintingTexture { get { return CanvasCase.PaintingTexture; } }
         DeviceResources DeviceResources { get { return CanvasCase.DeviceResources; } }

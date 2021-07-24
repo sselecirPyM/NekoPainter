@@ -186,7 +186,7 @@ namespace DirectCanvas.FileFormat
                             guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
                             if (guid == Guid.Empty)
                                 guid = Guid.NewGuid();
-                            PureLayout pureLayout = new PureLayout(canvasCase.DeviceResources) { guid = guid };
+                            PureLayout pureLayout = new PureLayout() { guid = guid };
                             LoadLayoutInfo(xmlReader, pureLayout);
                             string colorString = xmlReader.GetAttribute("Color");
                             if (!string.IsNullOrEmpty(colorString))

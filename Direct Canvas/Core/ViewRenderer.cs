@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DirectCanvas.Layout;
 using CanvasRendering;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace DirectCanvas
 {
@@ -26,18 +27,27 @@ namespace DirectCanvas
                 if (LayoutsHiddenData[i] == true) continue;
                 if (selectedLayout is StandardLayout standardLayout)
                 {
+                    Vector4 _color = selectedLayout.Color;
+                    colorBuffers[i].UpdateResource<Vector4>(ref _color);
                     RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
                     refs[0] = RenderTarget[0];
-                    if (standardLayout.activated)
+                    if (standardLayout.PureLayout)
                     {
-                        if(CanvasCase.blendmodesMap.TryGetValue(standardLayout.BlendMode, out var blendMode))
+                        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                        {
+                            blendMode?.Blend(RenderTarget[0], refs, colorBuffers[i], RenderDataCaches[i]);
+                        }
+                    }
+                    else if (standardLayout.activated)
+                    {
+                        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                         {
                             blendMode?.Blend(PaintingTexture, RenderTarget[0], refs, RenderDataCaches[i]);
                         }
                     }
                     else if (standardLayout.tiledTexture != null && standardLayout.tiledTexture.tilesCount != 0)
                     {
-                        if (CanvasCase.blendmodesMap.TryGetValue(standardLayout.BlendMode, out var blendMode))
+                        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                         {
                             blendMode?.Blend(standardLayout.tiledTexture, RenderTarget[0], refs, RenderDataCaches[i]);
                         }
@@ -45,10 +55,11 @@ namespace DirectCanvas
                 }
                 else if (selectedLayout is PureLayout pureLayout)
                 {
-                    colorBuffers[i].UpdateResource<Vector4>(ref pureLayout._color);
+                    Vector4 _color = selectedLayout.Color;
+                    colorBuffers[i].UpdateResource<Vector4>(ref _color);
                     RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
                     refs[0] = RenderTarget[0];
-                    if (CanvasCase.blendmodesMap.TryGetValue(pureLayout.BlendMode, out var blendMode))
+                    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                     {
                         blendMode?.Blend(RenderTarget[0], refs, colorBuffers[i], RenderDataCaches[i]);
                     }
@@ -124,20 +135,34 @@ namespace DirectCanvas
 
         void PrepareRenderData()
         {
+            if (bufferSize < ManagedLayout.Count * 256 || constantBuffer1 == null)
+            {
+                bufferSize = (ManagedLayout.Count * 256 + 65535) & (~65535);
+                constantBuffer1?.Dispose();
+                constantBuffer1 = new ConstantBuffer(DeviceResources, bufferSize);
+                cpuBuffer = new byte[bufferSize];
+            }
             while (RenderDataCaches.Count < ManagedLayout.Count)
             {
-                RenderDataCaches.Add(new ConstantBuffer(DeviceResources, 128));
-                colorBuffers.Add(new ConstantBuffer(DeviceResources, 128));
+                RenderDataCaches.Add(new ConstantBuffer(DeviceResources, 256));
+                colorBuffers.Add(new ConstantBuffer(DeviceResources, 256));
                 LayoutsHiddenData.Add(false);
             }
 
+            int ofs = 0;
             int[] data = new int[Core.BlendMode.c_parameterCount];
+            var dataSpan = MemoryMarshal.Cast<int, byte>(data);
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
                 GetData(ManagedLayout[i], data, out bool hidden);
                 LayoutsHiddenData[i] = hidden;
                 RenderDataCaches[i].UpdateResource<int>(data);
+                Vector4 color = ManagedLayout[i].Color;
+                MemoryMarshal.Write(new System.Span<byte>(cpuBuffer, ofs, 16), ref color);
+                dataSpan.CopyTo(new System.Span<byte>(cpuBuffer, ofs + 16, dataSpan.Length));
+                ofs += 256;
             }
+            constantBuffer1.UpdateResource(new System.Span<byte>(cpuBuffer));
         }
 
         public void GetData(PictureLayout layout, int[] outData, out bool hidden)
@@ -156,6 +181,10 @@ namespace DirectCanvas
         IReadOnlyList<PictureLayout> ManagedLayout { get { return CanvasCase.Layouts; } }
 
         public readonly CanvasCase CanvasCase;
+
+        int bufferSize = 0;
+        ConstantBuffer constantBuffer1;
+        byte[] cpuBuffer;
 
         private List<ConstantBuffer> RenderDataCaches = new List<ConstantBuffer>();
         private List<ConstantBuffer> colorBuffers = new List<ConstantBuffer>();

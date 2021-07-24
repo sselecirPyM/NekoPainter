@@ -100,10 +100,9 @@ namespace DirectCanvas.UI
             ImGui.Render();
             Input.uiMouseCapture = io.WantCaptureMouse;
             Input.mousePos = io.MousePos;
-            if (!io.WantCaptureMouse)
+            while (Input.penInputData.TryDequeue(out var result))
             {
-                while (Input.penInputData.TryDequeue(out var result))
-                    Input.penInputData1.Enqueue(result);
+                Input.penInputData1.Enqueue(result);
             }
             Input.penInputData.Clear();
         }
@@ -255,24 +254,37 @@ namespace DirectCanvas.UI
             var pixelShader = AppController.Instance.pixelShaders["PSImgui"];
             context.SetVertexShader(vertexShader);
             context.SetPixelShader(pixelShader);
-            context.SetCBV(constantBuffer, 0);
+            //context.SetCBV(constantBuffer, 0);
+            context.SetCBV(constantBuffer, 0, 0, 256);
             Vector2 clip_off = data.DisplayPos;
+            byte[] vertexDatas;
+            byte[] indexDatas;
             unsafe
             {
+                vertexDatas = new byte[data.TotalVtxCount * sizeof(ImDrawVert)];
+                indexDatas = new byte[data.TotalIdxCount * sizeof(UInt16)];
+                int vtxByteOfs = 0;
+                int idxByteOfs = 0;
                 for (int i = 0; i < data.CmdListsCount; i++)
                 {
                     var cmdList = data.CmdListsRange[i];
                     var vertBytes = cmdList.VtxBuffer.Size * sizeof(ImDrawVert);
                     var indexBytes = cmdList.IdxBuffer.Size * sizeof(UInt16);
-                    byte[] vertexDatas = new byte[vertBytes];
-                    byte[] indexDatas = new byte[indexBytes];
-                    new Span<byte>(cmdList.VtxBuffer.Data.ToPointer(), vertBytes).CopyTo(vertexDatas);
-                    new Span<byte>(cmdList.IdxBuffer.Data.ToPointer(), indexBytes).CopyTo(indexDatas);
-                    //System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-                    //stopwatch.Start();
-                    mesh.Update(vertexDatas, indexDatas);
-                    //stopwatch.Stop();
-                    //TimeCost = stopwatch.ElapsedTicks;
+                    new Span<byte>(cmdList.VtxBuffer.Data.ToPointer(), vertBytes).CopyTo(new Span<byte>(vertexDatas, vtxByteOfs, vertBytes));
+                    new Span<byte>(cmdList.IdxBuffer.Data.ToPointer(), indexBytes).CopyTo(new Span<byte>(indexDatas, idxByteOfs, indexBytes));
+                    vtxByteOfs += vertBytes;
+                    idxByteOfs += indexBytes;
+                }
+                mesh.Update(vertexDatas, indexDatas);
+                //System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+                //stopwatch.Start();
+                //stopwatch.Stop();
+                //TimeCost = stopwatch.ElapsedTicks;
+                int vtxOfs = 0;
+                int idxOfs = 0;
+                for (int i = 0; i < data.CmdListsCount; i++)
+                {
+                    var cmdList = data.CmdListsRange[i];
                     context.SetMesh(mesh);
                     for (int j = 0; j < cmdList.CmdBuffer.Size; j++)
                     {
@@ -280,8 +292,10 @@ namespace DirectCanvas.UI
                         var rect = new Vortice.RawRect((int)(cmd.ClipRect.X - clip_off.X), (int)(cmd.ClipRect.Y - clip_off.Y), (int)(cmd.ClipRect.Z - clip_off.X), (int)(cmd.ClipRect.W - clip_off.Y));
                         context.RSSetScissorRect(rect);
                         context.SetSRV(FontAtlas, 0);
-                        context.DrawIndexed((int)cmd.ElemCount, (int)cmd.IdxOffset, (int)cmd.VtxOffset);
+                        context.DrawIndexed((int)cmd.ElemCount, (int)cmd.IdxOffset + idxOfs, (int)cmd.VtxOffset + vtxOfs);
                     }
+                    vtxOfs += cmdList.VtxBuffer.Size;
+                    idxOfs += cmdList.IdxBuffer.Size;
                 }
             }
             context.SetScissorRectDefault();
@@ -292,7 +306,7 @@ namespace DirectCanvas.UI
             var imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(imguiContext);
             var io = ImGui.GetIO();
-            //io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             var device = AppController.Instance.graphicsContext.DeviceResources;
             constantBuffer = new ConstantBuffer(device, 64);
             mesh = new Mesh(device, 20);

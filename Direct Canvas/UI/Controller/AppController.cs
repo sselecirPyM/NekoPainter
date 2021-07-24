@@ -116,7 +116,7 @@ namespace DirectCanvas.UI.Controller
             span1.CopyTo(bytes);
             return bytes;
         }
-
+        PenInputFlag currentState;
         public void CanvasRerender()
         {
             Input.mousePreviousPos = Input.mousePos;
@@ -146,11 +146,12 @@ namespace DirectCanvas.UI.Controller
                 {
                     dcUI_Canvas.RotateProcess(Input.mousePos, Input.mousePreviousPos);
                 }
-                if (!Input.uiMouseCapture)
+                while (Input.penInputData1.TryDequeue(out var result))
                 {
-                    while (Input.penInputData1.TryDequeue(out var result))
+                    var paintAgent = CurrentCanvasCase.PaintAgent;
+                    if (!Input.uiMouseCapture || currentState == PenInputFlag.Drawing)
                     {
-                        var paintAgent = CurrentCanvasCase.PaintAgent;
+                        currentState = result.penInputFlag;
                         switch (result.penInputFlag)
                         {
                             case PenInputFlag.Begin:

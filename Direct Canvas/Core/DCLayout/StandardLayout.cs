@@ -80,40 +80,10 @@ namespace DirectCanvas.Layout
             }
         }
 
-        public override bool Hidden
-        {
-            get => _hidden; set
-            {
-                if (_hidden == value) return;
-                _hidden = value;
-                PropChange("Hidden");
-            }
-        }
-
-        public override float Alpha
-        {
-            get => _alpha; set
-            {
-                if (_alpha == value) return;
-                _alpha = value;
-                PropChange("Alpha");
-            }
-        }
 
         public override void Dispose()
         {
             tiledTexture?.Dispose();
-        }
-
-        public override Guid BlendMode
-        {
-            get => _blendMode; set
-            {
-                _blendMode = value;
-
-                PropChange("BlendMode");
-                PropChange("TypeDesc");
-            }
         }
 
         public TiledTexture tiledTexture { get; private set; }
@@ -121,6 +91,5 @@ namespace DirectCanvas.Layout
         public bool saved = false;
 
         public bool PureLayout = false;
-        public Vector4 Color;
     }
 }

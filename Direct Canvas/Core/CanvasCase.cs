@@ -106,7 +106,7 @@ namespace DirectCanvas
 
         public PureLayout NewPureLayout(int insertIndex, int RenderBufferNum)
         {
-            PureLayout pureLayout = new PureLayout(DeviceResources)
+            PureLayout pureLayout = new PureLayout()
             {
                 BlendMode = DefaultBlendMode.Guid,
                 guid = System.Guid.NewGuid(),

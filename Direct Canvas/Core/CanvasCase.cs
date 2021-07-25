@@ -64,7 +64,7 @@ namespace DirectCanvas
 
         public void SetActivatedLayout(int layoutIndex)
         {
-            ActivatedLayout?.Deactivate(PaintingTexture);
+            //ActivatedLayout?.Deactivate(PaintingTexture);
             if (layoutIndex == -1)
             {
                 ActivatedLayout = null;
@@ -72,7 +72,9 @@ namespace DirectCanvas
                 return;
             }
             ActivatedLayout = (StandardLayout)Layouts[layoutIndex];
-            ActivatedLayout.Activate(PaintingTexture);
+            //ActivatedLayout.Activate(PaintingTexture);
+            LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
+            StandardLayout.Activate(PaintingTexture, tiledTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
@@ -80,9 +82,12 @@ namespace DirectCanvas
 
         public void SetActivatedLayout(StandardLayout layout)
         {
-            ActivatedLayout?.Deactivate(PaintingTexture);
+            //ActivatedLayout?.Deactivate(PaintingTexture);
             ActivatedLayout = layout;
-            ActivatedLayout.Activate(PaintingTexture);
+            //ActivatedLayout.Activate(PaintingTexture);
+
+            LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
+            StandardLayout.Activate(PaintingTexture, tiledTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
@@ -124,8 +129,8 @@ namespace DirectCanvas
         {
             PictureLayout pictureLayout = Layouts[index];
             watched = false;
-            if (pictureLayout is StandardLayout standardLayout)
-                standardLayout.Deactivate(PaintingTexture);
+            //if (pictureLayout is StandardLayout standardLayout)
+            //    standardLayout.Deactivate(PaintingTexture);
             if (PaintAgent.CurrentLayout == pictureLayout)
             {
                 PaintAgent.CurrentLayout = null;
@@ -142,10 +147,25 @@ namespace DirectCanvas
             PictureLayout newPictureLayout = null;
             if (pictureLayout is StandardLayout standardLayout)
             {
-                newPictureLayout = new StandardLayout(standardLayout, PaintingTexture)
+                TiledTexture tiledTexture = null;
+                LayoutTex.TryGetValue(standardLayout.guid, out var standardLayouttiledTexture);
+
+                if (PaintAgent.CurrentLayout== standardLayout)
                 {
-                    Name = string.Format("{0} 复制", standardLayout.Name)
+                    tiledTexture = new TiledTexture(PaintingTexture);
+                }
+                else if (standardLayouttiledTexture != null)
+                {
+                    tiledTexture = new TiledTexture(standardLayouttiledTexture);
+                }
+
+                newPictureLayout = new StandardLayout(standardLayout)
+                {
+                    Name = string.Format("{0} 复制", standardLayout.Name),
+                    //tiledTexture = tiledTexture,
                 };
+
+                LayoutTex[newPictureLayout.guid] = tiledTexture;
             }
             else if (pictureLayout is PureLayout pureLayout)
             {
@@ -160,26 +180,26 @@ namespace DirectCanvas
             return newPictureLayout;
         }
 
-        public StandardLayout CopyBuffer(int insertIndex, int RenderBufferNum)
-        {
-            StandardLayout standardLayout = new StandardLayout(RenderTarget[0])
-            {
-                BlendMode = DefaultBlendMode.Guid,
-                guid = System.Guid.NewGuid(),
-                Name = string.Format("图层 {0}", Layouts.Count + 1)
-            };
-            watched = false;
-            Layouts.Insert(insertIndex, standardLayout);
-            watched = true;
-            UndoManager.AddUndoData(new CMD_DeleteLayout(standardLayout, this, insertIndex));
+        //public StandardLayout CopyBuffer(int insertIndex, int RenderBufferNum)
+        //{
+        //    StandardLayout standardLayout = new StandardLayout(RenderTarget[0])
+        //    {
+        //        BlendMode = DefaultBlendMode.Guid,
+        //        guid = System.Guid.NewGuid(),
+        //        Name = string.Format("图层 {0}", Layouts.Count + 1)
+        //    };
+        //    watched = false;
+        //    Layouts.Insert(insertIndex, standardLayout);
+        //    watched = true;
+        //    UndoManager.AddUndoData(new CMD_DeleteLayout(standardLayout, this, insertIndex));
 
-            return standardLayout;
-        }
+        //    return standardLayout;
+        //}
 
         /// <summary>
         /// 设置混合模式并加入撤销
         /// </summary>
-        public void SetBlendMode(PictureLayout layout,BlendMode blendMode)
+        public void SetBlendMode(PictureLayout layout, BlendMode blendMode)
         {
             UndoManager.AddUndoData(new Undo.CMD_BlendModeChange(layout, layout.BlendMode));
             layout.BlendMode = blendMode.Guid;

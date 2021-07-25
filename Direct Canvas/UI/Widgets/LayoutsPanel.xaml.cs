@@ -92,19 +92,19 @@ namespace DirectCanvas.UI.Widgets
             {
             }
         }
-        private void CopyBuffer0(object sender, RoutedEventArgs e)
-        {
-            if (LayoutsListView.SelectedIndex != -1)
-            {
-                canvasCase.CopyBuffer(LayoutsListView.SelectedIndex, 0);
-                AppController.Instance.CanvasRerender();
-            }
-            else if (canvasCase != null)
-            {
-                canvasCase.CopyBuffer(0, 0);
-                AppController.Instance.CanvasRerender();
-            }
-        }
+        //private void CopyBuffer0(object sender, RoutedEventArgs e)
+        //{
+        //    if (LayoutsListView.SelectedIndex != -1)
+        //    {
+        //        canvasCase.CopyBuffer(LayoutsListView.SelectedIndex, 0);
+        //        AppController.Instance.CanvasRerender();
+        //    }
+        //    else if (canvasCase != null)
+        //    {
+        //        canvasCase.CopyBuffer(0, 0);
+        //        AppController.Instance.CanvasRerender();
+        //    }
+        //}
         private void DeleteLayout(object sender, RoutedEventArgs e)
         {
             if (LayoutsListView.SelectedIndex != -1)

@@ -34,25 +34,33 @@ namespace DirectCanvas
                 {
                     RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
                     refs[0] = RenderTarget[0];
-                    if (standardLayout.PureLayout)
+                    CanvasCase.LayoutTex.TryGetValue(standardLayout.guid,out  var tiledTexture);
+                    if (standardLayout.IsPureLayout)
                     {
                         if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                         {
                             blendMode?.BlendPure(RenderTarget[0], refs, constantBuffer1, ofs, 256);
                         }
                     }
-                    else if (standardLayout.activated)
+                    else if (CanvasCase.PaintAgent.CurrentLayout==standardLayout)
                     {
                         if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                         {
                             blendMode?.Blend(PaintingTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
                         }
                     }
-                    else if (standardLayout.tiledTexture != null && standardLayout.tiledTexture.tilesCount != 0)
+                    //else if (standardLayout.tiledTexture != null && standardLayout.tiledTexture.tilesCount != 0)
+                    //{
+                    //    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                    //    {
+                    //        blendMode?.Blend(standardLayout.tiledTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
+                    //    }
+                    //}
+                    else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                     {
                         if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                         {
-                            blendMode?.Blend(standardLayout.tiledTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
+                            blendMode?.Blend(tiledTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
                         }
                     }
                 }

@@ -111,6 +111,11 @@ namespace DirectCanvas
                         UndoManager.AddUndoData(new Undo.CMD_TileReplace(CurrentLayout, new TiledTexture(PaintingTextureBackup, paintCoveredTiles), CanvasCase));
                     mapForUndo.SetAll(false);
                     PaintingTexture.CopyTo(PaintingTextureBackup);
+
+                    //CanvasCase.LayoutTex[CurrentLayout.guid]?.Dispose();
+                    if (CanvasCase.LayoutTex.TryGetValue(CurrentLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
+                    var tiledTexture = new TiledTexture(PaintingTexture);
+                    CanvasCase.LayoutTex[CurrentLayout.guid] = tiledTexture;
                 }
 
                 //drawPrevPos = Vector2.Zero;

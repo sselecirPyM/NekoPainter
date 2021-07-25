@@ -126,12 +126,12 @@
                         Click="CopyLayout"
                             FontFamily="Segoe MDL2 Assets"
                         Padding="1"/>
-            <Button ToolTipService.ToolTip="复制缓冲区0为图层"
+            <!--<Button ToolTipService.ToolTip="复制缓冲区0为图层"
                             Background="#33FFFFFF"
                             Content="&#xE114;"  
                         Click="CopyBuffer0"
                             FontFamily="Segoe MDL2 Assets"
-                        Padding="1"/>
+                        Padding="1"/>-->
             <!--<Button ToolTipService.ToolTip="Paste"
                             Background="#33FFFFFF"
                             Content="&#xE77F;" 

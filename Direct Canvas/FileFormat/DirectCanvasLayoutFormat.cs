@@ -22,14 +22,20 @@ namespace DirectCanvas.FileFormat
             if (layout is StandardLayout standardLayout)
             {
                 int count;
-                if (standardLayout.activated)
+                //if (standardLayout.activated)
+                //{
+                //    tex0 = new TiledTexture(canvasCase.PaintingTexture);
+                //    count = tex0.tilesCount;
+                //}
+                //else if (standardLayout.tiledTexture != null)
+                //{
+                //    tex0 = new TiledTexture(standardLayout.tiledTexture);
+                //    count = tex0.tilesCount;
+                //}
+                //else
+                if (canvasCase.LayoutTex.TryGetValue(layout.guid, out var tiledTexture))
                 {
-                    tex0 = new TiledTexture(canvasCase.PaintingTexture);
-                    count = tex0.tilesCount;
-                }
-                else if (standardLayout.tiledTexture != null)
-                {
-                    tex0 = new TiledTexture(standardLayout.tiledTexture);
+                    tex0 = new TiledTexture(tiledTexture);
                     count = tex0.tilesCount;
                 }
                 else
@@ -49,7 +55,7 @@ namespace DirectCanvas.FileFormat
                     byte[] bData = new byte[count * 1024];
                     tex0.BlocksData.GetData<byte>(bData);
                     tex0.BlocksOffsetsData.GetData<byte>(oData);
-                    if (!standardLayout.activated) tex0.Dispose();//此时为临时创建的TiledTexture
+                    tex0.Dispose();//此时为临时创建的TiledTexture
                     dataWriter.Write(oData);
                     dataWriter.Write(bData);
                 }
@@ -73,7 +79,8 @@ namespace DirectCanvas.FileFormat
 
             TiledTexture tTex = new TiledTexture(canvasCase.DeviceResources, bData, oData);
             canvasCase.LayoutTex[readedGuid] = tTex;
-            StandardLayout loadedLayout = new StandardLayout(tTex);
+            //StandardLayout loadedLayout = new StandardLayout(tTex);
+            StandardLayout loadedLayout = new StandardLayout();
             loadedLayout.saved = true;
             loadedLayout.guid = readedGuid;
 

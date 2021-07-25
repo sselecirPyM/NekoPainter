@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="b5baf944-0616-4b25-a7ce-50d0564d1640">
+  <Guid>b5baf944-0616-4b25-a7ce-50d0564d1640</Guid>
   <Name>Add</Name>
   <Description></Description>
   <Name Culture="zh-cn">添加</Name>

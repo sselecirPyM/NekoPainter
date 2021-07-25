@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="d0d0f2d6-0576-4f5f-9d9e-bca3b7e6323d">
+  <Guid>d0d0f2d6-0576-4f5f-9d9e-bca3b7e6323d</Guid>
   <Name>Direct Lighting Diffuse</Name>
   <Description>直接漫反射光</Description>
   <Parameter Index="0" Type="Slider" MaxValue="180" MinValue="-179">

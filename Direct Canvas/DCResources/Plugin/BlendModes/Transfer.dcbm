@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="26284462-2cae-402f-84d4-d3786aa61a5f">
+  <Guid>26284462-2cae-402f-84d4-d3786aa61a5f</Guid>
   <Name>Transfer</Name>
   <Description></Description>
   <Name Culture="zh-cn">转移</Name>

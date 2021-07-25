@@ -45,5 +45,7 @@ namespace DirectCanvas.Layout
         public bool blendModeUsedDataUpdated = false;
 
         public bool UseColor = false;
+
+        public bool saved = false;
     }
 }

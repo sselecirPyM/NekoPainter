@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="862bd2df-1132-4d0c-8c6f-791b589f2c9f">
+  <Guid>862bd2df-1132-4d0c-8c6f-791b589f2c9f</Guid>
   <Name>Color to Normal</Name>
   <Description>颜色到法线</Description>
   <Code>

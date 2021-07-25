@@ -153,14 +153,8 @@ namespace DirectCanvas
         /// <summary>
         /// 当前要画的图层
         /// </summary>
-        public StandardLayout CurrentLayout
-        {
-            get => _currentLayout; set
-            {
-                _currentLayout = value;
-            }
-        }
-        StandardLayout _currentLayout;
+        public StandardLayout CurrentLayout { get; set; }
+
         /// <summary>
         /// 当前使用的笔刷
         /// </summary>
@@ -168,15 +162,7 @@ namespace DirectCanvas
         /// <summary>
         /// 笔刷尺寸
         /// </summary>
-        public float BrushSize
-        {
-            get { return _brushSize; }
-            set
-            {
-                _brushSize = value;
-            }
-        }
-        public float _brushSize;
+        public float BrushSize;
 
         public Color _color = new Color(1, 1, 1, 1);
         public Color _color2 = new Color(1, 1, 1, 1);
@@ -204,12 +190,12 @@ namespace DirectCanvas
         List<Int2> GetPaintingTiles(Vector2 start, Vector2 end, out TileRect rect)
         {
             inRangeTiles.Clear();
-            int minx = Math.Max((int)MathF.Min(start.X - _brushSize, end.X - _brushSize), 0);
-            int miny = Math.Max((int)MathF.Min(start.Y - _brushSize, end.Y - _brushSize), 0);
+            int minx = Math.Max((int)MathF.Min(start.X - BrushSize, end.X - BrushSize), 0);
+            int miny = Math.Max((int)MathF.Min(start.Y - BrushSize, end.Y - BrushSize), 0);
             minx &= -32;
             miny &= -32;
-            int maxx = Math.Min((int)MathF.Max(start.X + _brushSize, end.X + _brushSize), _width);
-            int maxy = Math.Min((int)MathF.Max(start.Y + _brushSize, end.Y + _brushSize), _height);
+            int maxx = Math.Min((int)MathF.Max(start.X + BrushSize, end.X + BrushSize), _width);
+            int maxy = Math.Min((int)MathF.Max(start.Y + BrushSize, end.Y + BrushSize), _height);
 
             rect = new TileRect() { minX = minx, minY = miny, maxX = maxx + 32, maxY = maxy + 32 };
 
@@ -217,7 +203,7 @@ namespace DirectCanvas
             Vector2 OSS2 = new Vector2(4.0f, 4.0f) - start;
             Vector2 normalizedRS2E = Vector2.Normalize(new Vector2(NS2E.Y, -NS2E.X));
 
-            float sRange2 = _brushSize + 6f;//6大于4*sqrt2=5.656854
+            float sRange2 = BrushSize + 6f;//6大于4*sqrt2=5.656854
 
             for (int x = minx; x < maxx; x += 8)
                 for (int y = miny; y < maxy; y += 8)
@@ -274,11 +260,11 @@ namespace DirectCanvas
             for (int i = 0; i < Brush.c_parameterCount; i++)
             {
                 if (currentBrush.Parameters[i].IsFloat)
-                    Write1(new Span<byte>(brushData1, ofs, 4), currentBrush.Parameters[i]._fValue, ref ofs);
+                    Write1(new Span<byte>(brushData1, ofs, 4), currentBrush.Parameters[i].fValue, ref ofs);
                 else
-                    Write1(new Span<byte>(brushData1, ofs, 4), currentBrush.Parameters[i]._value, ref ofs);
+                    Write1(new Span<byte>(brushData1, ofs, 4), currentBrush.Parameters[i].Value, ref ofs);
             }
-            Write1(new Span<byte>(brushData1, ofs, 4), _brushSize, ref ofs);
+            Write1(new Span<byte>(brushData1, ofs, 4), BrushSize, ref ofs);
 
 
             new Span<byte>(brushData1, 208, 15 * 64).CopyTo(new Span<byte>(brushData1, 208 + 64, 15 * 64));

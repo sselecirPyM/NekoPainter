@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="da467cfd-2fd0-48d7-827e-a749dde269a0">
+  <Guid>da467cfd-2fd0-48d7-827e-a749dde269a0</Guid>
   <Name>Multiple</Name>
   <Description></Description>
   <Name Culture="zh-cn">相乘</Name>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="612bb027-a5f0-49b1-b210-c28d470120ce">
+  <Guid>612bb027-a5f0-49b1-b210-c28d470120ce</Guid>
   <Name>LinearToSRGB</Name>
   <Description>乘0.4545次幂</Description>
   <Code>

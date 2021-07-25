@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="99c0a297-8a4a-42b7-a727-dce4b3d1af73">
+  <Guid>99c0a297-8a4a-42b7-a727-dce4b3d1af73</Guid>
   <Name>NormalTransfer</Name>
   <Description>将法线数据从引用缓冲区转移并转换成颜色。</Description>
   <Code>

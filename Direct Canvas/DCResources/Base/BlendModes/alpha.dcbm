@@ -8,6 +8,7 @@ cbuffer DC_Parameters
 	int4 Parameters[8];
 };
 -->
+  <Guid>9c9f90ac-752c-4db5-bcb5-0880c35c50bf</Guid>
   <Name>Alpha</Name>
   <Description></Description>
   <Name Culture="zh-cn">正常</Name>

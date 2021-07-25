@@ -10,11 +10,8 @@ using System.IO;
 using System.Xml;
 using Windows.ApplicationModel;
 using Windows.Storage.Streams;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 using DirectCanvas.Util;
-using System.ComponentModel;
-using System.Collections.ObjectModel;
+using System.Xml.Serialization;
 
 namespace DirectCanvas.Core
 {
@@ -75,7 +72,7 @@ namespace DirectCanvas.Core
 
         public static async Task<Brush[]> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
         {
-            Stream stream = (await file.OpenAsync(FileAccessMode.Read)).AsStream();
+            Stream stream = await file.OpenStreamForReadAsync();
             XmlReaderSettings setting1 = new XmlReaderSettings();
             setting1.IgnoreComments = true;
             XmlReader xmlReader = XmlReader.Create(stream, setting1);
@@ -173,14 +170,21 @@ namespace DirectCanvas.Core
                 }
             }
             string x = componentCode1;
-            var t21 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Begin"])));
-            var t22 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Doing"])));
-            var t23 = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["End"])));
+            ComputeShader begin = null;
+            ComputeShader drawing = null;
+            ComputeShader end = null;
+
+            Parallel.Invoke(
+                () => begin = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Begin"]))),
+                () => drawing = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Doing"]))),
+                () => end = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["End"])))
+                );
+
 
             Brush[] brushes = new Brush[createBrushHelpers.Count];
             for (int i = 0; i < createBrushHelpers.Count; i++)
             {
-                Brush brush = new Brush(t21, t22, t23);
+                Brush brush = new Brush(begin, drawing, end);
                 brush.Name = createBrushHelpers[i].Name;
                 brush.Description = createBrushHelpers[i].Description;
                 brush.ImagePath = createBrushHelpers[i].ImagePath;
@@ -247,5 +251,13 @@ namespace DirectCanvas.Core
             public int[] parametersValue = new int[Brush.c_parameterCount];
             public float BrushSize;
         }
+    }
+
+    public class Brush1
+    {
+        public string Name;
+        public string Description;
+        public Guid Guid;
+        public string Code;
     }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="859b3b83-5bd8-4b5b-bb24-32f94dcacce2">
+  <Guid>859b3b83-5bd8-4b5b-bb24-32f94dcacce2</Guid>
   <Name>SRGBToLinear</Name>
   <Description>乘2.2次幂</Description>
   <Code>

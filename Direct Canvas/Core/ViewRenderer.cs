@@ -25,7 +25,7 @@ namespace DirectCanvas
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
                 PictureLayout selectedLayout = ManagedLayout[i];
-                if (ManagedLayout[i].Hidden == true)
+                if (ManagedLayout[i].Hidden)
                 {
                     ofs += 256;
                     continue;
@@ -34,45 +34,23 @@ namespace DirectCanvas
                 {
                     RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
                     refs[0] = RenderTarget[0];
-                    CanvasCase.LayoutTex.TryGetValue(standardLayout.guid,out  var tiledTexture);
-                    if (standardLayout.UseColor)
+                    CanvasCase.LayoutTex.TryGetValue(standardLayout.guid, out var tiledTexture);
+                    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                     {
-                        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                        if (standardLayout.UseColor)
                         {
                             blendMode?.BlendPure(RenderTarget[0], refs, constantBuffer1, ofs, 256);
                         }
-                    }
-                    else if (CanvasCase.PaintAgent.CurrentLayout==standardLayout)
-                    {
-                        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                        else if (CanvasCase.PaintAgent.CurrentLayout == standardLayout)
                         {
                             blendMode?.Blend(PaintingTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
                         }
-                    }
-                    //else if (standardLayout.tiledTexture != null && standardLayout.tiledTexture.tilesCount != 0)
-                    //{
-                    //    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
-                    //    {
-                    //        blendMode?.Blend(standardLayout.tiledTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
-                    //    }
-                    //}
-                    else if (tiledTexture != null && tiledTexture.tilesCount != 0)
-                    {
-                        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                        else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                         {
                             blendMode?.Blend(tiledTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
                         }
                     }
                 }
-                //else if (selectedLayout is PureLayout pureLayout)
-                //{
-                //    RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
-                //    refs[0] = RenderTarget[0];
-                //    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
-                //    {
-                //        blendMode?.BlendPure(RenderTarget[0], refs, constantBuffer1, ofs, 256);
-                //    }
-                //}
                 else
                 {
                     throw new System.NotImplementedException();

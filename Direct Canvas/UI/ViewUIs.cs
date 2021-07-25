@@ -204,7 +204,7 @@ namespace DirectCanvas.UI
             ImGui.SetNextWindowPos(new Vector2(), ImGuiCond.FirstUseEver);
             ImGui.Begin("笔刷参数");
             //ImGui.Text(TimeCost.ToString());
-            ImGui.SliderFloat("笔刷尺寸", ref paintAgent._brushSize, 1, 300);
+            ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
             ImGui.ColorEdit4("颜色", ref paintAgent._color);
             ImGui.ColorEdit4("颜色2", ref paintAgent._color2);
             ImGui.ColorEdit4("颜色3", ref paintAgent._color3);
@@ -214,9 +214,7 @@ namespace DirectCanvas.UI
                 var brushParams = paintAgent.currentBrush.Parameters;
                 for (int i = 0; i < brushParams.Length; i++)
                 {
-                    ImGui.PushID(i);
-                    ImGui.DragFloat(brushParams[i].Name, ref brushParams[i]._fValue);
-                    ImGui.PopID();
+                    ImGui.DragFloat(string.Format("{0}###{1}", brushParams[i].Name, i), ref brushParams[i].fValue);
                 }
             }
             ImGui.End();

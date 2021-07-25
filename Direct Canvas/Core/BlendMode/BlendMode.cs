@@ -74,7 +74,7 @@ namespace DirectCanvas.Core
 
         public static async Task<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
         {
-            Stream stream = (await file.OpenAsync(FileAccessMode.Read)).AsStream();
+            Stream stream = await file.OpenStreamForReadAsync();
             XmlReaderSettings setting1 = new XmlReaderSettings();
             setting1.IgnoreComments = true;
             XmlReader xmlReader = XmlReader.Create(stream, setting1);
@@ -95,7 +95,7 @@ namespace DirectCanvas.Core
                     switch (xmlReader.Name)
                     {
                         case "BlendMode":
-                            guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
+                            //guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
                             imagePath = xmlReader.GetAttribute("Image");
                             break;
                         case "Code":
@@ -135,6 +135,9 @@ namespace DirectCanvas.Core
                         //            break;
                         //    }
                         //    break;
+                        case "Guid":
+                            guid = Guid.Parse(xmlReader.ReadElementContentAsString());
+                            break;
                         case "Name":
                             name = xmlReader.ReadElementContentAsString();
                             break;
@@ -145,10 +148,10 @@ namespace DirectCanvas.Core
                 }
             }
             ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
-            for (int i = 0; i < c_csBlendCount; i++)
+            Parallel.For(0, c_csBlendCount, (int i) =>
             {
                 shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", code)));
-            }
+            });
             BlendMode blendMode = new BlendMode(shaders);
             blendMode.Name = name;
             blendMode.Guid = guid;

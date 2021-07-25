@@ -58,7 +58,5 @@ namespace DirectCanvas.Layout
         {
 
         }
-
-        public bool saved = false;
     }
 }

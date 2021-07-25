@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BlendMode Guid="eca576b3-fdde-438f-af2d-4fbb235523e9">
+  <Guid>eca576b3-fdde-438f-af2d-4fbb235523e9</Guid>
   <Name>Color to Normal X I</Name>
   <Description>颜色到法线X反转</Description>
   <Code>

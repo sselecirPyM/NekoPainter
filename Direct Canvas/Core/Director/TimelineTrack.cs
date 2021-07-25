@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace DirectCanvas.Core.Director
 {
-    public class TimelineTrack : TimelineRailItem
-    {
-        public Guid TimelineGuid;
-    }
+    //public class TimelineTrack : TimelineRailItem
+    //{
+    //    public Guid TimelineGuid;
+    //}
 }

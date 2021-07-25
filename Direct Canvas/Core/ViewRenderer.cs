@@ -32,22 +32,20 @@ namespace DirectCanvas
                 }
                 if (selectedLayout is StandardLayout standardLayout)
                 {
-                    RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
-                    refs[0] = RenderTarget[0];
                     CanvasCase.LayoutTex.TryGetValue(standardLayout.guid, out var tiledTexture);
                     if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                     {
                         if (standardLayout.UseColor)
                         {
-                            blendMode?.BlendPure(RenderTarget[0], refs, constantBuffer1, ofs, 256);
+                            blendMode?.BlendPure(RenderTarget[0], constantBuffer1, ofs, 256);
                         }
                         else if (CanvasCase.PaintAgent.CurrentLayout == standardLayout)
                         {
-                            blendMode?.Blend(PaintingTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
+                            blendMode?.Blend(PaintingTexture, RenderTarget[0], constantBuffer1, ofs, 256);
                         }
                         else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                         {
-                            blendMode?.Blend(tiledTexture, RenderTarget[0], refs, constantBuffer1, ofs, 256);
+                            blendMode?.Blend(tiledTexture, RenderTarget[0], constantBuffer1, ofs, 256);
                         }
                     }
                 }

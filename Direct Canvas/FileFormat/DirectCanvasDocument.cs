@@ -160,9 +160,8 @@ namespace DirectCanvas.FileFormat
             foreach (StorageFile layoutFile in layoutFiles)
             {
                 if (!".dclf".Equals(layoutFile.FileType, StringComparison.CurrentCultureIgnoreCase)) continue;
-                StandardLayout standardLayout = await DirectCanvasLayoutFormat.LoadFromFileAsync(canvasCase, layoutFile);
-                layoutFileMap[standardLayout.guid] = layoutFile;
-                canvasCase.LayoutsMap.Add(standardLayout.guid, standardLayout);
+                Guid guid = await DirectCanvasLayoutFormat.LoadFromFileAsync(canvasCase, layoutFile);
+                layoutFileMap[guid] = layoutFile;
             }
 
             StorageFile layoutSettingsFile = await CaseFolder.GetFileAsync("Layouts.xml");
@@ -177,9 +176,9 @@ namespace DirectCanvas.FileFormat
                     {
                         case "Layout":
                             {
-
                                 guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                                StandardLayout standardLayout = (StandardLayout)canvasCase.LayoutsMap[guid];
+                                StandardLayout standardLayout = new StandardLayout() { guid = guid };
+                                canvasCase.LayoutsMap[guid] = standardLayout;
                                 LoadLayoutInfo(xmlReader, standardLayout);
 
                                 string colorString = xmlReader.GetAttribute("Color");

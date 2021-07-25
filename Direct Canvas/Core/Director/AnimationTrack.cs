@@ -9,11 +9,11 @@ namespace DirectCanvas.Core.Director
     /// <summary>
     /// 表示装载了动画的轨迹
     /// </summary>
-    public class AnimationTrack : TimelineRailItem
-    {
-        public Guid animationGuid;
-        public int AnimationStartFrameIndex;
-        public float AnimationSpeed = 1;
+    //public class AnimationTrack : TimelineRailItem
+    //{
+    //    public Guid animationGuid;
+    //    public int AnimationStartFrameIndex;
+    //    public float AnimationSpeed = 1;
 
         //public override void ToFrameIndex(IDictionary<Guid, LayoutPropertyBag> dictionary, float frameIndex)
         //{
@@ -38,5 +38,5 @@ namespace DirectCanvas.Core.Director
         //        _animation.EndingEffect(dictionary);
         //    }
         //}
-    }
+    //}
 }

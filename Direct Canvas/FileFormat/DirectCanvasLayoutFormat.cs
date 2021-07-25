@@ -66,7 +66,7 @@ namespace DirectCanvas.FileFormat
             }
         }
 
-        public static async Task<StandardLayout> LoadFromFileAsync(CanvasCase canvasCase, StorageFile file)
+        public static async Task<Guid> LoadFromFileAsync(CanvasCase canvasCase, StorageFile file)
         {
             var stream = await file.OpenStreamForReadAsync();
             BinaryReader reader = new BinaryReader(stream);
@@ -79,12 +79,7 @@ namespace DirectCanvas.FileFormat
 
             TiledTexture tTex = new TiledTexture(canvasCase.DeviceResources, bData, oData);
             canvasCase.LayoutTex[readedGuid] = tTex;
-            //StandardLayout loadedLayout = new StandardLayout(tTex);
-            StandardLayout loadedLayout = new StandardLayout();
-            loadedLayout.saved = true;
-            loadedLayout.guid = readedGuid;
-
-            return loadedLayout;
+            return readedGuid;
         }
     }
 }

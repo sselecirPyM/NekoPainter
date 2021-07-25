@@ -22,7 +22,8 @@ namespace DirectCanvas.Core
             csBlend = cX;
         }
         static string[] componentCode = new string[c_csBlendCount];
-        public const int c_refCount = 1;
+        public const int c_parameterCount = 32;
+        const int c_csBlendCount = 7;
 
         static List<int> hParts = new List<int>();
         static string appUsedCultureName;
@@ -169,7 +170,7 @@ namespace DirectCanvas.Core
             return blendMode;
         }
 
-        public void Blend(RenderTexture source, RenderTexture target, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
+        public void Blend(RenderTexture source, RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
             int width = source.width;
             int height = source.height;
@@ -177,44 +178,35 @@ namespace DirectCanvas.Core
             int x = (width + 31) / 32;
             int y = (height + 31) / 32;
             csBlend[0].SetSRV(source, 0);
-            for (int i = 0; i < c_refCount; i++)
-                if (refs[i] != null)
-                    csBlend[0].SetSRV(refs[i], 1 + i);
             csBlend[0].SetUAV(target, 0);
             csBlend[0].SetCBV(parametersData, 0, ofs, size);
             csBlend[0].Dispatch(x, y, 1);
         }
 
-        public void Blend(TiledTexture source, RenderTexture target, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
+        public void Blend(TiledTexture source, RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
             if (source.tilesCount == 0) return;
             csBlend[1].SetSRV(source.BlocksData, 0);
             csBlend[1].SetSRV(source.BlocksOffsetsData, 1);
-            for (int i = 0; i < c_refCount; i++)
-                if (refs[i] != null)
-                    csBlend[1].SetSRV(refs[0], 2 + i);
             csBlend[1].SetUAV(target, 0);
             csBlend[1].SetCBV(parametersData, 0, ofs, size);
             csBlend[1].Dispatch(1, 1, (source.tilesCount + 15) / 16);
         }
 
-        public void Blend(RenderTexture source, RenderTexture target, List<Int2> part, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
+        public void Blend(RenderTexture source, RenderTexture target, List<Int2> part, ConstantBuffer parametersData, int ofs, int size)
         {
             if (part == null || part.Count == 0) return;
             int z = (part.Count + 15) / 16;
             ComputeBuffer buf_Part = new ComputeBuffer(source.GetDeviceResources(), part.Count, 8, part.ToArray());
             csBlend[2].SetSRV(source, 0);
             csBlend[2].SetSRV(buf_Part, 1);
-            for (int i = 0; i < c_refCount; i++)
-                if (refs[i] != null)
-                    csBlend[2].SetSRV(refs[0], 2 + i);
             csBlend[2].SetUAV(target, 0);
             csBlend[2].SetCBV(parametersData, 0, ofs, size);
             csBlend[2].Dispatch(1, 1, z);
             buf_Part.Dispose();
         }
 
-        public void Blend(TiledTexture source, RenderTexture target, List<Int2> part, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
+        public void Blend(TiledTexture source, RenderTexture target, List<Int2> part, ConstantBuffer parametersData, int ofs, int size)
         {
             if (part == null || part.Count == 0 || source.tilesCount == 0) return;
             hParts.Clear();
@@ -236,16 +228,13 @@ namespace DirectCanvas.Core
             csBlend[3].SetSRV(source.BlocksData, 0);
             csBlend[3].SetSRV(buf_Index, 1);
             csBlend[3].SetSRV(source.BlocksOffsetsData, 2);
-            for (int i = 0; i < c_refCount; i++)
-                if (refs[i] != null)
-                    csBlend[3].SetSRV(refs[0], 3 + i);
             csBlend[3].SetUAV(target, 0);
             csBlend[3].SetCBV(parametersData, 0, ofs, size);
             csBlend[3].Dispatch(1, 1, z);
             buf_Index.Dispose();
         }
 
-        public void Blend3Indicate(TiledTexture source, RenderTexture target, List<int> indicate, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
+        public void Blend3Indicate(TiledTexture source, RenderTexture target, List<int> indicate, ConstantBuffer parametersData, int ofs, int size)
         {
             if (indicate == null || indicate.Count == 0 || source.tilesCount == 0) return;
             int z = (indicate.Count + 15) / 16;
@@ -253,16 +242,13 @@ namespace DirectCanvas.Core
             csBlend[3].SetSRV(source.BlocksData, 0);
             csBlend[3].SetSRV(buf_Index, 1);
             csBlend[3].SetSRV(source.BlocksOffsetsData, 2);
-            for (int i = 0; i < c_refCount; i++)
-                if (refs[i] != null)
-                    csBlend[3].SetSRV(refs[0], 3 + i);
             csBlend[3].SetUAV(target, 0);
             csBlend[3].SetCBV(parametersData, 0, ofs, size);
             csBlend[3].Dispatch(1, 1, z);
             buf_Index.Dispose();
         }
 
-        public void BlendPure(RenderTexture target, RenderTexture[] refs, ConstantBuffer parametersData, int ofs, int size)
+        public void BlendPure(RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
 
             int width = target.width;
@@ -270,30 +256,24 @@ namespace DirectCanvas.Core
 
             int x = (width + 31) / 32;
             int y = (height + 31) / 32;
-            for (int i = 0; i < c_refCount; i++)
-                if (refs[i] != null)
-                    csBlend[4].SetSRV(refs[0], 0 + i);
             csBlend[4].SetUAV(target, 0);
             csBlend[4].SetCBV(parametersData, 0, ofs, size);
             csBlend[4].Dispatch(x, y, 1);
         }
 
-        //public void BlendColor(RenderTexture target, List<Int2> part, RenderTexture[] refs, ConstantBuffer parametersData)
+        //public void BlendColor(RenderTexture target, List<Int2> part, ConstantBuffer parametersData)
         //{
         //    if (part == null || part.Count == 0) return;
         //    int z = (part.Count + 15) / 16;
         //    ComputeBuffer buf_Part = new ComputeBuffer(target.GetDeviceResources(), part.Count, 8, part.ToArray());
         //    csBlend[5].SetSRV(buf_Part, 0);
-        //    for (int i = 0; i < c_refCount; i++)
-        //        if (refs[i] != null)
-        //            csBlend[5].SetSRV(refs[0], 1 + i);
         //    csBlend[5].SetUAV(target, 0);
         //    csBlend[5].SetCBV(parametersData, 1);
         //    csBlend[5].Dispatch(1, 1, z);
         //    buf_Part.Dispose();
         //}
 
-        //public void Blend7(RenderTexture source, RenderTexture target, RenderTexture[] refs, ConstantBuffer parametersData, ConstantBuffer selectionOffsetData)
+        //public void Blend7(RenderTexture source, RenderTexture target, ConstantBuffer parametersData, ConstantBuffer selectionOffsetData)
         //{
         //    int width = source.width;
         //    int height = source.height;
@@ -301,9 +281,6 @@ namespace DirectCanvas.Core
         //    int x = (width + 31) / 32;
         //    int y = (height + 31) / 32;
         //    csBlend[0].SetSRV(source, 0);
-        //    for (int i = 0; i < c_refCount; i++)
-        //        if (refs[i] != null)
-        //            csBlend[6].SetSRV(refs[i], 1 + i);
         //    csBlend[6].SetUAV(target, 0);
         //    csBlend[6].SetCBV(parametersData, 0);
         //    csBlend[6].SetCBV(selectionOffsetData, 1);
@@ -311,9 +288,7 @@ namespace DirectCanvas.Core
         //}
 
         private readonly ComputeShader[] csBlend = new ComputeShader[c_csBlendCount];
-        const int c_csBlendCount = 7;
 
-        public const int c_parameterCount = 32;
         //public DCParameter[] Parameters = new DCParameter[c_parameterCount];
 
         public string Name { get; set; }

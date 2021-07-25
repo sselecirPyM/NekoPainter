@@ -15,15 +15,15 @@ namespace DirectCanvas
 {
     public class CanvasCase : System.IDisposable, INotifyPropertyChanged
     {
-        public CanvasCase(DeviceResources device, int canvasWidth, int canvasHeight, int renderBufferCount)
+        public CanvasCase(DeviceResources device, int canvasWidth, int canvasHeight)
         {
             Width = canvasWidth;
             Height = canvasHeight;
 
             DeviceResources = device;
-            RenderTarget = new RenderTexture[renderBufferCount];
+            RenderTarget = new RenderTexture[1];
 
-            for (int i = 0; i < renderBufferCount; i++)
+            for (int i = 0; i < 1; i++)
             {
                 RenderTarget[i] = new RenderTexture(device, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
             }
@@ -47,6 +47,17 @@ namespace DirectCanvas
             Layouts.CollectionChanged += Layouts_Changed;
         }
 
+        public void SizeChange(int canvasWidth, int canvasHeight)
+        {
+            for (int i = 0; i < 1; i++)
+            {
+                RenderTarget[i] = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
+            }
+            PaintingTexture = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
+            PaintingTextureBackup = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
+            PaintingTextureTemp = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
+        }
+
         int movePreviousIndex;
         private void Layouts_Changed(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -64,7 +75,6 @@ namespace DirectCanvas
 
         public void SetActivatedLayout(int layoutIndex)
         {
-            //ActivatedLayout?.Deactivate(PaintingTexture);
             if (layoutIndex == -1)
             {
                 ActivatedLayout = null;
@@ -72,7 +82,6 @@ namespace DirectCanvas
                 return;
             }
             ActivatedLayout = (StandardLayout)Layouts[layoutIndex];
-            //ActivatedLayout.Activate(PaintingTexture);
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
             StandardLayout.Activate(PaintingTexture, tiledTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
@@ -82,9 +91,7 @@ namespace DirectCanvas
 
         public void SetActivatedLayout(StandardLayout layout)
         {
-            //ActivatedLayout?.Deactivate(PaintingTexture);
             ActivatedLayout = layout;
-            //ActivatedLayout.Activate(PaintingTexture);
 
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
             StandardLayout.Activate(PaintingTexture, tiledTexture);

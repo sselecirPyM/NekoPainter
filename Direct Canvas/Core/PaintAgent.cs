@@ -112,7 +112,6 @@ namespace DirectCanvas
                     mapForUndo.SetAll(false);
                     PaintingTexture.CopyTo(PaintingTextureBackup);
 
-                    //CanvasCase.LayoutTex[CurrentLayout.guid]?.Dispose();
                     if (CanvasCase.LayoutTex.TryGetValue(CurrentLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
                     var tiledTexture = new TiledTexture(PaintingTexture);
                     CanvasCase.LayoutTex[CurrentLayout.guid] = tiledTexture;

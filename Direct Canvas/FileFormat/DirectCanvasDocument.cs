@@ -43,14 +43,14 @@ namespace DirectCanvas.FileFormat
         Dictionary<Guid, StorageFile> layoutFileMap = new Dictionary<Guid, StorageFile>();
 
         Guid defaultBlendModeGuid;
-        public async Task CreateAsync(int width, int height, int renderBufferCount, bool extraResources)
+        public async Task CreateAsync(int width, int height, bool extraResources)
         {
             blendModesFolder = await CaseFolder.CreateFolderAsync("BlendModes", CreationCollisionOption.OpenIfExists);
             brushesFolder = await CaseFolder.CreateFolderAsync("Brushes", CreationCollisionOption.OpenIfExists);
             layoutsFolder = await CaseFolder.CreateFolderAsync("Layouts", CreationCollisionOption.OpenIfExists);
             animationsFolder = await CaseFolder.CreateFolderAsync("Animations", CreationCollisionOption.OpenIfExists);
 
-            canvasCase = new CanvasCase(DeviceResources, width, height, renderBufferCount);
+            canvasCase = new CanvasCase(DeviceResources, width, height);
             defaultBlendModeGuid = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             await UpdateDCResource();
             if (extraResources)
@@ -291,8 +291,7 @@ namespace DirectCanvas.FileFormat
                         case "DCDocument":
                             int width = int.Parse(xmlReader.GetAttribute("Width"));
                             int height = int.Parse(xmlReader.GetAttribute("Height"));
-                            int renderBufferCount = int.Parse(xmlReader.GetAttribute("RenderBufferCount"));
-                            canvasCase = new CanvasCase(DeviceResources, width, height, renderBufferCount);
+                            canvasCase = new CanvasCase(DeviceResources, width, height);
                             while (xmlReader.Read())
                             {
                                 if (xmlReader.NodeType == XmlNodeType.Element)
@@ -330,7 +329,6 @@ namespace DirectCanvas.FileFormat
             writer.WriteStartElement("DCDocument");
             writer.WriteAttributeString("Width", canvasCase.Width.ToString());
             writer.WriteAttributeString("Height", canvasCase.Height.ToString());
-            writer.WriteAttributeString("RenderBufferCount", canvasCase.RenderTarget.Length.ToString());
 
             if (!string.IsNullOrEmpty(canvasCase.Name))
             {

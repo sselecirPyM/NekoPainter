@@ -95,6 +95,7 @@ namespace DirectCanvas.UI
                 LayoutsPanel();
                 BrushParametersPanel();
                 BrushPanel();
+                LayoutInfoPanel();
             }
 
             ImGui.Render();
@@ -175,6 +176,23 @@ namespace DirectCanvas.UI
             }
 
             ImGui.EndChildFrame();
+            ImGui.End();
+        }
+
+        static void LayoutInfoPanel()
+        {
+            var canvasCase = AppController.Instance?.CurrentCanvasCase;
+            //var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(200, 400), ImGuiCond.FirstUseEver);
+            ImGui.Begin("图层信息");
+            if (canvasCase.SelectedLayout != null)
+            {
+                var layout = canvasCase.SelectedLayout;
+                ImGui.ColorEdit4("颜色", ref layout.Color);
+                ImGui.Checkbox("使用颜色", ref layout.IsPureLayout);
+                ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
+            }
             ImGui.End();
         }
 

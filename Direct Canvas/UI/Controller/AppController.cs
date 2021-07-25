@@ -48,11 +48,10 @@ namespace DirectCanvas.UI.Controller
             var name = parameters.Name;
             var width = parameters.Width;
             var height = parameters.Height;
-            var renderBufferCount = parameters.bufferCount;
 
             StorageFolder documentStorageFolder = await folder.CreateFolderAsync(name);
             CurrentDCDocument = new DirectCanvasDocument(graphicsContext.DeviceResources, documentStorageFolder);
-            await CurrentDCDocument.CreateAsync(width, height, renderBufferCount, parameters.CreateDocumentResourcesOption.HasFlag(Util.CreateDocumentResourcesOption.Plugin));
+            await CurrentDCDocument.CreateAsync(width, height, parameters.CreateDocumentResourcesOption.HasFlag(Util.CreateDocumentResourcesOption.Plugin));
             CurrentCanvasCase = CurrentDCDocument.canvasCase;
             CurrentCanvasCase.Name = name;
 

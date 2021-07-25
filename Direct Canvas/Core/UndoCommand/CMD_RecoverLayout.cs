@@ -18,6 +18,8 @@ namespace DirectCanvas.Undo
         public void Delete()
         {
             layout.Dispose();
+            canvasCase.LayoutTex.Remove(layout.guid, out TiledTexture tiledTexture);
+            tiledTexture?.Dispose();
         }
 
         public void Dispose()

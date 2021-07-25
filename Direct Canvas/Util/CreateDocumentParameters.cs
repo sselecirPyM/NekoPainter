@@ -17,7 +17,6 @@ namespace DirectCanvas.Util
         public StorageFolder Folder;
         public int Width;
         public int Height;
-        public int bufferCount;
         public string Name;
         public CreateDocumentResourcesOption CreateDocumentResourcesOption;
     }

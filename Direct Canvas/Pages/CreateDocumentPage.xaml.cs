@@ -106,7 +106,6 @@ namespace DirectCanvas.Pages
                 Width = str_width,
                 Height = str_height,
                 Name = DocumentName,
-                bufferCount = int.Parse((string)ComboBox_RenderBufferNum.SelectionBoxItem),
                 CreateDocumentResourcesOption = (Util.CreateDocumentResourcesOption)ComboBox_CreateDocumentResourcesOption.SelectedIndex
             });
         }

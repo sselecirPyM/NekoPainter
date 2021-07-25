@@ -18,7 +18,7 @@ using System.Collections.ObjectModel;
 
 namespace DirectCanvas.Core
 {
-    public class Brush : IDisposable, IComparable<Brush>, INotifyPropertyChanged
+    public class Brush : IDisposable, IComparable<Brush>
     {
         private Brush(ComputeShader cBegin, ComputeShader cDoing, ComputeShader cEnd)
         {
@@ -224,22 +224,11 @@ namespace DirectCanvas.Core
 
         public string ImagePath;
         public string[] RefTexturePath = new string[c_refTextureCount];
-        public Windows.UI.Xaml.Media.Brush UIBrush
-        {
-            get => _uiBrush; set
-            {
-                _uiBrush = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("UIBrush"));
-            }
-        }
-        Windows.UI.Xaml.Media.Brush _uiBrush;
 
         public float Size { get; set; }
 
-        //public ObservableCollection<DCBrushParameter> Parameters = new ObservableCollection<DCBrushParameter>(new DCBrushParameter[c_parameterCount]);
         public DCParameter[] Parameters = new DCParameter[c_parameterCount];
 
-        public event PropertyChangedEventHandler PropertyChanged;
         public RenderTexture[] refTexture = new RenderTexture[c_refTextureCount];
 
         public string Name { get; set; }

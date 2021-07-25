@@ -43,8 +43,6 @@ namespace DirectCanvas
             ViewRenderer = new ViewRenderer(this);
 
             PaintAgent.ViewRenderer = ViewRenderer;
-
-            Layouts.CollectionChanged += Layouts_Changed;
         }
 
         public void SizeChange(int canvasWidth, int canvasHeight)
@@ -56,21 +54,6 @@ namespace DirectCanvas
             PaintingTexture = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
             PaintingTextureBackup = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
             PaintingTextureTemp = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-        }
-
-        int movePreviousIndex;
-        private void Layouts_Changed(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (!watched) return;
-            if (e.Action == NotifyCollectionChangedAction.Add)
-            {
-                UndoManager.AddUndoData(new CMD_MoveLayout(this, e.NewStartingIndex, movePreviousIndex));
-                DirectCanvas.UI.Controller.AppController.Instance.CanvasRerender();
-            }
-            else if (e.Action == NotifyCollectionChangedAction.Remove)
-            {
-                movePreviousIndex = e.OldStartingIndex;
-            }
         }
 
         public void SetActivatedLayout(int layoutIndex)
@@ -108,48 +91,25 @@ namespace DirectCanvas
                 guid = System.Guid.NewGuid(),
                 Name = string.Format("图层 {0}", Layouts.Count + 1)
             };
-            watched = false;
             Layouts.Insert(insertIndex, standardLayout);
-            watched = true;
             UndoManager.AddUndoData(new CMD_DeleteLayout(standardLayout, this, insertIndex));
 
             return standardLayout;
         }
 
-        //public PureLayout NewPureLayout(int insertIndex, int RenderBufferNum)
-        //{
-        //    PureLayout pureLayout = new PureLayout()
-        //    {
-        //        BlendMode = DefaultBlendMode.Guid,
-        //        guid = System.Guid.NewGuid(),
-        //        Name = string.Format("图层 {0}", Layouts.Count + 1)
-        //    };
-        //    watched = false;
-        //    Layouts.Insert(insertIndex, pureLayout);
-        //    watched = true;
-        //    UndoManager.AddUndoData(new CMD_DeleteLayout(pureLayout, this, insertIndex));
-
-        //    return pureLayout;
-        //}
-
         public void DeleteLayout(int index)
         {
             PictureLayout pictureLayout = Layouts[index];
-            watched = false;
-            //if (pictureLayout is StandardLayout standardLayout)
-            //    standardLayout.Deactivate(PaintingTexture);
             if (PaintAgent.CurrentLayout == pictureLayout)
             {
                 PaintAgent.CurrentLayout = null;
             }
             Layouts.RemoveAt(index);
-            watched = true;
             UndoManager.AddUndoData(new CMD_RecoverLayout(pictureLayout, this, index));
         }
 
         public PictureLayout CopyLayout(int index)
         {
-            watched = false;
             PictureLayout pictureLayout = Layouts[index];
             PictureLayout newPictureLayout = null;
             if (pictureLayout is StandardLayout standardLayout)
@@ -174,15 +134,7 @@ namespace DirectCanvas
 
                 LayoutTex[newPictureLayout.guid] = tiledTexture;
             }
-            //else if (pictureLayout is PureLayout pureLayout)
-            //{
-            //    newPictureLayout = new PureLayout(pureLayout)
-            //    {
-            //        Name = string.Format("{0} 复制", pureLayout.Name)
-            //    };
-            //}
             Layouts.Insert(index, newPictureLayout);
-            watched = true;
             UndoManager.AddUndoData(new CMD_DeleteLayout(newPictureLayout, this, index));
             return newPictureLayout;
         }
@@ -291,7 +243,7 @@ namespace DirectCanvas
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
 
-        public readonly ObservableCollection<BlendMode> blendModes = new ObservableCollection<BlendMode>();
+        public readonly List<BlendMode> blendModes = new List<BlendMode>();
         public Dictionary<System.Guid, Core.BlendMode> blendmodesMap = new Dictionary<System.Guid, Core.BlendMode>();
 
         public event System.Action ActivatedLayoutChanged;
@@ -299,8 +251,6 @@ namespace DirectCanvas
         public BlendMode DefaultBlendMode;
 
         public readonly DeviceResources DeviceResources;
-
-        public bool watched;
     }
 }
 

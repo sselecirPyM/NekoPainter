@@ -155,39 +155,39 @@ namespace DirectCanvas
             //ColorAndOtherPanel.SetCanvasCase(canvasCase);
             //BlendModePanel.SetCanvasCase(canvasCase);
             //LayoutInfoPanel.SetCanvasCase(canvasCase);
-            foreach (Core.Brush brush in canvasCase.PaintAgent.brushes)
-            {
-                if (!string.IsNullOrEmpty(brush.ImagePath))
-                {
-                    try
-                    {
-                        StorageFile f = await currentController.CurrentDCDocument.brushesFolder.GetFileAsync(brush.ImagePath);
-                        BitmapImage image = new BitmapImage();
-                        image.SetSource(await f.OpenReadAsync());
-                        ImageBrush imageBrush = new ImageBrush { ImageSource = image };
-                        brush.UIBrush = imageBrush;
-                    }
-                    catch { brush.UIBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0)); }
-                }
-                else
-                {
-                    brush.UIBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0));
-                }
-                for (int i = 0; i < Core.Brush.c_refTextureCount; i++)
-                    if (!string.IsNullOrEmpty(brush.RefTexturePath[i]))
-                    {
-                        try
-                        {
-                            StorageFile f = await currentController.CurrentDCDocument.brushesFolder.GetFileAsync(brush.RefTexturePath[i]);
-                            var stream = await f.OpenStreamForReadAsync();
-                            byte[] data = AppController.GetImageData(stream, out int width, out int height);
-                            RenderTexture renderTexture = new RenderTexture(canvasCase.DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-                            renderTexture.ReadImageData1(data, width, height, currentController.computeShaders["CImport"]);
-                            brush.refTexture[i] = renderTexture;
-                        }
-                        catch { }
-                    }
-            }
+            //foreach (Core.Brush brush in canvasCase.PaintAgent.brushes)
+            //{
+            //    if (!string.IsNullOrEmpty(brush.ImagePath))
+            //    {
+            //        try
+            //        {
+            //            StorageFile f = await currentController.CurrentDCDocument.brushesFolder.GetFileAsync(brush.ImagePath);
+            //            BitmapImage image = new BitmapImage();
+            //            image.SetSource(await f.OpenReadAsync());
+            //            ImageBrush imageBrush = new ImageBrush { ImageSource = image };
+            //            brush.UIBrush = imageBrush;
+            //        }
+            //        catch { brush.UIBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0)); }
+            //    }
+            //    else
+            //    {
+            //        brush.UIBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0));
+            //    }
+            //    for (int i = 0; i < Core.Brush.c_refTextureCount; i++)
+            //        if (!string.IsNullOrEmpty(brush.RefTexturePath[i]))
+            //        {
+            //            try
+            //            {
+            //                StorageFile f = await currentController.CurrentDCDocument.brushesFolder.GetFileAsync(brush.RefTexturePath[i]);
+            //                var stream = await f.OpenStreamForReadAsync();
+            //                byte[] data = AppController.GetImageData(stream, out int width, out int height);
+            //                RenderTexture renderTexture = new RenderTexture(canvasCase.DeviceResources, width, height, Format.R32G32B32A32_Float, false);
+            //                renderTexture.ReadImageData1(data, width, height, currentController.computeShaders["CImport"]);
+            //                brush.refTexture[i] = renderTexture;
+            //            }
+            //            catch { }
+            //        }
+            //}
         }
 
         private void _MenuItem_About_Click(object sender, RoutedEventArgs e)

@@ -22,13 +22,13 @@ namespace DirectCanvas.Undo
 
         public IUndoCommand Execute()
         {
-            canvasCase.watched = false;
+            //canvasCase.watched = false;
             if (canvasCase.ActivatedLayout == canvasCase.Layouts[atIndex])
             {
                 canvasCase.SetActivatedLayout(-1);
             }
             canvasCase.Layouts.RemoveAt(atIndex);
-            canvasCase.watched = true;
+            //canvasCase.watched = true;
             return new CMD_RecoverLayout(layout, canvasCase, atIndex);
         }
     }

@@ -59,7 +59,6 @@ namespace DirectCanvas.FileFormat
             await LoadBrushes();
             canvasCase.PaintAgent.CurrentLayout = canvasCase.NewStandardLayout(0, 0);
             await SaveAsync();
-            canvasCase.watched = true;
         }
 
         public async Task LoadAsync()
@@ -169,7 +168,6 @@ namespace DirectCanvas.FileFormat
             StorageFile layoutSettingsFile = await CaseFolder.GetFileAsync("Layouts.xml");
             Stream settingsStream = (await layoutSettingsFile.OpenAsync(FileAccessMode.ReadWrite)).AsStream();
             XmlReader xmlReader = XmlReader.Create(settingsStream, xmlReaderSettings);
-            canvasCase.watched = false;
             while (xmlReader.Read())
             {
                 if (xmlReader.NodeType == XmlNodeType.Element)
@@ -198,32 +196,9 @@ namespace DirectCanvas.FileFormat
                                 canvasCase.Layouts.Add(standardLayout);
                                 break;
                             }
-                        //case "PureLayout":
-                        //    {
-                        //        guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                        //        if (guid == Guid.Empty)
-                        //            guid = Guid.NewGuid();
-                        //        PureLayout pureLayout = new PureLayout() { guid = guid };
-                        //        LoadLayoutInfo(xmlReader, pureLayout);
-                        //        string colorString = xmlReader.GetAttribute("Color");
-                        //        if (!string.IsNullOrEmpty(colorString))
-                        //        {
-                        //            string[] colorG = colorString.Split(" ");
-                        //            float.TryParse(colorG[0], out float cR);
-                        //            float.TryParse(colorG[1], out float cG);
-                        //            float.TryParse(colorG[2], out float cB);
-                        //            float.TryParse(colorG[3], out float cA);
-                        //            pureLayout.Color = new System.Numerics.Vector4(cR, cG, cB, cA);
-                        //        }
-
-                        //        canvasCase.LayoutsMap.Add(guid, pureLayout);
-                        //        canvasCase.Layouts.Add(pureLayout);
-                        //        break;
-                        //    }
                     }
                 }
             }
-            canvasCase.watched = true;
             settingsStream.Dispose();
         }
         private void LoadLayoutInfo(XmlReader xmlReader, PictureLayout layout)

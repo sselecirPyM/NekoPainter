@@ -169,9 +169,9 @@ namespace DirectCanvas.UI
                             layouts[i] = layouts[n_next];
                             layouts[n_next] = layout;
                             ImGui.ResetMouseDragDelta();
+                            canvasCase.UndoManager.AddUndoData(new Undo.CMD_MoveLayout(canvasCase, i, n_next));
                         }
                     }
-
                 }
             }
 

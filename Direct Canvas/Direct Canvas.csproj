@@ -141,7 +141,6 @@
     <Compile Include="Core\Brush\Brush.cs" />
     <Compile Include="Core\Brush\DCParameter.cs" />
     <Compile Include="Core\CanvasCase.cs" />
-    <Compile Include="Core\DCLayout\PureLayout.cs" />
     <Compile Include="Core\DCLayout\PictureLayout.cs" />
     <Compile Include="Core\DCLayout\StandardLayout.cs" />
     <Compile Include="Core\Director\Animation.cs" />
@@ -214,19 +213,10 @@
     </Compile>
     <Compile Include="UI\FloatingPanel.cs" />
     <Compile Include="UI\Input.cs" />
-    <Compile Include="UI\ResizablePanel.xaml.cs">
-      <DependentUpon>ResizablePanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UI\AnimationControls\TimelineViewer.xaml.cs">
       <DependentUpon>TimelineViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\ViewUIs.cs" />
-    <Compile Include="UI\Widgets\DCUIControl_Parameter.xaml.cs">
-      <DependentUpon>DCUIControl_Parameter.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Widgets\LayoutsPanel.xaml.cs">
-      <DependentUpon>LayoutsPanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Util\CubicBezierCurve.cs" />
     <Compile Include="Util\Converter\IsPureLayout.cs" />
     <Compile Include="Util\Converter\Vector4ToColor.cs" />
@@ -405,19 +395,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\ResizablePanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="UI\AnimationControls\TimelineViewer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Widgets\DCUIControl_Parameter.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Widgets\LayoutsPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -441,6 +419,9 @@
       <Project>{951f5778-1361-4367-b063-71d443dea459}</Project>
       <Name>CanvasRendering</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="UI\Widgets\" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

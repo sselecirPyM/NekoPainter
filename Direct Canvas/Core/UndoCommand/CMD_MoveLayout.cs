@@ -27,9 +27,9 @@ namespace DirectCanvas.Undo
 
         public IUndoCommand Execute()
         {
-            canvasCase.watched = false;
+            //canvasCase.watched = false;
             canvasCase.Layouts.Move(indexBefore, indexAfter);
-            canvasCase.watched = true;
+            //canvasCase.watched = true;
             return new CMD_MoveLayout(canvasCase, indexAfter, indexBefore);
         }
     }

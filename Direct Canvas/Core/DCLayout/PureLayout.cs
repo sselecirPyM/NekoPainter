@@ -10,25 +10,25 @@ using CanvasRendering;
 
 namespace DirectCanvas.Layout
 {
-    public class PureLayout : PictureLayout
-    {
-        public PureLayout()
-        {
-        }
+    //public class PureLayout : PictureLayout
+    //{
+    //    public PureLayout()
+    //    {
+    //    }
 
-        public PureLayout(PureLayout copySource)
-        {
-            Hidden = copySource.Hidden;
-            Alpha = copySource.Alpha;
-            guid = Guid.NewGuid();
+    //    public PureLayout(PureLayout copySource)
+    //    {
+    //        Hidden = copySource.Hidden;
+    //        Alpha = copySource.Alpha;
+    //        guid = Guid.NewGuid();
 
-            BlendMode = copySource.BlendMode;
-            Color = copySource.Color;
-        }
+    //        BlendMode = copySource.BlendMode;
+    //        Color = copySource.Color;
+    //    }
 
-        public override void Dispose()
-        {
+    //    public override void Dispose()
+    //    {
 
-        }
-    }
+    //    }
+    //}
 }

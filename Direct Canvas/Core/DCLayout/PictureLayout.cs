@@ -21,7 +21,7 @@ namespace DirectCanvas.Layout
         public Guid guid;
 
         public PictureLayout() { }
-        public bool Hidden { get; set; }
+        public bool Hidden;
         /// <summary>
         /// 图层的名称，用来标识图层。
         /// </summary>
@@ -44,6 +44,6 @@ namespace DirectCanvas.Layout
 
         public bool blendModeUsedDataUpdated = false;
 
-        public bool IsPureLayout = false;
+        public bool UseColor = false;
     }
 }

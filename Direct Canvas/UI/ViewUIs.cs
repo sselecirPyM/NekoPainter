@@ -189,9 +189,10 @@ namespace DirectCanvas.UI
             if (canvasCase.SelectedLayout != null)
             {
                 var layout = canvasCase.SelectedLayout;
-                ImGui.ColorEdit4("颜色", ref layout.Color);
-                ImGui.Checkbox("使用颜色", ref layout.IsPureLayout);
                 ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
+                ImGui.ColorEdit4("颜色", ref layout.Color);
+                ImGui.Checkbox("使用颜色", ref layout.UseColor);
+                ImGui.Checkbox("隐藏", ref layout.Hidden);
             }
             ImGui.End();
         }

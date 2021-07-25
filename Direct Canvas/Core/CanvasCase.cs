@@ -116,21 +116,21 @@ namespace DirectCanvas
             return standardLayout;
         }
 
-        public PureLayout NewPureLayout(int insertIndex, int RenderBufferNum)
-        {
-            PureLayout pureLayout = new PureLayout()
-            {
-                BlendMode = DefaultBlendMode.Guid,
-                guid = System.Guid.NewGuid(),
-                Name = string.Format("图层 {0}", Layouts.Count + 1)
-            };
-            watched = false;
-            Layouts.Insert(insertIndex, pureLayout);
-            watched = true;
-            UndoManager.AddUndoData(new CMD_DeleteLayout(pureLayout, this, insertIndex));
+        //public PureLayout NewPureLayout(int insertIndex, int RenderBufferNum)
+        //{
+        //    PureLayout pureLayout = new PureLayout()
+        //    {
+        //        BlendMode = DefaultBlendMode.Guid,
+        //        guid = System.Guid.NewGuid(),
+        //        Name = string.Format("图层 {0}", Layouts.Count + 1)
+        //    };
+        //    watched = false;
+        //    Layouts.Insert(insertIndex, pureLayout);
+        //    watched = true;
+        //    UndoManager.AddUndoData(new CMD_DeleteLayout(pureLayout, this, insertIndex));
 
-            return pureLayout;
-        }
+        //    return pureLayout;
+        //}
 
         public void DeleteLayout(int index)
         {
@@ -174,13 +174,13 @@ namespace DirectCanvas
 
                 LayoutTex[newPictureLayout.guid] = tiledTexture;
             }
-            else if (pictureLayout is PureLayout pureLayout)
-            {
-                newPictureLayout = new PureLayout(pureLayout)
-                {
-                    Name = string.Format("{0} 复制", pureLayout.Name)
-                };
-            }
+            //else if (pictureLayout is PureLayout pureLayout)
+            //{
+            //    newPictureLayout = new PureLayout(pureLayout)
+            //    {
+            //        Name = string.Format("{0} 复制", pureLayout.Name)
+            //    };
+            //}
             Layouts.Insert(index, newPictureLayout);
             watched = true;
             UndoManager.AddUndoData(new CMD_DeleteLayout(newPictureLayout, this, index));

@@ -70,17 +70,17 @@ namespace DirectCanvas.UI.Widgets
                 canvasCase.NewStandardLayout(0, 0);
             }
         }
-        private void NewPureLayout(object sender, RoutedEventArgs e)
-        {
-            if (LayoutsListView.SelectedIndex != -1)
-            {
-                canvasCase.NewPureLayout(LayoutsListView.SelectedIndex, 0);
-            }
-            else if (canvasCase != null)
-            {
-                canvasCase.NewPureLayout(0, 0);
-            }
-        }
+        //private void NewPureLayout(object sender, RoutedEventArgs e)
+        //{
+        //    if (LayoutsListView.SelectedIndex != -1)
+        //    {
+        //        canvasCase.NewPureLayout(LayoutsListView.SelectedIndex, 0);
+        //    }
+        //    else if (canvasCase != null)
+        //    {
+        //        canvasCase.NewPureLayout(0, 0);
+        //    }
+        //}
         private void CopyLayout(object sender, RoutedEventArgs e)
         {
             if (LayoutsListView.SelectedIndex != -1)
@@ -131,10 +131,10 @@ namespace DirectCanvas.UI.Widgets
             {
                 return StandardLayoutTemplate;
             }
-            else if (item.GetType() == typeof(PureLayout))
-            {
-                return PureLayoutTemplate;
-            }
+            //else if (item.GetType() == typeof(PureLayout))
+            //{
+            //    return PureLayoutTemplate;
+            //}
             throw new NotImplementedException();
         }
     }

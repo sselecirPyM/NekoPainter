@@ -49,7 +49,7 @@
                     <MenuFlyoutSeparator/>
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FBrushPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_BrushPanel" x:Uid="M_BrushPanel"/>-->
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FColorPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_ColorPanel" x:Uid="M_ColorPanel"/>-->
-                    <ToggleMenuFlyoutItem IsChecked="{x:Bind FLayoutPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_LayoutPanel" x:Uid="M_LayoutPanel"/>
+                    <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FLayoutPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_LayoutPanel" x:Uid="M_LayoutPanel"/>-->
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FLayoutInfoPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_LayoutInfoPanel" x:Uid="M_LayoutInfoPanel"/>-->
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FBlendModePanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_BlendModePanel" x:Uid="M_BlendModePanel"/>-->
                 </MenuBarItem>
@@ -71,9 +71,9 @@
             <!--画布-->
             <local3:DCUI_Canvas x:Name="DCUI_Canvas"/>
             <Canvas>
-                <local3:FloatingPanel x:Name="FLayoutPanel" Header="图层" Canvas.Top="400" Width="200" Height="200" GotFocus="Panel_GotFocus" PointerPressed="FLayoutPanel_PointerPressed" Click="Panel_GotFocus">
+                <!--<local3:FloatingPanel x:Name="FLayoutPanel" Header="图层" Canvas.Top="400" Width="200" Height="200" GotFocus="Panel_GotFocus" PointerPressed="FLayoutPanel_PointerPressed" Click="Panel_GotFocus">
                     <local2:LayoutsPanel x:Name="LayoutsPanel"/>
-                </local3:FloatingPanel>
+                </local3:FloatingPanel>-->
                 <!--<local3:FloatingPanel x:Name="FBrushPanel" Header="笔刷" Canvas.ZIndex="2" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Left="400" Canvas.Top="50" Width="180" Height="250" MinWidth="100" MinHeight="100">
                     <local2:BrushPanel x:Name="BrushPanel"/>
                 </local3:FloatingPanel>-->

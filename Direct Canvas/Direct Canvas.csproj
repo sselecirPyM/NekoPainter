@@ -224,9 +224,6 @@
     <Compile Include="UI\Widgets\DCUIControl_Parameter.xaml.cs">
       <DependentUpon>DCUIControl_Parameter.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\Widgets\LayoutInfoPanel.xaml.cs">
-      <DependentUpon>LayoutInfoPanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UI\Widgets\LayoutsPanel.xaml.cs">
       <DependentUpon>LayoutsPanel.xaml</DependentUpon>
     </Compile>
@@ -417,10 +414,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Widgets\DCUIControl_Parameter.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Widgets\LayoutInfoPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

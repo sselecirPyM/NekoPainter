@@ -17,7 +17,7 @@ namespace DirectCanvas.Layout
             BlendMode = standardLayout.BlendMode;
             Alpha = standardLayout.Alpha;
             Color = standardLayout.Color;
-            IsPureLayout = standardLayout.IsPureLayout;
+            UseColor = standardLayout.UseColor;
 
             guid = Guid.NewGuid();
         }

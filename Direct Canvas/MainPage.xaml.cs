@@ -150,7 +150,7 @@ namespace DirectCanvas
 
             DocumentTitle.SetBinding(TextBlock.TextProperty, new Binding() { Path = new PropertyPath("Name"), Source = canvasCase, Mode = BindingMode.TwoWay });
             DCUI_Canvas.SetCanvasCase(canvasCase);
-            LayoutsPanel.SetCanvasCase(canvasCase);
+            //LayoutsPanel.SetCanvasCase(canvasCase);
             //BrushPanel.SetCanvasCase(canvasCase);
             //ColorAndOtherPanel.SetCanvasCase(canvasCase);
             //BlendModePanel.SetCanvasCase(canvasCase);

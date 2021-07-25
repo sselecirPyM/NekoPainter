@@ -116,7 +116,7 @@
                 <Button.ContextFlyout>
                     <MenuFlyout>
                         <MenuFlyoutItem Text="标准图层" Click="NewLayout"/>
-                        <MenuFlyoutItem Text="纯色图层" Click="NewPureLayout"/>
+                        <!--<MenuFlyoutItem Text="纯色图层" Click="NewPureLayout"/>-->
                     </MenuFlyout>
                 </Button.ContextFlyout>
             </Button>

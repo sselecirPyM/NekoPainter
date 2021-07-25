@@ -35,7 +35,7 @@ namespace DirectCanvas
                     RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
                     refs[0] = RenderTarget[0];
                     CanvasCase.LayoutTex.TryGetValue(standardLayout.guid,out  var tiledTexture);
-                    if (standardLayout.IsPureLayout)
+                    if (standardLayout.UseColor)
                     {
                         if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                         {
@@ -64,15 +64,15 @@ namespace DirectCanvas
                         }
                     }
                 }
-                else if (selectedLayout is PureLayout pureLayout)
-                {
-                    RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
-                    refs[0] = RenderTarget[0];
-                    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
-                    {
-                        blendMode?.BlendPure(RenderTarget[0], refs, constantBuffer1, ofs, 256);
-                    }
-                }
+                //else if (selectedLayout is PureLayout pureLayout)
+                //{
+                //    RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
+                //    refs[0] = RenderTarget[0];
+                //    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                //    {
+                //        blendMode?.BlendPure(RenderTarget[0], refs, constantBuffer1, ofs, 256);
+                //    }
+                //}
                 else
                 {
                     throw new System.NotImplementedException();

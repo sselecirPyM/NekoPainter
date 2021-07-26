@@ -2,11 +2,11 @@
 Texture2D<float4> DC_Source :register(t0);
 Texture2D<float4> RefTexture :register(t1);
 RWTexture2D<float4> DC_Target : register(u0);
-cbuffer DC_LayoutsData0 : register(b0)
-{
-	float4 DC_LayoutColor;
-	int4 Parameters[8];
-}
+//cbuffer DC_LayoutsData0 : register(b0)
+//{
+//	float4 DC_LayoutColor;
+//	int4 Parameters[8];
+//}
 
 #define codehere
 

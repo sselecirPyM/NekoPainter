@@ -142,7 +142,6 @@
     <Compile Include="Core\Brush\DCParameter.cs" />
     <Compile Include="Core\CanvasCase.cs" />
     <Compile Include="Core\DCLayout\PictureLayout.cs" />
-    <Compile Include="Core\DCLayout\StandardLayout.cs" />
     <Compile Include="Core\Director\Animation.cs" />
     <Compile Include="Core\Director\AnimationTag.cs" />
     <Compile Include="Core\Director\AnimationTagRail.cs" />

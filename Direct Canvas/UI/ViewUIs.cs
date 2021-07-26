@@ -156,8 +156,8 @@ namespace DirectCanvas.UI
                     ImGui.Selectable(string.Format("{0}###1{1}", layout.Name, layout.guid), ref selected);
                     if (selected)
                     {
-                        if (layout is Layout.StandardLayout standardLayout && layout != canvasCase.SelectedLayout)
-                            canvasCase.SetActivatedLayout(standardLayout);
+                        if (layout != canvasCase.SelectedLayout)
+                            canvasCase.SetActivatedLayout(layout);
                         canvasCase.SelectedLayout = layout;
                         selectedIndex = i;
                     }
@@ -193,6 +193,20 @@ namespace DirectCanvas.UI
                 ImGui.ColorEdit4("颜色", ref layout.Color);
                 ImGui.Checkbox("使用颜色", ref layout.UseColor);
                 ImGui.Checkbox("隐藏", ref layout.Hidden);
+
+                if (canvasCase.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
+                {
+                    for (int i = 0; i < blendMode.Paramerters.Length; i++)
+                    {
+
+                        ImGui.DragFloat(string.Format("{0}###{1}", blendMode.Paramerters[i].Name, i), ref blendMode.Paramerters[i].fValue);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.SetTooltip(blendMode.Paramerters[i].Description);
+                        }
+                    }
+                }
+
             }
             ImGui.End();
         }

@@ -24,7 +24,8 @@ namespace DirectCanvas.Core
         }
         static string[] componentCode = new string[c_csBlendCount];
         public const int c_parameterCount = 32;
-        const int c_csBlendCount = 7;
+        //const int c_csBlendCount = 7;
+        const int c_csBlendCount = 6;
 
         static string appUsedCultureName;
         public static async Task LoadStaticResourcesAsync()
@@ -36,7 +37,7 @@ namespace DirectCanvas.Core
             componentCode[3] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c4.hlsl");
             componentCode[4] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c5.hlsl");
             componentCode[5] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c6.hlsl");
-            componentCode[6] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c7.hlsl");
+            //componentCode[6] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c7.hlsl");
         }
 
         //static bool CultureCheck2(DCParameter parameter, string culture)
@@ -77,19 +78,37 @@ namespace DirectCanvas.Core
         public static async Task<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
         {
             Stream stream = await file.OpenStreamForReadAsync();
-            BlendModeCode blendModeCode =(BlendModeCode) xmlSerializer.Deserialize(stream);
-
+            BlendModeCode blendModeCode = (BlendModeCode)xmlSerializer.Deserialize(stream);
+            stream.Dispose();
+            StringBuilder fCode = new StringBuilder();
+            fCode.Append("cbuffer DC_LayoutsData__ : register(b0)\n{\nfloat4 DC_LayoutColor;\n");
+            if (blendModeCode.Parameters != null)
+            {
+                for (int i = 0; i < blendModeCode.Parameters.Length; i++)
+                {
+                    fCode.Append("float P_");
+                    fCode.Append(blendModeCode.Parameters[i].Name);
+                    fCode.Append(";\n");
+                }
+            }
+            fCode.Append("}");
+            fCode.Append(blendModeCode.Code);
+            string fCode1 = fCode.ToString(); ;
             ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
             Parallel.For(0, c_csBlendCount, (int i) =>
             {
-                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", blendModeCode.Code)));
+                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", fCode1)));
             });
 
             BlendMode blendMode = new BlendMode(shaders);
             blendMode.Name = blendModeCode.Name;
             blendMode.Description = blendModeCode.Description;
             blendMode.Guid = blendModeCode.Guid;
+            blendMode.Paramerters = blendModeCode.Parameters;
+            if (blendModeCode.Parameters != null)
+            {
 
+            }
             return blendMode;
         }
         //public static async Task<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
@@ -314,13 +333,14 @@ namespace DirectCanvas.Core
         public string Description { get; set; }
 
         public Guid Guid { get; set; }
+        public DCParameter[] Paramerters;
 
         public override string ToString()
         {
             return Name;
         }
     }
-    [XmlRoot("BlendMode")]
+    [XmlType("BlendMode")]
     public class BlendModeCode
     {
         public Guid Guid;
@@ -328,5 +348,6 @@ namespace DirectCanvas.Core
         public string Description;
         public string Code;
         public string Image;
+        public DCParameter[] Parameters;
     }
 }

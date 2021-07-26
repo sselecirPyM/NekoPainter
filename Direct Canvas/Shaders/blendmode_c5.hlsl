@@ -1,9 +1,9 @@
 //file5
-cbuffer DC_LayoutsData0 : register(b0)
-{
-	float4 DC_LayoutColor;
-	int4 Parameters[8];
-}
+//cbuffer DC_LayoutsData0 : register(b0)
+//{
+//	float4 DC_LayoutColor;
+//	int4 Parameters[8];
+//}
 Texture2D<float4> RefTexture :register(t0);
 RWTexture2D<float4> DC_Target : register(u0);
 

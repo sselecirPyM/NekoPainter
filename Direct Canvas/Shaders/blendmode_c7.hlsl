@@ -3,11 +3,11 @@ Texture2D<float4> DC_Source :register(t0);
 Texture2D<float4> RefTexture :register(t1);
 Texture2D<float> DC_SelectionMask : register(t3);
 RWTexture2D<float4> DC_Target : register(u0);
-cbuffer DC_LayoutsData0 : register(b0)
-{
-	float4 DC_LayoutColor;
-	int4 Parameters[8];
-}
+//cbuffer DC_LayoutsData0 : register(b0)
+//{
+//	float4 DC_LayoutColor;
+//	int4 Parameters[8];
+//}
 cbuffer DC_SelectionOffset : register(b1)
 {
 	float4 DC_SelectionColor;

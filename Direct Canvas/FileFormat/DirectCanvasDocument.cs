@@ -87,10 +87,7 @@ namespace DirectCanvas.FileFormat
             for (int ia = 0; ia < canvasCase.Layouts.Count; ia++)
             {
                 PictureLayout layout = canvasCase.Layouts[ia];
-                if (layout is StandardLayout)
-                {
-                    writer.WriteStartElement("Layout");
-                }
+                writer.WriteStartElement("Layout");
                 System.Numerics.Vector4 color = layout.Color;
                 writer.WriteAttributeString("Color", string.Format("{0} {1} {2} {3}", color.X, color.Y, color.Z, color.W));
                 writer.WriteAttributeString("Name", layout.Name);
@@ -102,14 +99,14 @@ namespace DirectCanvas.FileFormat
                     writer.WriteAttributeString("BlendModeGuid", layout.BlendMode.ToString());
 
                 writer.WriteEndElement();
-                if (layout is StandardLayout standardLayout && !standardLayout.saved)
+                if (!layout.saved)
                 {
-                    if (!layoutFileMap.TryGetValue(standardLayout.guid, out StorageFile storageFile))
+                    if (!layoutFileMap.TryGetValue(layout.guid, out StorageFile storageFile))
                     {
-                        storageFile = await layoutsFolder.CreateFileAsync(string.Format("{0}.dclf", standardLayout.guid.ToString(), CreationCollisionOption.ReplaceExisting));
-                        layoutFileMap[standardLayout.guid] = storageFile;
+                        storageFile = await layoutsFolder.CreateFileAsync(string.Format("{0}.dclf", layout.guid.ToString(), CreationCollisionOption.ReplaceExisting));
+                        layoutFileMap[layout.guid] = storageFile;
                     }
-                    await standardLayout.SaveToFileAsync(canvasCase, storageFile);
+                    await layout.SaveToFileAsync(canvasCase, storageFile);
                 }
             }
             writer.WriteEndDocument();
@@ -173,7 +170,7 @@ namespace DirectCanvas.FileFormat
                         case "Layout":
                             {
                                 guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                                StandardLayout standardLayout = new StandardLayout() { guid = guid };
+                                PictureLayout standardLayout = new PictureLayout() { guid = guid };
                                 canvasCase.LayoutsMap[guid] = standardLayout;
                                 LoadLayoutInfo(xmlReader, standardLayout);
 

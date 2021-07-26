@@ -6,7 +6,7 @@ namespace DirectCanvas.Undo
 {
     public class CMD_TileReplace : IUndoCommand
     {
-        public readonly StandardLayout Host;
+        public readonly PictureLayout Host;
 
         public readonly TiledTexture Data;
 
@@ -28,7 +28,7 @@ namespace DirectCanvas.Undo
         {
             //Host.ReplaceTiles(Data, ref Host.tiledTexture, canvasCase.PaintingTextureTemp, canvasCase.PaintingTexture, out TiledTexture before);
             canvasCase.LayoutTex.TryGetValue(Host.guid, out TiledTexture tiledTexture);
-            StandardLayout.ReplaceTiles1(Data, ref tiledTexture, canvasCase.PaintingTextureTemp, canvasCase.PaintingTexture, out TiledTexture before, canvasCase.PaintAgent.CurrentLayout == Host);
+            PictureLayout.ReplaceTiles1(Data, ref tiledTexture, canvasCase.PaintingTextureTemp, canvasCase.PaintingTexture, out TiledTexture before, canvasCase.PaintAgent.CurrentLayout == Host);
             canvasCase.LayoutTex[Host.guid] = tiledTexture;
 
             canvasCase.PaintingTexture.CopyTo(canvasCase.PaintingTextureBackup);
@@ -37,7 +37,7 @@ namespace DirectCanvas.Undo
             return undo;
         }
 
-        public CMD_TileReplace(StandardLayout host, TiledTexture undoData, CanvasCase canvasCase)
+        public CMD_TileReplace(PictureLayout host, TiledTexture undoData, CanvasCase canvasCase)
         {
             Host = host;
             Data = undoData;

@@ -34,7 +34,7 @@ float4 brush(float4 bufferColor, uint2 position)
 	float bx1=clamp(rPos.x/rSize,-rl,rl);
 	float bx2=clamp(rPos.x/rSize-length(mp)/rSize,-rl,rl);
 	float ss=SprayPath(float2(bx1,rPos.y/rSize))-SprayPath(float2(bx2,rPos.y/rSize));
-	color.a = (1 - pow(2.718281828f, (ss)*log(1.0f - color.a*0.99999f)));
+	color.a = (1 - pow(2.718281828f, (ss)*log(1.0f - color.a*0.9999f)));
 
 	if (abs(rPos.y) &lt;= rSize &amp;&amp; rPos.x &gt;= 0 &amp;&amp; rPos.x &lt;= length(mp) || distance(rPos, float2(0, 0))&lt;= rSize || distance(rPos, float2(length(mp), 0)) &lt;= rSize)
 	{
@@ -79,7 +79,7 @@ float4 brush(float4 bufferColor, uint2 position)
 	float bx1=clamp(rPos.x/rSize,-rl,rl);
 	float bx2=clamp(rPos.x/rSize-length(mp)/rSize,-rl,rl);
 	float ss=SprayPath(float2(bx1,rPos.y/rSize))-SprayPath(float2(bx2,rPos.y/rSize));
-	color.a = (1 - pow(2.718281828f, (ss)*log(1.0f - color.a*0.99999f)));
+	color.a = (1 - pow(2.718281828f, (ss)*log(1.0f - color.a*0.9999f)));
 
 	if (abs(rPos.y) &lt;= rSize &amp;&amp; rPos.x &gt;= 0 &amp;&amp; rPos.x &lt;= length(mp) || distance(rPos, float2(0, 0))&lt;= rSize || distance(rPos, float2(length(mp), 0)) &lt;= rSize)
 	{

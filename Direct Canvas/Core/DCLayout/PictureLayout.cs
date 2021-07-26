@@ -11,13 +11,8 @@ namespace DirectCanvas.Layout
     /// <summary>
     /// 所有图层的基类
     /// </summary>
-    public abstract class PictureLayout : IDisposable
+    public class PictureLayout : IDisposable
     {
-        /// <summary>
-        /// 渲染到目标RenderTexture
-        /// </summary>
-        /// <param name="target"></param>
-
         public Guid guid;
 
         public PictureLayout() { }
@@ -40,7 +35,51 @@ namespace DirectCanvas.Layout
 
         public Vector4 Color = Vector4.One;
 
-        public abstract void Dispose();
+        public PictureLayout(PictureLayout pictureLayout)
+        {
+            BlendMode = pictureLayout.BlendMode;
+            Alpha = pictureLayout.Alpha;
+            Color = pictureLayout.Color;
+            UseColor = pictureLayout.UseColor;
+
+            guid = Guid.NewGuid();
+        }
+
+        public static void Activate(RenderTexture PaintingTexture, TiledTexture tiledTexture)
+        {
+            PaintingTexture.Clear();
+            tiledTexture?.UnzipToTexture(PaintingTexture);
+        }
+
+        public static void ReplaceTiles1(TiledTexture tt, ref TiledTexture layoutTexture, RenderTexture PaintingTextureTemp, RenderTexture PaintingTexture, out TiledTexture before, bool painting)
+        {
+            if (painting)
+            {
+                //before = new TiledTexture(PaintingTexture, tt.TilePositionList);
+                tt.UnzipToTexture(PaintingTexture);
+            }
+            if (layoutTexture != null && layoutTexture.tilesCount > 0)
+            {
+                PaintingTextureTemp.Clear();
+                layoutTexture.UnzipToTexture(PaintingTextureTemp);
+                before = new TiledTexture(PaintingTextureTemp, tt.TilePositionList);
+                tt.UnzipToTexture(PaintingTextureTemp);
+
+                layoutTexture?.Dispose();
+                layoutTexture = new TiledTexture(PaintingTextureTemp);
+            }
+            else
+            {
+                PaintingTextureTemp.Clear();
+                before = new TiledTexture(PaintingTextureTemp, tt.TilePositionList);
+                layoutTexture = new TiledTexture(tt);
+            }
+        }
+
+        public  void Dispose()
+        {
+
+        }
 
         public bool blendModeUsedDataUpdated = false;
 

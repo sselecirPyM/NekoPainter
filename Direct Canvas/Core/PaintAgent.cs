@@ -153,7 +153,7 @@ namespace DirectCanvas
         /// <summary>
         /// 当前要画的图层
         /// </summary>
-        public StandardLayout CurrentLayout { get; set; }
+        public PictureLayout CurrentLayout { get; set; }
 
         /// <summary>
         /// 当前使用的笔刷

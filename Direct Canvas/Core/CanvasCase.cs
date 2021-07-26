@@ -64,28 +64,28 @@ namespace DirectCanvas
                 PaintAgent.CurrentLayout = null;
                 return;
             }
-            ActivatedLayout = (StandardLayout)Layouts[layoutIndex];
+            ActivatedLayout = (PictureLayout)Layouts[layoutIndex];
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
-            StandardLayout.Activate(PaintingTexture, tiledTexture);
+            PictureLayout.Activate(PaintingTexture, tiledTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
         }
 
-        public void SetActivatedLayout(StandardLayout layout)
+        public void SetActivatedLayout(PictureLayout layout)
         {
             ActivatedLayout = layout;
 
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
-            StandardLayout.Activate(PaintingTexture, tiledTexture);
+            PictureLayout.Activate(PaintingTexture, tiledTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
         }
 
-        public StandardLayout NewStandardLayout(int insertIndex, int RenderBufferNum)
+        public PictureLayout NewStandardLayout(int insertIndex, int RenderBufferNum)
         {
-            StandardLayout standardLayout = new StandardLayout()
+            PictureLayout standardLayout = new PictureLayout()
             {
                 BlendMode = DefaultBlendMode.Guid,
                 guid = System.Guid.NewGuid(),
@@ -112,7 +112,7 @@ namespace DirectCanvas
         {
             PictureLayout pictureLayout = Layouts[index];
             PictureLayout newPictureLayout = null;
-            if (pictureLayout is StandardLayout standardLayout)
+            if (pictureLayout is PictureLayout standardLayout)
             {
                 TiledTexture tiledTexture = null;
                 LayoutTex.TryGetValue(standardLayout.guid, out var standardLayouttiledTexture);
@@ -126,7 +126,7 @@ namespace DirectCanvas
                     tiledTexture = new TiledTexture(standardLayouttiledTexture);
                 }
 
-                newPictureLayout = new StandardLayout(standardLayout)
+                newPictureLayout = new PictureLayout(standardLayout)
                 {
                     Name = string.Format("{0} 复制", standardLayout.Name),
                     //tiledTexture = tiledTexture,
@@ -139,9 +139,9 @@ namespace DirectCanvas
             return newPictureLayout;
         }
 
-        //public StandardLayout CopyBuffer(int insertIndex, int RenderBufferNum)
+        //public PictureLayout CopyBuffer(int insertIndex, int RenderBufferNum)
         //{
-        //    StandardLayout standardLayout = new StandardLayout(RenderTarget[0])
+        //    PictureLayout standardLayout = new PictureLayout(RenderTarget[0])
         //    {
         //        BlendMode = DefaultBlendMode.Guid,
         //        guid = System.Guid.NewGuid(),
@@ -214,7 +214,7 @@ namespace DirectCanvas
         /// <summary>
         /// 正在激活的图层
         /// </summary>
-        public StandardLayout ActivatedLayout { get; private set; }
+        public PictureLayout ActivatedLayout { get; private set; }
         public PictureLayout SelectedLayout { get; set; }
         #endregion
 

@@ -30,28 +30,21 @@ namespace DirectCanvas
                     ofs += 256;
                     continue;
                 }
-                if (selectedLayout is StandardLayout standardLayout)
+                CanvasCase.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
+                if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                 {
-                    CanvasCase.LayoutTex.TryGetValue(standardLayout.guid, out var tiledTexture);
-                    if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                    if (selectedLayout.UseColor)
                     {
-                        if (standardLayout.UseColor)
-                        {
-                            blendMode?.BlendPure(RenderTarget[0], constantBuffer1, ofs, 256);
-                        }
-                        else if (CanvasCase.PaintAgent.CurrentLayout == standardLayout)
-                        {
-                            blendMode?.Blend(PaintingTexture, RenderTarget[0], constantBuffer1, ofs, 256);
-                        }
-                        else if (tiledTexture != null && tiledTexture.tilesCount != 0)
-                        {
-                            blendMode?.Blend(tiledTexture, RenderTarget[0], constantBuffer1, ofs, 256);
-                        }
+                        blendMode?.BlendPure(RenderTarget[0], constantBuffer1, ofs, 256);
                     }
-                }
-                else
-                {
-                    throw new System.NotImplementedException();
+                    else if (CanvasCase.PaintAgent.CurrentLayout == selectedLayout)
+                    {
+                        blendMode?.Blend(PaintingTexture, RenderTarget[0], constantBuffer1, ofs, 256);
+                    }
+                    else if (tiledTexture != null && tiledTexture.tilesCount != 0)
+                    {
+                        blendMode?.Blend(tiledTexture, RenderTarget[0], constantBuffer1, ofs, 256);
+                    }
                 }
                 ofs += 256;
             }
@@ -114,8 +107,8 @@ namespace DirectCanvas
             }
 
             int ofs = 0;
-            int[] data = new int[Core.BlendMode.c_parameterCount];
-            var dataSpan = MemoryMarshal.Cast<int, byte>(data);
+            byte[] data = new byte[128];
+            var dataSpan = new System.Span<byte>(data);
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
                 GetData(ManagedLayout[i], data);
@@ -127,12 +120,21 @@ namespace DirectCanvas
             constantBuffer1.UpdateResource(new System.Span<byte>(cpuBuffer));
         }
 
-        public void GetData(PictureLayout layout, int[] outData)
+        public void GetData(PictureLayout layout, byte[] outData)
         {
             //for (int j = 0; j < Core.BlendMode.c_parameterCount; j++)
             //{
             //    outData[j] = layout.Parameters[j].Value;
             //}
+            if (CanvasCase.blendmodesMap.TryGetValue(layout.guid, out var blendMode) && blendMode.Paramerters != null)
+            {
+                int ofs = 0;
+                for (int i = 0; i < blendMode.Paramerters.Length; i++)
+                {
+                    ofs += 4;
+                    //MemoryMarshal.Write(new System.Span<byte>(outData, ofs, 4),);
+                }
+            }
         }
 
         IReadOnlyList<RenderTexture> RenderTarget { get { return CanvasCase.RenderTarget; } }

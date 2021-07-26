@@ -25,10 +25,8 @@
     <Description>画笔边缘的软硬程度。100为软画笔。</Description>
   </Parameter>
   <ParametersGroup Image="DC Fringe1.png" Parameter1="10" Parameter2="10" Parameter3="45">
-    <Name>Pattern-Fringe1</Name>
-    <Description></Description>
-    <Name Culture="zh-cn">图案-条纹1</Name>
-    <Description Culture="zh-cn">条纹效果。参数1为条纹1宽度，参数2为条纹2宽度，参数3为旋转角度。</Description>
+    <Name>图案-条纹1</Name>
+    <Description>条纹效果。参数1为条纹1宽度，参数2为条纹2宽度，参数3为旋转角度。</Description>
   </ParametersGroup>
   <Code Stage="Begin">
 float4 brush(float4 bufferColor, uint2 position)

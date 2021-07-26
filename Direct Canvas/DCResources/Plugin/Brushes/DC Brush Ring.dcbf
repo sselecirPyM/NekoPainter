@@ -1,10 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Brush>
   <ParametersGroup>
-    <Name>Brush Ring</Name>
+    <Name>画笔（环）</Name>
     <Description></Description>
-    <Name Culture="zh-cn">画笔（环）</Name>
-    <Description Culture="zh-cn"></Description>
   </ParametersGroup>
   <Code Stage="Begin">
 float4 brush(float4 bufferColor, uint2 position)

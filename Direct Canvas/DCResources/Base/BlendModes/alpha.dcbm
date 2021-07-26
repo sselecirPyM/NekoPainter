@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<BlendMode Guid="9c9f90ac-752c-4db5-bcb5-0880c35c50bf">
+<BlendMode>
 <!--
 Texture2D<float4> RefTexture
 RWTexture2D<float4> DC_Target
@@ -9,10 +9,10 @@ cbuffer DC_Parameters
 };
 -->
   <Guid>9c9f90ac-752c-4db5-bcb5-0880c35c50bf</Guid>
-  <Name>Alpha</Name>
+  <!--<Name>Alpha</Name>
+  <Description></Description>-->
+  <Name>正常</Name>
   <Description></Description>
-  <Name Culture="zh-cn">正常</Name>
-  <Description Culture="zh-cn"></Description>
   <Code>
 float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
 {

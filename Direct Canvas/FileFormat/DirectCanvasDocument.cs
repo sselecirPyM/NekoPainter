@@ -91,10 +91,6 @@ namespace DirectCanvas.FileFormat
                 {
                     writer.WriteStartElement("Layout");
                 }
-                //else if (layout is PureLayout pureLayout)
-                //{
-                //    writer.WriteStartElement("PureLayout");
-                //}
                 System.Numerics.Vector4 color = layout.Color;
                 writer.WriteAttributeString("Color", string.Format("{0} {1} {2} {3}", color.X, color.Y, color.Z, color.W));
                 writer.WriteAttributeString("Name", layout.Name);

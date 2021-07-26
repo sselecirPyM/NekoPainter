@@ -5,10 +5,8 @@
     <Description>画笔边缘的软硬程度。100为软画笔。</Description>
   </Parameter>
   <ParametersGroup>
-    <Name>Eraser H</Name>
+    <Name>橡皮擦</Name>
     <Description></Description>
-    <Name Culture="zh-cn">橡皮擦</Name>
-    <Description Culture="zh-cn"></Description>
   </ParametersGroup>
   <Code Stage="Begin">
 float4 brush(float4 bufferColor, uint2 position)

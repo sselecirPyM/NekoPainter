@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<BlendMode Guid="da467cfd-2fd0-48d7-827e-a749dde269a0">
+<BlendMode>
   <Guid>da467cfd-2fd0-48d7-827e-a749dde269a0</Guid>
-  <Name>Multiple</Name>
-  <Description></Description>
-  <Name Culture="zh-cn">相乘</Name>
-  <Description Culture="zh-cn">颜色乘法混合（正片叠底）</Description>
+  <!--<Name>Multiple</Name>
+  <Description></Description>-->
+  <Name>相乘</Name>
+  <Description>颜色乘法混合（正片叠底）</Description>
   <Code>
 float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
 {

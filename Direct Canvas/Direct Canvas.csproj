@@ -271,37 +271,35 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Eraser.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Fringe1.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Grid1.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Hive1.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Rhombus1.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Ring1.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Ring2.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Fringe1.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Grid1.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Hive1.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Ring1.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Ring2.dcbf" />
     <Content Include="DCResources\Plugin\BlendModes\Transfer.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\NormalTransfer.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\DirectLighting.dcbm" />
-    <Content Include="DCResources\Plugin\Brushes\DC Normal Brush.dcbf" />
-    <Content Include="DCResources\Plugin\Brushes\DC Normal Brush2.dcbf" />
     <Content Include="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm" />
     <Content Include="DCResources\Base\Brushes\DC Brush Spray.dcbf" />
     <Content Include="DCResources\Base\Brushes\DC Brush Spray2.dcbf" />
-    <Content Include="DCResources\Base\Brushes\DC Brush Ring.dcbf" />
+    <Content Include="DCResources\Plugin\Brushes\DC Brush Ring.dcbf" />
     <None Include="Direct Canvas_TemporaryKey.pfx" />
     <PRIResource Include="Strings\zh-CN\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DCResources\Base\Brushes\DC Fringe1.png" />
-    <Content Include="DCResources\Base\Brushes\DC Grid1.png" />
-    <Content Include="DCResources\Base\Brushes\DC Grid1G.png" />
-    <Content Include="DCResources\Base\Brushes\DC Hive1.png" />
-    <Content Include="DCResources\Base\Brushes\DC Rhombus1.png" />
-    <Content Include="DCResources\Base\Brushes\DC Rhombus1G.png" />
-    <Content Include="DCResources\Base\Brushes\DC Ring1.png" />
-    <Content Include="DCResources\Base\Brushes\DC Ring2.png" />
-    <Content Include="DCResources\Base\Brushes\DC Ring2G.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Fringe1.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Grid1.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Grid1G.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Hive1.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1G.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Ring1.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Ring2.png" />
+    <Content Include="DCResources\Plugin\Brushes\DC Ring2G.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

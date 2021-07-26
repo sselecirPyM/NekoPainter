@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<BlendMode Guid="6c626343-17e0-4f7b-bab5-00b553ff6234">
+<BlendMode>
   <Guid>6c626343-17e0-4f7b-bab5-00b553ff6234</Guid>
-  <Name>Sub</Name>
+  <!--<Name>Sub</Name>
+  <Description></Description>-->
+  <Name>减去</Name>
   <Description>颜色减法混合</Description>
-  <Name Culture="zh-cn">减去</Name>
-  <Description Culture="zh-cn"></Description>
   <Code>
 float4 blend(float4 bufferColor, float4 layoutColor, uint2 position)
 {

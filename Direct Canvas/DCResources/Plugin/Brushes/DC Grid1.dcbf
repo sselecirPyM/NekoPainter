@@ -21,16 +21,12 @@
     <Description>画笔边缘的软硬程度。100为软画笔。</Description>
   </Parameter>
   <ParametersGroup Image="DC Grid1.png" Parameter1="60" Parameter2="50">
-    <Name>Pattern-Grid1</Name>
-    <Description></Description>
-    <Name Culture="zh-cn">图案-网格1</Name>
-    <Description Culture="zh-cn">正方形网格效果。颜色2为正方形颜色</Description>
+    <Name>图案-网格1</Name>
+    <Description>正方形网格效果。颜色2为正方形颜色</Description>
   </ParametersGroup>
   <ParametersGroup Image="DC Grid1G.png" Parameter1="60" Parameter2="10" Parameter3="100" Parameter4="100">
-    <Name>Pattern-Grid1G</Name>
-    <Description></Description>
-    <Name Culture="zh-cn">图案-渐变网格1</Name>
-    <Description Culture="zh-cn">渐变正方形网格效果。颜色2为正方形颜色。参数3为x方向变化率，参数4为y方向变化率。</Description>
+    <Name>图案-渐变网格1</Name>
+    <Description>渐变正方形网格效果。颜色2为正方形颜色。参数3为x方向变化率，参数4为y方向变化率。</Description>
   </ParametersGroup>
   <Code Stage="Begin">
 float4 brush(float4 bufferColor, uint2 position)

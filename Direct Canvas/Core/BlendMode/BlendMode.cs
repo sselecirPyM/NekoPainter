@@ -12,6 +12,7 @@ using CanvasRendering;
 using Windows.ApplicationModel;
 using Windows.Storage.Streams;
 using DirectCanvas.Util;
+using System.Xml.Serialization;
 
 namespace DirectCanvas.Core
 {
@@ -25,7 +26,6 @@ namespace DirectCanvas.Core
         public const int c_parameterCount = 32;
         const int c_csBlendCount = 7;
 
-        static List<int> hParts = new List<int>();
         static string appUsedCultureName;
         public static async Task LoadStaticResourcesAsync()
         {
@@ -39,136 +39,155 @@ namespace DirectCanvas.Core
             componentCode[6] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c7.hlsl");
         }
 
-        static bool CultureCheck2(DCParameter parameter, string culture)
-        {
-            if (culture == null) culture = "";
-            if (parameter.Culture == null) parameter.Culture = culture;
-            bool isCurrentCulture = appUsedCultureName.Equals(culture, StringComparison.CurrentCultureIgnoreCase);
-            bool inCurrentCulture = appUsedCultureName.Equals(parameter.Culture, StringComparison.CurrentCultureIgnoreCase);
-            bool isSubstitute = culture.Equals(parameter.Culture, StringComparison.CurrentCultureIgnoreCase);
-            if (isCurrentCulture ||
-                isSubstitute ||
-                (string.IsNullOrEmpty(culture) && !inCurrentCulture))
-            {
-                parameter.Culture = culture;
-                return true;
-            }
-            else return false;
-        }
+        //static bool CultureCheck2(DCParameter parameter, string culture)
+        //{
+        //    if (culture == null) culture = "";
+        //    if (parameter.Culture == null) parameter.Culture = culture;
+        //    bool isCurrentCulture = appUsedCultureName.Equals(culture, StringComparison.CurrentCultureIgnoreCase);
+        //    bool inCurrentCulture = appUsedCultureName.Equals(parameter.Culture, StringComparison.CurrentCultureIgnoreCase);
+        //    bool isSubstitute = culture.Equals(parameter.Culture, StringComparison.CurrentCultureIgnoreCase);
+        //    if (isCurrentCulture ||
+        //        isSubstitute ||
+        //        (string.IsNullOrEmpty(culture) && !inCurrentCulture))
+        //    {
+        //        parameter.Culture = culture;
+        //        return true;
+        //    }
+        //    else return false;
+        //}
 
-        static bool CultureCheck2(ref string curCul, string culture)
-        {
-            if (culture == null) culture = "";
-            if (curCul == null) curCul = culture;
-            bool isCurrentCulture = appUsedCultureName.Equals(culture, StringComparison.CurrentCultureIgnoreCase);
-            bool inCurrentCulture = appUsedCultureName.Equals(curCul, StringComparison.CurrentCultureIgnoreCase);
-            bool isSubstitute = culture.Equals(curCul, StringComparison.CurrentCultureIgnoreCase);
-            if (isCurrentCulture ||
-                isSubstitute ||
-                (string.IsNullOrEmpty(culture) && !inCurrentCulture))
-            {
-                curCul = culture;
-                return true;
-            }
-            else return false;
-        }
+        //static bool CultureCheck2(ref string curCul, string culture)
+        //{
+        //    if (culture == null) culture = "";
+        //    if (curCul == null) curCul = culture;
+        //    bool isCurrentCulture = appUsedCultureName.Equals(culture, StringComparison.CurrentCultureIgnoreCase);
+        //    bool inCurrentCulture = appUsedCultureName.Equals(curCul, StringComparison.CurrentCultureIgnoreCase);
+        //    bool isSubstitute = culture.Equals(curCul, StringComparison.CurrentCultureIgnoreCase);
+        //    if (isCurrentCulture ||
+        //        isSubstitute ||
+        //        (string.IsNullOrEmpty(culture) && !inCurrentCulture))
+        //    {
+        //        curCul = culture;
+        //        return true;
+        //    }
+        //    else return false;
+        //}
+        public static XmlSerializer xmlSerializer = new XmlSerializer(typeof(BlendModeCode));
 
         public static async Task<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
         {
             Stream stream = await file.OpenStreamForReadAsync();
-            XmlReaderSettings setting1 = new XmlReaderSettings();
-            setting1.IgnoreComments = true;
-            XmlReader xmlReader = XmlReader.Create(stream, setting1);
-            string code = null;
-            string name = "";
-            string description = "";
-            string imagePath = "";
-            Guid guid = Guid.Empty;
-            //DCParameter[] dcParameters = new DCParameter[c_parameterCount];
-            //for (int i = 0; i < c_parameterCount; i++)
-            //{
-            //    dcParameters[i] = new DCParameter();
-            //}
-            while (xmlReader.Read())
-            {
-                if (xmlReader.NodeType == XmlNodeType.Element)
-                {
-                    switch (xmlReader.Name)
-                    {
-                        case "BlendMode":
-                            //guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                            imagePath = xmlReader.GetAttribute("Image");
-                            break;
-                        case "Code":
-                            code = xmlReader.ReadElementContentAsString();
-                            break;
-                        //case "Parameter":
-                        //    int.TryParse(xmlReader.GetAttribute("Index"), out int index);
-                        //    dcParameters[index].Type = xmlReader.GetAttribute("Type");
-                        //    if (string.IsNullOrEmpty(dcParameters[index].Type))
-                        //        dcParameters[index].Type = "TextBox";
-                        //    if (int.TryParse(xmlReader.GetAttribute("MaxValue"), out int maxValue)) dcParameters[index].MaxValue = maxValue;
-                        //    else dcParameters[index].MaxValue = int.MaxValue;
-                        //    if (int.TryParse(xmlReader.GetAttribute("MinValue"), out int minValue)) dcParameters[index].MinValue = minValue;
-                        //    else dcParameters[index].MinValue = int.MinValue;
-                        //    while (xmlReader.Read())
-                        //    {
-                        //        if (xmlReader.NodeType == XmlNodeType.Element)
-                        //        {
-                        //            switch (xmlReader.Name)
-                        //            {
-                        //                case "Name":
-                        //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
-                        //                    {
-                        //                        dcParameters[index].Name = xmlReader.ReadElementContentAsString();
-                        //                    }
-                        //                    continue;
-                        //                case "Description":
-                        //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
-                        //                    {
-                        //                        dcParameters[index].Description = xmlReader.ReadElementContentAsString();
-                        //                    }
-                        //                    continue;
-                        //            }
-                        //            xmlReader.Skip();
-                        //        }
-                        //        else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "Parameter")
-                        //            break;
-                        //    }
-                        //    break;
-                        case "Guid":
-                            guid = Guid.Parse(xmlReader.ReadElementContentAsString());
-                            break;
-                        case "Name":
-                            name = xmlReader.ReadElementContentAsString();
-                            break;
-                        case "Description":
-                            description = xmlReader.ReadElementContentAsString();
-                            break;
-                    }
-                }
-            }
+            BlendModeCode blendModeCode =(BlendModeCode) xmlSerializer.Deserialize(stream);
+
             ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
             Parallel.For(0, c_csBlendCount, (int i) =>
             {
-                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", code)));
+                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", blendModeCode.Code)));
             });
+
             BlendMode blendMode = new BlendMode(shaders);
-            blendMode.Name = name;
-            blendMode.Guid = guid;
-            blendMode.Description = description;
-            //for (int j = 0; j < c_parameterCount; j++)
-            //{
-            //    blendMode.Parameters[j] = new DCParameter();
-            //    blendMode.Parameters[j].Name = dcParameters[j].Name;
-            //    blendMode.Parameters[j].Description = dcParameters[j].Description;
-            //    blendMode.Parameters[j].Type = dcParameters[j].Type;
-            //    blendMode.Parameters[j].MaxValue = dcParameters[j].MaxValue;
-            //    blendMode.Parameters[j].MinValue = dcParameters[j].MinValue;
-            //    blendMode.Parameters[j].Value = 0;
-            //}
+            blendMode.Name = blendModeCode.Name;
+            blendMode.Description = blendModeCode.Description;
+            blendMode.Guid = blendModeCode.Guid;
+
             return blendMode;
         }
+        //public static async Task<BlendMode> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
+        //{
+        //    Stream stream = await file.OpenStreamForReadAsync();
+        //    XmlReaderSettings setting1 = new XmlReaderSettings();
+        //    setting1.IgnoreComments = true;
+        //    XmlReader xmlReader = XmlReader.Create(stream, setting1);
+        //    string code = null;
+        //    string name = "";
+        //    string description = "";
+        //    //string imagePath = "";
+        //    Guid guid = Guid.Empty;
+        //    //DCParameter[] dcParameters = new DCParameter[c_parameterCount];
+        //    //for (int i = 0; i < c_parameterCount; i++)
+        //    //{
+        //    //    dcParameters[i] = new DCParameter();
+        //    //}
+        //    while (xmlReader.Read())
+        //    {
+        //        if (xmlReader.NodeType == XmlNodeType.Element)
+        //        {
+        //            switch (xmlReader.Name)
+        //            {
+        //                case "BlendMode":
+        //                    //guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
+        //                    //imagePath = xmlReader.GetAttribute("Image");
+        //                    break;
+        //                case "Code":
+        //                    code = xmlReader.ReadElementContentAsString();
+        //                    break;
+        //                //case "Parameter":
+        //                //    int.TryParse(xmlReader.GetAttribute("Index"), out int index);
+        //                //    dcParameters[index].Type = xmlReader.GetAttribute("Type");
+        //                //    if (string.IsNullOrEmpty(dcParameters[index].Type))
+        //                //        dcParameters[index].Type = "TextBox";
+        //                //    if (int.TryParse(xmlReader.GetAttribute("MaxValue"), out int maxValue)) dcParameters[index].MaxValue = maxValue;
+        //                //    else dcParameters[index].MaxValue = int.MaxValue;
+        //                //    if (int.TryParse(xmlReader.GetAttribute("MinValue"), out int minValue)) dcParameters[index].MinValue = minValue;
+        //                //    else dcParameters[index].MinValue = int.MinValue;
+        //                //    while (xmlReader.Read())
+        //                //    {
+        //                //        if (xmlReader.NodeType == XmlNodeType.Element)
+        //                //        {
+        //                //            switch (xmlReader.Name)
+        //                //            {
+        //                //                case "Name":
+        //                //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
+        //                //                    {
+        //                //                        dcParameters[index].Name = xmlReader.ReadElementContentAsString();
+        //                //                    }
+        //                //                    continue;
+        //                //                case "Description":
+        //                //                    if (CultureCheck2(dcParameters[index], xmlReader.GetAttribute("Culture")))
+        //                //                    {
+        //                //                        dcParameters[index].Description = xmlReader.ReadElementContentAsString();
+        //                //                    }
+        //                //                    continue;
+        //                //            }
+        //                //            xmlReader.Skip();
+        //                //        }
+        //                //        else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "Parameter")
+        //                //            break;
+        //                //    }
+        //                //    break;
+        //                case "Guid":
+        //                    guid = Guid.Parse(xmlReader.ReadElementContentAsString());
+        //                    break;
+        //                case "Name":
+        //                    name = xmlReader.ReadElementContentAsString();
+        //                    break;
+        //                case "Description":
+        //                    description = xmlReader.ReadElementContentAsString();
+        //                    break;
+        //            }
+        //        }
+        //    }
+        //    ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
+        //    Parallel.For(0, c_csBlendCount, (int i) =>
+        //    {
+        //        shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", code)));
+        //    });
+        //    BlendMode blendMode = new BlendMode(shaders);
+        //    blendMode.Name = name;
+        //    blendMode.Guid = guid;
+        //    blendMode.Description = description;
+        //    //for (int j = 0; j < c_parameterCount; j++)
+        //    //{
+        //    //    blendMode.Parameters[j] = new DCParameter();
+        //    //    blendMode.Parameters[j].Name = dcParameters[j].Name;
+        //    //    blendMode.Parameters[j].Description = dcParameters[j].Description;
+        //    //    blendMode.Parameters[j].Type = dcParameters[j].Type;
+        //    //    blendMode.Parameters[j].MaxValue = dcParameters[j].MaxValue;
+        //    //    blendMode.Parameters[j].MinValue = dcParameters[j].MinValue;
+        //    //    blendMode.Parameters[j].Value = 0;
+        //    //}
+        //    return blendMode;
+        //}
 
         public void Blend(RenderTexture source, RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
@@ -209,7 +228,7 @@ namespace DirectCanvas.Core
         public void Blend(TiledTexture source, RenderTexture target, List<Int2> part, ConstantBuffer parametersData, int ofs, int size)
         {
             if (part == null || part.Count == 0 || source.tilesCount == 0) return;
-            hParts.Clear();
+            List<int> hParts = new List<int>();
             for (int i = 0; i < part.Count; i++)
             {
                 //if (source.TilesStatus.TryGetValue(part[i], out int tIndex))
@@ -300,5 +319,14 @@ namespace DirectCanvas.Core
         {
             return Name;
         }
+    }
+    [XmlRoot("BlendMode")]
+    public class BlendModeCode
+    {
+        public Guid Guid;
+        public string Name;
+        public string Description;
+        public string Code;
+        public string Image;
     }
 }

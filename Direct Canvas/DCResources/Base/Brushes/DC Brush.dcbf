@@ -69,16 +69,12 @@ float4 StandardBrush(float4 bufferColor, uint2 position, float4 color,float hs)
     <Description>画笔边缘的软硬程度。100为软画笔。</Description>
   </Parameter>
   <ParametersGroup>
-    <Name>Brush H</Name>
-    <Description></Description>
     <Name Culture="zh-cn">画笔（硬）</Name>
     <Description Culture="zh-cn"></Description>
   </ParametersGroup>
   <ParametersGroup Parameter16="100">
-    <Name>Brush S</Name>
+    <Name>画笔（软）</Name>
     <Description></Description>
-    <Name Culture="zh-cn">画笔（软）</Name>
-    <Description Culture="zh-cn"></Description>
   </ParametersGroup>
   <Code Stage="Begin">
 float4 brush(float4 bufferColor, uint2 position)

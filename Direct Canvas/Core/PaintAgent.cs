@@ -23,7 +23,7 @@ namespace DirectCanvas
             CanvasCase = canvasCase;
         }
 
-        public void SetPaintTarget(DeviceResources deviceResources, RenderTexture target, RenderTexture targetBackup)
+        public void SetPaintTarget(RenderTexture target, RenderTexture targetBackup)
         {
             PaintingTexture = target;
             PaintingTextureBackup = targetBackup;
@@ -33,9 +33,9 @@ namespace DirectCanvas
             int pTilesX = (_width + 31) / 32;
             int pTilesY = (_height + 31) / 32;
             paintTilesBuffer?.Dispose();
-            paintTilesBuffer = new ComputeBuffer(deviceResources, pTilesX * pTilesY, 8);
+            paintTilesBuffer = new ComputeBuffer(CanvasCase.DeviceResources, pTilesX * pTilesY, 8);
             brushDataBuffer?.Dispose();
-            brushDataBuffer = new ConstantBuffer(deviceResources, 1136);
+            brushDataBuffer = new ConstantBuffer(CanvasCase.DeviceResources, 1136);
             _mapForUndoStride = (_width + 7) / 8 + 4;
             _mapForUndoCount = _mapForUndoStride * (((_height + 7) / 8) + 4);
             mapForUndo = new BitArray(_mapForUndoCount);
@@ -49,10 +49,6 @@ namespace DirectCanvas
                 currentBrush.Size = BrushSize;
             currentBrush = brush;
             BrushSize = currentBrush.Size;
-            for (int i = 0; i < Brush.c_parameterCount; i++)
-            {
-                _parameters[i] = brush.Parameters[i];
-            }
         }
 
         public bool DrawBegin(Vector2 position, Windows.UI.Input.PointerPoint pointerPoint)
@@ -78,14 +74,13 @@ namespace DirectCanvas
         {
             while (inputPointerDatas.TryDequeue(out var inputPointerData))
             {
-                UpdateBrushData2(inputPointerData);
                 Vector2 position = inputPointerData.PointerData.Position;
                 if (inputPointerData.KeyDown)
                 {
                     drawPrevPos = position;
-                    FillPointerData();
-                    brushDataBuffer.UpdateResource<byte>(brushData1);
+                    FillPointerData(inputPointerData);
                 }
+                UpdateBrushData2(inputPointerData);
                 CurrentLayout.saved = false;
                 List<Int2> tilesCovered = GetPaintingTiles(drawPrevPos, position, out TileRect coveredRect);
                 if (tilesCovered.Count != 0)
@@ -128,15 +123,17 @@ namespace DirectCanvas
             paintTilesBuffer?.Dispose();
         }
 
-        byte[] brushData1 = new byte[64 * 16 + 208];
+        byte[] brushData1 = new byte[64 * 8 + 208];
 
         ConstantBuffer brushDataBuffer;
 
-        void FillPointerData()
+        PointerData[] pointerDatas = new PointerData[8];
+
+        void FillPointerData(InputPointerData inputPointerData)
         {
-            for (int i = 1; i < 15; i++)
+            for (int i = 0; i < pointerDatas.Length; i++)
             {
-                Array.Copy(brushData1, 208, brushData1, i * 64 + 208, 64);
+                pointerDatas[i] = inputPointerData.PointerData;
             }
         }
 
@@ -165,11 +162,9 @@ namespace DirectCanvas
         public float BrushSize;
 
         public Color _color = new Color(1, 1, 1, 1);
-        public Color _color2 = new Color(1, 1, 1, 1);
+        public Color _color2 = new Color(1, 0.5f, 0.5f, 1);
         public Color _color3 = new Color(1, 1, 1, 1);
         public Color _color4 = new Color(1, 1, 1, 1);
-
-        public ObservableCollection<DCParameter> _parameters = new ObservableCollection<DCParameter>(new DCParameter[Brush.c_parameterCount]);
 
         public ConcurrentQueue<InputPointerData> inputPointerDatas = new ConcurrentQueue<InputPointerData>();
 
@@ -257,18 +252,30 @@ namespace DirectCanvas
             Write1(new Span<byte>(brushData1, ofs, 16), _color2, ref ofs);
             Write1(new Span<byte>(brushData1, ofs, 16), _color3, ref ofs);
             Write1(new Span<byte>(brushData1, ofs, 16), _color4, ref ofs);
-            for (int i = 0; i < Brush.c_parameterCount; i++)
-            {
-                if (currentBrush.Parameters[i].IsFloat)
-                    Write1(new Span<byte>(brushData1, ofs, 4), currentBrush.Parameters[i].fValue, ref ofs);
-                else
-                    Write1(new Span<byte>(brushData1, ofs, 4), currentBrush.Parameters[i].Value, ref ofs);
-            }
+
             Write1(new Span<byte>(brushData1, ofs, 4), BrushSize, ref ofs);
+            ofs += 12;
 
+            for (int i = pointerDatas.Length - 1; i >= 1; i--)
+            {
+                pointerDatas[i] = pointerDatas[i - 1];
+            }
+            pointerDatas[0] = inputPointerData.PointerData;
+            MemoryMarshal.Cast<PointerData, byte>(pointerDatas).CopyTo(new Span<byte>(brushData1, ofs, 512));
+            ofs += 512;
+            if (currentBrush.Parameters != null)
+                for (int i = 0; i < currentBrush.Parameters.Length; i++)
+                {
+                    if (currentBrush.Parameters[i].IsFloat)
+                        Write1(new Span<byte>(brushData1, ofs, 4), (float)currentBrush.Parameters[i].Value, ref ofs);
+                    else
+                        Write1(new Span<byte>(brushData1, ofs, 4), (int)currentBrush.Parameters[i].Value, ref ofs);
+                }
+            else
+            {
 
-            new Span<byte>(brushData1, 208, 15 * 64).CopyTo(new Span<byte>(brushData1, 208 + 64, 15 * 64));
-            MemoryMarshal.Write(new Span<byte>(brushData1, 208, 64), ref inputPointerData.PointerData);
+            }
+
             brushDataBuffer.UpdateResource<byte>(brushData1);
 
         }
@@ -278,9 +285,7 @@ namespace DirectCanvas
             c.SetSRV(tilesPos, 0);
             c.SetCBV(brushDataBuffer, 0);
             c.SetUAV(PaintingTexture, 0);
-            for (int i = 0; i < Core.Brush.c_refTextureCount; i++)
-                if (currentBrush.refTexture[i] != null)
-                    c.SetSRV(currentBrush.refTexture[i], 1 + i);
+
             c.Dispatch(1, 1, tilesCovered.Count);
             tilesPos.Dispose();
         }

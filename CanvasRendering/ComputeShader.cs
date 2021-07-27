@@ -17,6 +17,10 @@ namespace CanvasRendering
         {
             ComputeShader computeShader = new ComputeShader();
             var hr = Compiler.Compile(source, entryPoint, null, "cs_5_0", out Blob data, out Blob errorBlob);
+            if (hr.Failure && errorBlob != null)
+            {
+                string errorDebug = errorBlob.ConvertToString();
+            }
             computeShader.computeShader = deviceResources.device.CreateComputeShader(data);
             computeShader.DeviceResources = deviceResources;
             return computeShader;

@@ -276,16 +276,13 @@
     <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.dcbf" />
     <Content Include="DCResources\Plugin\Brushes\DC Ring1.dcbf" />
     <Content Include="DCResources\Plugin\Brushes\DC Ring2.dcbf" />
-    <Content Include="DCResources\Plugin\BlendModes\Transfer.dcbm" />
-    <Content Include="DCResources\Plugin\BlendModes\NormalTransfer.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
-    <Content Include="DCResources\Plugin\BlendModes\DirectLighting.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
     <Content Include="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm" />
     <Content Include="DCResources\Base\Brushes\DC Brush Spray.dcbf" />
     <Content Include="DCResources\Base\Brushes\DC Brush Spray2.dcbf" />
-    <Content Include="DCResources\Plugin\Brushes\DC Brush Ring.dcbf" />
+    <Content Include="DCResources\Base\Brushes\DC Brush Ring.dcbf" />
     <None Include="Direct Canvas_TemporaryKey.pfx" />
     <PRIResource Include="Strings\zh-CN\Resources.resw" />
   </ItemGroup>

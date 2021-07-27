@@ -32,6 +32,7 @@ namespace DirectCanvas.Layout
         /// </summary>
         public Guid BlendMode { get; set; }
 
+        public Dictionary<string, ParameterN> parameters = new Dictionary<string, ParameterN>();
 
         public Vector4 Color = Vector4.One;
 
@@ -43,12 +44,6 @@ namespace DirectCanvas.Layout
             DataSource = pictureLayout.DataSource;
 
             guid = Guid.NewGuid();
-        }
-
-        public static void Activate(RenderTexture PaintingTexture, TiledTexture tiledTexture)
-        {
-            PaintingTexture.Clear();
-            tiledTexture?.UnzipToTexture(PaintingTexture);
         }
 
         public static void ReplaceTiles1(TiledTexture tt, ref TiledTexture layoutTexture, RenderTexture PaintingTextureTemp, RenderTexture PaintingTexture, out TiledTexture before, bool painting)

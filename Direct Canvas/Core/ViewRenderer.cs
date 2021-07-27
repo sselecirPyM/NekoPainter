@@ -6,6 +6,7 @@ using DirectCanvas.Layout;
 using CanvasRendering;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System;
 
 namespace DirectCanvas
 {
@@ -107,34 +108,40 @@ namespace DirectCanvas
             }
 
             int ofs = 0;
-            byte[] data = new byte[128];
-            var dataSpan = new System.Span<byte>(data);
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
-                GetData(ManagedLayout[i], data);
                 Vector4 color = ManagedLayout[i].Color;
-                MemoryMarshal.Write(new System.Span<byte>(cpuBuffer, ofs, 16), ref color);
-                dataSpan.CopyTo(new System.Span<byte>(cpuBuffer, ofs + 16, dataSpan.Length));
+                MemoryMarshal.Write(new Span<byte>(cpuBuffer, ofs, 16), ref color);
+                GetData(ManagedLayout[i], new Span<byte>(cpuBuffer, ofs + 16, 128));
                 ofs += 256;
             }
-            constantBuffer1.UpdateResource(new System.Span<byte>(cpuBuffer));
+            constantBuffer1.UpdateResource(new Span<byte>(cpuBuffer));
         }
 
-        public void GetData(PictureLayout layout, byte[] outData)
+        public void GetData(PictureLayout layout, Span<byte> outData)
         {
-            //for (int j = 0; j < Core.BlendMode.c_parameterCount; j++)
-            //{
-            //    outData[j] = layout.Parameters[j].Value;
-            //}
-            if (CanvasCase.blendmodesMap.TryGetValue(layout.guid, out var blendMode) && blendMode.Paramerters != null)
+            if (CanvasCase.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
             {
                 int ofs = 0;
                 for (int i = 0; i < blendMode.Paramerters.Length; i++)
                 {
+                    if (layout.parameters.TryGetValue(blendMode.Paramerters[i].Name, out var value))
+                    {
+                        float X = (float)value.X;
+                        Write(outData.Slice(ofs, 4), X);
+                    }
+                    else
+                    {
+                        Write(outData.Slice(ofs, 4), 0);
+                    }
                     ofs += 4;
-                    //MemoryMarshal.Write(new System.Span<byte>(outData, ofs, 4),);
                 }
             }
+        }
+
+        void Write<T>(Span<byte> target, T value) where T : struct
+        {
+            MemoryMarshal.Write(target, ref value);
         }
 
         IReadOnlyList<RenderTexture> RenderTarget { get { return CanvasCase.RenderTarget; } }

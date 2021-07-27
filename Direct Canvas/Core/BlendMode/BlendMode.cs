@@ -93,11 +93,10 @@ namespace DirectCanvas.Core
             }
             fCode.Append("}");
             fCode.Append(blendModeCode.Code);
-            string fCode1 = fCode.ToString(); ;
             ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
             Parallel.For(0, c_csBlendCount, (int i) =>
             {
-                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", fCode1)));
+                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", fCode.ToString())));
             });
 
             BlendMode blendMode = new BlendMode(shaders);

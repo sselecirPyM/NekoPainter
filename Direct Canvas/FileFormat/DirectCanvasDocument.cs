@@ -98,6 +98,7 @@ namespace DirectCanvas.FileFormat
                     Guid = layout.guid,
                     Hidden = layout.Hidden,
                     Name = layout.Name,
+                    Parameters = layout.parameters.Count > 0 ? new List<Core.ParameterN>(layout.parameters.Values) : null,
                 }); ;
             }
             layoutsInfoSerializer.Serialize(layoutsInfoStream, layoutInfos);
@@ -182,6 +183,11 @@ namespace DirectCanvas.FileFormat
                         Name = layout.Name,
                         saved = true,
                     };
+                    if (layout.Parameters != null)
+                        foreach (var parameter in layout.Parameters)
+                        {
+                            pictureLayout.parameters[parameter.Name] = parameter;
+                        }
                     canvasCase.Layouts.Add(pictureLayout);
                 }
             }
@@ -325,5 +331,7 @@ namespace DirectCanvas.FileFormat
         public PictureDataSource DataSource;
 
         public Vector4 Color;
+
+        public List<Core.ParameterN> Parameters;
     }
 }

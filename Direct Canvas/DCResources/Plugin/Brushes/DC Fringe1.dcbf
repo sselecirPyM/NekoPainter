@@ -1,85 +1,90 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Brush>
-  <Parameter Index="0">
-    <Name>宽度1</Name>
-    <Description>条纹1宽度</Description>
-  </Parameter>
-  <Parameter Index="1">
-    <Name>宽度2</Name>
-    <Description>条纹2宽度</Description>
-  </Parameter>
-  <Parameter Index="4" Type="fTextBox">
-    <Name>旋转角</Name>
-    <Description>旋转的角度</Description>
-  </Parameter>
-  <Parameter Index="6" Type="fTextBox">
-    <Name>偏移X</Name>
-    <Description></Description>
-  </Parameter>
-  <Parameter Index="7" Type="fTextBox">
-    <Name>偏移Y</Name>
-    <Description></Description>
-  </Parameter>
-  <Parameter Index="15" Type="Slider" MaxValue="100" MinValue="0">
-    <Name>硬/软 画笔</Name>
-    <Description>画笔边缘的软硬程度。100为软画笔。</Description>
-  </Parameter>
-  <ParametersGroup Image="DC Fringe1.png" Parameter1="10" Parameter2="10" Parameter3="45">
-    <Name>图案-条纹1</Name>
-    <Description>条纹效果。参数1为条纹1宽度，参数2为条纹2宽度，参数3为旋转角度。</Description>
-  </ParametersGroup>
-  <Code Stage="Begin">
-float4 brush(float4 bufferColor, uint2 position)
-{
-	return bufferColor;
-}
-  </Code>
-  <Code Stage="Doing">
-float4 brush(float4 bufferColor, uint2 position)
-{
-	float4 color = BrushColor;
-	float2 m0 = float2(Parameters[0].x*1.0f+Parameters[0].y*1.0f,Parameters[0].x*1.0f+Parameters[0].y*1.0f);
-	float2 m1 = m0*0.5f;
-	float rad = asfloat(Parameters[1].x)*0.017453292f;
-	float4x4 transform0=
-	{
-		cos(rad),-sin(rad),0.0f,0.0f,
-		sin(rad),cos(rad),0.0f,0.0f,
-		0.0f,0.0f,1.0f,0.0f,
-		0.0f,0.0f,0.0f,1.0f
-	};
-	float2 xPos=mul(position-asfloat(Parameters[1].zw),transform0).xy;
-	float2 ingrid = (xPos%m0+m0)%m0-m1;
+  <Name>图案-条纹1</Name>
+  <Description>条纹效果。</Description>
+  <BrushSize>100</BrushSize>
+  <Parameters>
+    <Parameter Name="width1">
+      <Description>条纹1宽度</Description>
+      <Value>15</Value>
+    </Parameter>
+    <Parameter Name="width2">
+      <Description>条纹2宽度</Description>
+      <Value>1</Value>
+    </Parameter>
+    <Parameter Name="rotation" Type="fTextBox">
+      <Description>旋转的角度</Description>
+      <Value>80</Value>
+    </Parameter>
+    <Parameter Name="offsetX" Type="fTextBox">
+      <Description></Description>
+    </Parameter>
+    <Parameter Name="offsetY" Type="fTextBox">
+      <Description></Description>
+    </Parameter>
+    <Parameter Name="hard_soft" Type="Slider" MaxValue="100" MinValue="0">
+      <Description>画笔边缘的软硬程度。100为软画笔。</Description>
+    </Parameter>
+  </Parameters>
+  <Code>
 
-	if(ingrid.y &lt; Parameters[0].y)
-	{
-		color = BrushColor2;
-	}
-	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
-}
-  </Code>
-  <Code Stage="End">
-float4 brush(float4 bufferColor, uint2 position)
-{
-	float4 color = BrushColor;
-	float2 m0 = float2(Parameters[0].x*1.0f+Parameters[0].y*1.0f,Parameters[0].x*1.0f+Parameters[0].y*1.0f);
-	float2 m1 = m0*0.5f;
-	float rad = asfloat(Parameters[1].x)*0.017453292f;
-	float4x4 transform0=
-	{
-		cos(rad),-sin(rad),0.0f,0.0f,
-		sin(rad),cos(rad),0.0f,0.0f,
-		0.0f,0.0f,1.0f,0.0f,
-		0.0f,0.0f,0.0f,1.0f
-	};
-	float2 xPos=mul(position-asfloat(Parameters[1].zw),transform0).xy;
-	float2 ingrid = (xPos%m0+m0)%m0-m1;
+    float4 StandardBrush(float4 bufferColor, uint2 position, float4 color,float hs)
+    {
+    float2 mp = InputDatas[0].Position.xy - InputDatas[1].Position.xy;
+    float mrad = atan2(mp.y, mp.x);
+    float4x4 transform9 =
+    {
+    cos(mrad),-sin(mrad),0.0f,0.0f,
+    sin(mrad),cos(mrad),0.0f,0.0f,
+    0.0f,0.0f,1.0f,0.0f,
+    0.0f,0.0f,0.0f,1.0f
+    };
+    float4 rPos = mul(float4(position + float2(0.5f, 0.5f) - InputDatas[1].Position.xy, 0, 1), transform9);
+    float rSize = BrushSize * InputDatas[0].Pressure;
+    float rl = sqrt(saturate(1 - (rPos.y / rSize)*(rPos.y / rSize)));
+    float rl2 = rl * rSize;
+    float rDistance = (1 - saturate((-rPos.x + rl2) / rl2 * 0.5f) - saturate((rPos.x - length(mp) + rl2) / rl2 * 0.5f));
+    color.a = (1 - pow(2.718281828f, (rl*hs + 1.0f - hs)*log(1.0f - color.a*0.99999f)*rDistance));
 
-	if(ingrid.y &lt; Parameters[0].y)
-	{
-		color = BrushColor2;
-	}
-	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
-}
+    if (abs(rPos.y) &lt;= rSize &amp;&amp; rPos.x &gt;= 0 &amp;&amp; rPos.x &lt;= length(mp) || distance(rPos, float2(0, 0))&lt;= rSize || distance(rPos, float2(length(mp), 0)) &lt;= rSize)
+    {
+    if (color.a &gt; 0.00000001f)
+    {
+    float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
+    color = float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a) / aalpha + color.rgb*color.a / aalpha, aalpha);
+    }
+    else
+    {
+    color = bufferColor;
+    }
+    }
+    else
+    {
+    color = bufferColor;
+    }
+    return color;
+    }
+    float4 brush(float4 bufferColor, uint2 position)
+    {
+    float4 color = BrushColor;
+    float2 m0 = float2(P_width1+P_width2,P_width1+P_width2);
+    float2 m1 = m0*0.5f;
+    float rad = P_rotation*0.017453292f;
+    float4x4 transform0=
+    {
+    cos(rad),-sin(rad),0.0f,0.0f,
+    sin(rad),cos(rad),0.0f,0.0f,
+    0.0f,0.0f,1.0f,0.0f,
+    0.0f,0.0f,0.0f,1.0f
+    };
+    float2 xPos=mul(position-float2(P_offsetX,P_offsetY),transform0).xy;
+    float2 ingrid = (xPos%m0+m0)%m0-m1;
+
+    if(ingrid.y &lt;P_width2)
+    {
+    color = BrushColor2;
+    }
+    return StandardBrush(bufferColor,position,color,P_hard_soft*0.01f);
+    }
   </Code>
 </Brush>

@@ -23,20 +23,12 @@ namespace DirectCanvas
             DeviceResources = device;
             RenderTarget = new RenderTexture[1];
 
-            for (int i = 0; i < 1; i++)
-            {
-                RenderTarget[i] = new RenderTexture(device, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            }
+            //SelectionMaskTexture = new RenderTexture(device, canvasWidth, canvasHeight, RenderTextureFormat.RENDERTEXTURE_FORMAT_R8_UNORM, false);
+            SizeChange(canvasWidth, canvasHeight);
 
             UndoManager = new UndoManager();
-
-            PaintingTexture = new RenderTexture(device, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            PaintingTextureBackup = new RenderTexture(device, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            PaintingTextureTemp = new RenderTexture(device, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            //SelectionMaskTexture = new RenderTexture(device, canvasWidth, canvasHeight, RenderTextureFormat.RENDERTEXTURE_FORMAT_R8_UNORM, false);
-
             PaintAgent = new PaintAgent(this);
-            PaintAgent.SetPaintTarget(device, PaintingTexture, PaintingTextureBackup);
+            PaintAgent.SetPaintTarget(PaintingTexture, PaintingTextureBackup);
             PaintAgent.UndoManager = UndoManager;
 
             Layouts = new ObservableCollection<PictureLayout>();
@@ -66,7 +58,8 @@ namespace DirectCanvas
             }
             ActivatedLayout = (PictureLayout)Layouts[layoutIndex];
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
-            PictureLayout.Activate(PaintingTexture, tiledTexture);
+            PaintingTexture.Clear();
+            tiledTexture?.UnzipToTexture(PaintingTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
@@ -77,7 +70,8 @@ namespace DirectCanvas
             ActivatedLayout = layout;
 
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
-            PictureLayout.Activate(PaintingTexture, tiledTexture);
+            PaintingTexture.Clear();
+            tiledTexture?.UnzipToTexture(PaintingTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
@@ -139,21 +133,19 @@ namespace DirectCanvas
             return newPictureLayout;
         }
 
-        //public PictureLayout CopyBuffer(int insertIndex, int RenderBufferNum)
-        //{
-        //    PictureLayout standardLayout = new PictureLayout(RenderTarget[0])
-        //    {
-        //        BlendMode = DefaultBlendMode.Guid,
-        //        guid = System.Guid.NewGuid(),
-        //        Name = string.Format("图层 {0}", Layouts.Count + 1)
-        //    };
-        //    watched = false;
-        //    Layouts.Insert(insertIndex, standardLayout);
-        //    watched = true;
-        //    UndoManager.AddUndoData(new CMD_DeleteLayout(standardLayout, this, insertIndex));
-
-        //    return standardLayout;
-        //}
+        public PictureLayout CopyBuffer(int insertIndex)
+        {
+            PictureLayout pictureLayout = new PictureLayout()
+            {
+                BlendMode = DefaultBlendMode,
+                guid = System.Guid.NewGuid(),
+                Name = string.Format("图层 {0}", Layouts.Count + 1)
+            };
+            LayoutTex[pictureLayout.guid] = new TiledTexture(RenderTarget[0]);
+            Layouts.Insert(insertIndex, pictureLayout);
+            UndoManager.AddUndoData(new CMD_DeleteLayout(pictureLayout, this, insertIndex));
+            return pictureLayout;
+        }
 
         /// <summary>
         /// 设置混合模式并加入撤销

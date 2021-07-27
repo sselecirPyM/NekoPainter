@@ -200,8 +200,14 @@ namespace DirectCanvas.UI
                 {
                     for (int i = 0; i < blendMode.Paramerters.Length; i++)
                     {
-
-                        ImGui.DragFloat(string.Format("{0}###{1}", blendMode.Paramerters[i].Name, i), ref blendMode.Paramerters[i].fValue);
+                        layout.parameters.TryGetValue(blendMode.Paramerters[i].Name, out var parameter);
+                        float f1 = (float)parameter.X;
+                        parameter.Name = blendMode.Paramerters[i].Name;
+                        if (ImGui.DragFloat(string.Format("{0}###{1}", blendMode.Paramerters[i].Name, i), ref f1))
+                        {
+                            parameter.X = f1;
+                            layout.parameters[blendMode.Paramerters[i].Name] = parameter;
+                        }
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.SetTooltip(blendMode.Paramerters[i].Description);
@@ -225,12 +231,14 @@ namespace DirectCanvas.UI
             ImGui.ColorEdit4("颜色2", ref paintAgent._color2);
             ImGui.ColorEdit4("颜色3", ref paintAgent._color3);
             ImGui.ColorEdit4("颜色4", ref paintAgent._color4);
-            if (paintAgent.currentBrush != null)
+            if (paintAgent.currentBrush != null && paintAgent.currentBrush.Parameters != null)
             {
                 var brushParams = paintAgent.currentBrush.Parameters;
                 for (int i = 0; i < brushParams.Length; i++)
                 {
-                    ImGui.DragFloat(string.Format("{0}###{1}", brushParams[i].Name, i), ref brushParams[i].fValue);
+                    float a1 = (float)brushParams[i].Value;
+                    ImGui.DragFloat(string.Format("{0}###{1}", brushParams[i].Name, i), ref a1);
+                    brushParams[i].Value = a1;
                 }
             }
             ImGui.End();

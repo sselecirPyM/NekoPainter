@@ -22,11 +22,21 @@ cbuffer BrushData
 	float4 BrushColor2;
 	float4 BrushColor3;
 	float4 BrushColor4;
-	int4 Parameters[8];
 	float BrushSize;
 	float3 BrushDataPreserved;
 	InputInfo InputDatas[16];
+	int4 Parameters[8];
 };
+-->
+  <Name>画笔（硬）</Name>
+  <Description></Description>
+  <Parameters>
+    <Parameter Name="hard_soft" Type="Slider" MaxValue="100" MinValue="0">
+      <Description>画笔边缘的软硬程度。100为软画笔。</Description>
+    </Parameter>
+  </Parameters>
+  <Code>
+
 float4 StandardBrush(float4 bufferColor, uint2 position, float4 color,float hs)
 {
 	float2 mp = InputDatas[0].Position.xy - InputDatas[1].Position.xy;
@@ -45,9 +55,9 @@ float4 StandardBrush(float4 bufferColor, uint2 position, float4 color,float hs)
 	float rDistance = (1 - saturate((-rPos.x + rl2) / rl2 * 0.5f) - saturate((rPos.x - length(mp) + rl2) / rl2 * 0.5f));
 	color.a = (1 - pow(2.718281828f, (rl*hs + 1.0f - hs)*log(1.0f - color.a*0.99999f)*rDistance));
 
-	if (abs(rPos.y) <= rSize && rPos.x >= 0 && rPos.x <= length(mp) || distance(rPos, float2(0, 0))<= rSize || distance(rPos, float2(length(mp), 0)) <= rSize)
+	if (abs(rPos.y) &lt;= rSize &amp;&amp; rPos.x &gt;= 0 &amp;&amp; rPos.x &lt;= length(mp) || distance(rPos, float2(0, 0))&lt;= rSize || distance(rPos, float2(length(mp), 0)) &lt;= rSize)
 	{
-		if (color.a > 0.00000001f)
+		if (color.a &gt; 0.00000001f)
 		{
 			float aalpha = 1 - (1 - bufferColor.a)*(1 - color.a);
 			color = float4(bufferColor.rgb*(1 - color.a)*(bufferColor.a) / aalpha + color.rgb*color.a / aalpha, aalpha);
@@ -63,37 +73,12 @@ float4 StandardBrush(float4 bufferColor, uint2 position, float4 color,float hs)
 	}
 	return color;
 }
--->
-  <Parameter Index="15" Type="Slider" MaxValue="100" MinValue="0">
-    <Name>硬/软 画笔</Name>
-    <Description>画笔边缘的软硬程度。100为软画笔。</Description>
-  </Parameter>
-  <ParametersGroup>
-    <Name Culture="zh-cn">画笔（硬）</Name>
-    <Description Culture="zh-cn"></Description>
-  </ParametersGroup>
-  <ParametersGroup Parameter16="100">
-    <Name>画笔（软）</Name>
-    <Description></Description>
-  </ParametersGroup>
-  <Code Stage="Begin">
-float4 brush(float4 bufferColor, uint2 position)
-{
-	return bufferColor;
-}
-  </Code>
-  <Code Stage="Doing">
+
 float4 brush(float4 bufferColor, uint2 position)
 {
 	float4 color = BrushColor;
-	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
-}
-  </Code>
-  <Code Stage="End">
-float4 brush(float4 bufferColor, uint2 position)
-{
-	float4 color = BrushColor;
-	return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+	//return StandardBrush(bufferColor,position,color,Parameters[3].w*0.01f);
+	return StandardBrush(bufferColor,position,color,P_hard_soft*0.01f);
 }
   </Code>
 </Brush>

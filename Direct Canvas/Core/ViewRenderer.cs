@@ -33,7 +33,7 @@ namespace DirectCanvas
                 CanvasCase.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
                 if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                 {
-                    if (selectedLayout.UseColor)
+                    if (selectedLayout.DataSource == PictureDataSource.Color)
                     {
                         blendMode?.BlendPure(RenderTarget[0], constantBuffer1, ofs, 256);
                     }

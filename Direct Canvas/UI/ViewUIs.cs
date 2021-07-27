@@ -191,7 +191,9 @@ namespace DirectCanvas.UI
                 var layout = canvasCase.SelectedLayout;
                 ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
                 ImGui.ColorEdit4("颜色", ref layout.Color);
-                ImGui.Checkbox("使用颜色", ref layout.UseColor);
+                bool useColor = layout.DataSource == Layout.PictureDataSource.Color;
+                ImGui.Checkbox("使用颜色", ref useColor);
+                layout.DataSource = useColor ? Layout.PictureDataSource.Color : Layout.PictureDataSource.Default;
                 ImGui.Checkbox("隐藏", ref layout.Hidden);
 
                 if (canvasCase.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)

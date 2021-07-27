@@ -40,7 +40,7 @@ namespace DirectCanvas.Layout
             BlendMode = pictureLayout.BlendMode;
             Alpha = pictureLayout.Alpha;
             Color = pictureLayout.Color;
-            UseColor = pictureLayout.UseColor;
+            DataSource = pictureLayout.DataSource;
 
             guid = Guid.NewGuid();
         }
@@ -76,15 +76,19 @@ namespace DirectCanvas.Layout
             }
         }
 
-        public  void Dispose()
+        public void Dispose()
         {
 
         }
 
-        public bool blendModeUsedDataUpdated = false;
-
-        public bool UseColor = false;
+        public PictureDataSource DataSource;
 
         public bool saved = false;
+    }
+
+    public enum PictureDataSource
+    {
+        Default,
+        Color,
     }
 }

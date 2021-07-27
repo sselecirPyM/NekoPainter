@@ -11,6 +11,9 @@ using System.IO;
 using System.Xml;
 using CanvasRendering;
 using Windows.ApplicationModel;
+using System.Xml.Serialization;
+using System.ComponentModel;
+using System.Numerics;
 
 namespace DirectCanvas.FileFormat
 {
@@ -37,21 +40,20 @@ namespace DirectCanvas.FileFormat
         public CanvasCase canvasCase;
         public StorageFolder blendModesFolder;
         public StorageFolder brushesFolder;
-        public StorageFolder animationsFolder;
+        //public StorageFolder animationsFolder;
         public StorageFolder layoutsFolder;
 
         Dictionary<Guid, StorageFile> layoutFileMap = new Dictionary<Guid, StorageFile>();
 
-        Guid defaultBlendModeGuid;
         public async Task CreateAsync(int width, int height, bool extraResources)
         {
             blendModesFolder = await CaseFolder.CreateFolderAsync("BlendModes", CreationCollisionOption.OpenIfExists);
             brushesFolder = await CaseFolder.CreateFolderAsync("Brushes", CreationCollisionOption.OpenIfExists);
             layoutsFolder = await CaseFolder.CreateFolderAsync("Layouts", CreationCollisionOption.OpenIfExists);
-            animationsFolder = await CaseFolder.CreateFolderAsync("Animations", CreationCollisionOption.OpenIfExists);
+            //animationsFolder = await CaseFolder.CreateFolderAsync("Animations", CreationCollisionOption.OpenIfExists);
 
             canvasCase = new CanvasCase(DeviceResources, width, height);
-            defaultBlendModeGuid = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
+            canvasCase.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             await UpdateDCResource();
             if (extraResources)
                 await UpdateDCResourcePlugin();
@@ -66,7 +68,7 @@ namespace DirectCanvas.FileFormat
             blendModesFolder = await CaseFolder.CreateFolderAsync("BlendModes", CreationCollisionOption.OpenIfExists);
             brushesFolder = await CaseFolder.CreateFolderAsync("Brushes", CreationCollisionOption.OpenIfExists);
             layoutsFolder = await CaseFolder.CreateFolderAsync("Layouts", CreationCollisionOption.OpenIfExists);
-            animationsFolder = await CaseFolder.CreateFolderAsync("Animations", CreationCollisionOption.OpenIfExists);
+            //animationsFolder = await CaseFolder.CreateFolderAsync("Animations", CreationCollisionOption.OpenIfExists);
 
             await LoadDocInfo();
 
@@ -80,25 +82,31 @@ namespace DirectCanvas.FileFormat
             await SaveDocInfo();
 
             StorageFile LayoutSettingsFile = await CaseFolder.CreateFileAsync("Layouts.xml", CreationCollisionOption.ReplaceExisting);
-            Stream layoutsInfoStream = (await LayoutSettingsFile.OpenAsync(FileAccessMode.ReadWrite)).AsStream();
-            XmlWriter writer = XmlWriter.Create(layoutsInfoStream, xmlWriterSettings);
-            writer.WriteStartDocument();
-            writer.WriteStartElement("Layouts");
-            for (int ia = 0; ia < canvasCase.Layouts.Count; ia++)
-            {
-                PictureLayout layout = canvasCase.Layouts[ia];
-                writer.WriteStartElement("Layout");
-                System.Numerics.Vector4 color = layout.Color;
-                writer.WriteAttributeString("Color", string.Format("{0} {1} {2} {3}", color.X, color.Y, color.Z, color.W));
-                writer.WriteAttributeString("Name", layout.Name);
-                writer.WriteAttributeString("UseColor", layout.UseColor.ToString());
-                writer.WriteAttributeString("Guid", layout.guid.ToString());
-                writer.WriteAttributeString("Hidden", layout.Hidden.ToString());
-                writer.WriteAttributeString("Alpha", layout.Alpha.ToString());
-                if (layout.BlendMode != null)
-                    writer.WriteAttributeString("BlendModeGuid", layout.BlendMode.ToString());
+            Stream layoutsInfoStream = await LayoutSettingsFile.OpenStreamForWriteAsync();
 
-                writer.WriteEndElement();
+
+            var layoutInfos = new _PictureLayouts();
+            layoutInfos._PictureLayoutSaves = new List<_PictureLayoutSave>();
+            foreach (PictureLayout layout in canvasCase.Layouts)
+            {
+                layoutInfos._PictureLayoutSaves.Add(new _PictureLayoutSave()
+                {
+                    Alpha = layout.Alpha,
+                    BlendMode = layout.BlendMode,
+                    Color = layout.Color,
+                    DataSource = layout.DataSource,
+                    Guid = layout.guid,
+                    Hidden = layout.Hidden,
+                    Name = layout.Name,
+                }); ;
+            }
+            layoutsInfoSerializer.Serialize(layoutsInfoStream, layoutInfos);
+
+
+            layoutsInfoStream.Dispose();
+
+            foreach (var layout in canvasCase.Layouts)
+            {
                 if (!layout.saved)
                 {
                     if (!layoutFileMap.TryGetValue(layout.guid, out StorageFile storageFile))
@@ -109,9 +117,6 @@ namespace DirectCanvas.FileFormat
                     await layout.SaveToFileAsync(canvasCase, storageFile);
                 }
             }
-            writer.WriteEndDocument();
-            writer.Flush();
-            layoutsInfoStream.Dispose();
             HashSet<Guid> existLayoutGuids = new HashSet<Guid>();
             foreach (var layout in canvasCase.Layouts)
             {
@@ -158,53 +163,30 @@ namespace DirectCanvas.FileFormat
             }
 
             StorageFile layoutSettingsFile = await CaseFolder.GetFileAsync("Layouts.xml");
-            Stream settingsStream = (await layoutSettingsFile.OpenAsync(FileAccessMode.ReadWrite)).AsStream();
-            XmlReader xmlReader = XmlReader.Create(settingsStream, xmlReaderSettings);
-            while (xmlReader.Read())
+            Stream settingsStream = await layoutSettingsFile.OpenStreamForReadAsync();
+
+            _PictureLayouts layouts = (_PictureLayouts)layoutsInfoSerializer.Deserialize(settingsStream);
+
+            if (layouts._PictureLayoutSaves != null)
             {
-                if (xmlReader.NodeType == XmlNodeType.Element)
+                foreach (var layout in layouts._PictureLayoutSaves)
                 {
-                    Guid guid;
-                    switch (xmlReader.Name)
+                    PictureLayout pictureLayout = new PictureLayout
                     {
-                        case "Layout":
-                            {
-                                guid = Guid.Parse(xmlReader.GetAttribute("Guid"));
-                                PictureLayout standardLayout = new PictureLayout() { guid = guid };
-                                canvasCase.LayoutsMap[guid] = standardLayout;
-                                LoadLayoutInfo(xmlReader, standardLayout);
-
-                                string colorString = xmlReader.GetAttribute("Color");
-                                if (!string.IsNullOrEmpty(colorString))
-                                {
-                                    string[] colorG = colorString.Split(" ");
-                                    float.TryParse(colorG[0], out float cR);
-                                    float.TryParse(colorG[1], out float cG);
-                                    float.TryParse(colorG[2], out float cB);
-                                    float.TryParse(colorG[3], out float cA);
-                                    standardLayout.Color = new System.Numerics.Vector4(cR, cG, cB, cA);
-                                }
-
-                                canvasCase.Layouts.Add(standardLayout);
-                                break;
-                            }
-                    }
+                        Alpha = layout.Alpha,
+                        BlendMode = layout.BlendMode,
+                        Color = layout.Color,
+                        DataSource = layout.DataSource,
+                        guid = layout.Guid,
+                        Hidden = layout.Hidden,
+                        Name = layout.Name,
+                        saved = true,
+                    };
+                    canvasCase.Layouts.Add(pictureLayout);
                 }
             }
-            settingsStream.Dispose();
-        }
-        private void LoadLayoutInfo(XmlReader xmlReader, PictureLayout layout)
-        {
-            if (Guid.TryParse(xmlReader.GetAttribute("BlendModeGuid"), out Guid blendmodeGuid))
-                layout.BlendMode = blendmodeGuid;
-            if (bool.TryParse(xmlReader.GetAttribute("Hidden"), out bool hidden))
-                layout.Hidden = hidden;
-            if (float.TryParse(xmlReader.GetAttribute("Alpha"), out float alpha))
-                layout.Alpha = alpha;
-            if (bool.TryParse(xmlReader.GetAttribute("UseColor"), out bool useColor))
-                layout.UseColor = useColor;
 
-            layout.Name = xmlReader.GetAttribute("Name");
+            settingsStream.Dispose();
         }
 
         private async Task LoadBlendmodes()
@@ -218,8 +200,6 @@ namespace DirectCanvas.FileFormat
                 blendmodesMap.Add(blendmode.Guid, blendmode);
                 canvasCase.blendModes.Add(blendmode);
             }
-            if (defaultBlendModeGuid != Guid.Empty)
-                canvasCase.DefaultBlendMode = blendmodesMap[defaultBlendModeGuid];
         }
 
         private async Task LoadBrushes()
@@ -250,76 +230,31 @@ namespace DirectCanvas.FileFormat
         {
             StorageFile layoutSettingsFile = await CaseFolder.GetFileAsync("Document.xml");
             Stream settingsStream = await layoutSettingsFile.OpenStreamForReadAsync();
-            XmlReader xmlReader = XmlReader.Create(settingsStream);
-            while (xmlReader.Read())
-            {
-                if (xmlReader.NodeType == XmlNodeType.Element)
-                {
-                    switch (xmlReader.Name)
-                    {
-                        case "DCDocument":
-                            int width = int.Parse(xmlReader.GetAttribute("Width"));
-                            int height = int.Parse(xmlReader.GetAttribute("Height"));
-                            canvasCase = new CanvasCase(DeviceResources, width, height);
-                            while (xmlReader.Read())
-                            {
-                                if (xmlReader.NodeType == XmlNodeType.Element)
-                                {
-                                    switch (xmlReader.Name)
-                                    {
-                                        case "Name":
-                                            canvasCase.Name = xmlReader.ReadElementContentAsString();
-                                            continue;
-                                        case "Description":
-                                            canvasCase.Description = xmlReader.ReadElementContentAsString();
-                                            continue;
-                                        case "DefaultBlendModeGuid":
-                                            if (Guid.TryParse(xmlReader.GetAttribute("Value"), out Guid guid))
-                                                defaultBlendModeGuid = guid;
-                                            break;
-                                    }
-                                    xmlReader.Skip();
-                                }
-                                else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name == "DCDocument")
-                                    break;
-                            }
-                            break;
-                    }
-                }
-            }
+
+            _DCDocument document = (_DCDocument)docInfoSerializer.Deserialize(settingsStream);
+            canvasCase = new CanvasCase(DeviceResources, document.Width, document.Height);
+            canvasCase.Name = document.Name;
+            canvasCase.Description = document.Description;
+            canvasCase.DefaultBlendMode = document.DefaultBlendMode;
+
+
+            settingsStream.Dispose();
         }
 
         private async Task SaveDocInfo()
         {
             StorageFile SettingsFile = await CaseFolder.CreateFileAsync("Document.xml", CreationCollisionOption.ReplaceExisting);
-            Stream settingsStream = (await SettingsFile.OpenAsync(FileAccessMode.ReadWrite)).AsStream();
-            XmlWriter writer = XmlWriter.Create(settingsStream, xmlWriterSettings);
-            writer.WriteStartDocument();
-            writer.WriteStartElement("DCDocument");
-            writer.WriteAttributeString("Width", canvasCase.Width.ToString());
-            writer.WriteAttributeString("Height", canvasCase.Height.ToString());
+            Stream settingsStream = await SettingsFile.OpenStreamForWriteAsync();
 
-            if (!string.IsNullOrEmpty(canvasCase.Name))
+            docInfoSerializer.Serialize(settingsStream, new _DCDocument()
             {
-                writer.WriteStartElement("Name");
-                writer.WriteString(canvasCase.Name);
-                writer.WriteEndElement();
-            }
-            if (!string.IsNullOrEmpty(canvasCase.Description))
-            {
-                writer.WriteStartElement("Description");
-                writer.WriteString(canvasCase.Name);
-                writer.WriteEndElement();
-            }
-            if (canvasCase.DefaultBlendMode != null)
-            {
-                writer.WriteStartElement("DefaultBlendModeGuid");
-                writer.WriteAttributeString("Value", canvasCase.DefaultBlendMode.Guid.ToString());
-                writer.WriteEndElement();
-            }
+                Name = canvasCase.Name,
+                Description = canvasCase.Description,
+                DefaultBlendMode = canvasCase.DefaultBlendMode,
+                Width = canvasCase.Width,
+                Height = canvasCase.Height,
+            });
 
-            writer.WriteEndDocument();
-            writer.Flush();
             settingsStream.Dispose();
         }
 
@@ -352,5 +287,43 @@ namespace DirectCanvas.FileFormat
                 await file.CopyAsync(blendModesFolder);
             }
         }
+        public static XmlSerializer layoutsInfoSerializer = new XmlSerializer(typeof(_PictureLayouts));
+        public static XmlSerializer docInfoSerializer = new XmlSerializer(typeof(_DCDocument));
+    }
+    [XmlType("DCDocument")]
+    public class _DCDocument
+    {
+        [XmlAttribute]
+        public string Name;
+        public string Description;
+        public int Width;
+        public int Height;
+        public Guid DefaultBlendMode;
+
+    }
+
+    [XmlType("Layouts")]
+    public class _PictureLayouts
+    {
+        [XmlElement("Layout")]
+        public List<_PictureLayoutSave> _PictureLayoutSaves;
+    }
+    [XmlType("Layout")]
+    public class _PictureLayoutSave
+    {
+        [XmlAttribute]
+        public string Name = "";
+
+        public Guid Guid;
+
+        public Guid BlendMode;
+        [DefaultValue(false)]
+        public bool Hidden;
+        [DefaultValue(1.0f)]
+        public float Alpha = 1.0f;
+        [DefaultValue(PictureDataSource.Default)]
+        public PictureDataSource DataSource;
+
+        public Vector4 Color;
     }
 }

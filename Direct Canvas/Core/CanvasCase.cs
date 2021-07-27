@@ -87,7 +87,7 @@ namespace DirectCanvas
         {
             PictureLayout standardLayout = new PictureLayout()
             {
-                BlendMode = DefaultBlendMode.Guid,
+                BlendMode = DefaultBlendMode,
                 guid = System.Guid.NewGuid(),
                 Name = string.Format("图层 {0}", Layouts.Count + 1)
             };
@@ -248,7 +248,7 @@ namespace DirectCanvas
 
         public event System.Action ActivatedLayoutChanged;
 
-        public BlendMode DefaultBlendMode;
+        public System.Guid DefaultBlendMode;
 
         public readonly DeviceResources DeviceResources;
     }

@@ -13,10 +13,12 @@ namespace CanvasRendering
         public ID3D11Buffer indexBuffer;
         public DeviceResources deviceResources;
         public int stride;
-        public Mesh(DeviceResources deviceResources,int stride)
+        public string inputLayout;
+        public Mesh(DeviceResources deviceResources, int stride, string inputLayout)
         {
             this.deviceResources = deviceResources;
             this.stride = stride;
+            this.inputLayout = inputLayout;
         }
 
         public void Update(byte[] vertice, byte[] indice)
@@ -26,13 +28,6 @@ namespace CanvasRendering
 
             vertexBuffer = deviceResources.device.CreateBuffer(vertice, new BufferDescription(vertice.Length, BindFlags.VertexBuffer, ResourceUsage.Default));
             indexBuffer = deviceResources.device.CreateBuffer(indice, new BufferDescription(indice.Length, BindFlags.IndexBuffer, ResourceUsage.Default));
-
-            InputElementDescription[] inputElementDescriptions = new InputElementDescription[]
-            {
-                new InputElementDescription("POSITION",0,Vortice.DXGI.Format.R32G32B32_Float,0),
-                new InputElementDescription("COLOR",0,Vortice.DXGI.Format.R32G32B32A32_Float,0),
-                new InputElementDescription("TEXCOORD",0,Vortice.DXGI.Format.R32G32_Float,0),
-            };
         }
 
 

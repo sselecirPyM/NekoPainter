@@ -197,7 +197,7 @@ namespace DirectCanvas
 
         private void _MenuItem_HelpHelp_Click(object sender, RoutedEventArgs e)
         {
-            FHelp.Visible = true;
+
         }
 
         private void _MenuItem_Settings_Click(object sender, RoutedEventArgs e)

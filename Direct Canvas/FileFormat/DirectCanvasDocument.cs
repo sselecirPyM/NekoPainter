@@ -218,7 +218,7 @@ namespace DirectCanvas.FileFormat
             foreach (StorageFile brushFile in brushFiles)
             {
                 if (!".dcbf".Equals(brushFile.FileType, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var op2 = Core.Brush.LoadFromFileAsync(canvasCase.DeviceResources, brushFile).ContinueWith((_) =>
+                var op2 = Core.Brush.LoadFromFileAsync(brushFile).ContinueWith((_) =>
                    {
                        lock (brushesList)
                        {

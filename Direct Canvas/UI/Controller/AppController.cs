@@ -154,13 +154,13 @@ namespace DirectCanvas.UI.Controller
                         switch (result.penInputFlag)
                         {
                             case PenInputFlag.Begin:
-                                paintAgent.DrawBegin(result.point, result.pointerPoint);
+                                paintAgent.DrawBegin(result);
                                 break;
                             case PenInputFlag.Drawing:
-                                paintAgent.Draw(result.point, result.pointerPoint);
+                                paintAgent.Draw(result);
                                 break;
                             case PenInputFlag.End:
-                                paintAgent.DrawEnd(result.point, result.pointerPoint);
+                                paintAgent.DrawEnd(result);
                                 break;
                         }
                         paintAgent.Process();
@@ -179,13 +179,13 @@ namespace DirectCanvas.UI.Controller
             Input.penInputData1.Clear();
         }
 
-        public AppSettings currentAppsettings;
+        public AppSettings currentAppSettings;
 
         public void ApplySettings(AppSettings appSettings)
         {
-            if (currentAppsettings != null)
-                currentAppsettings.PropertyChanged -= AppSettings_PropertyChanged;
-            currentAppsettings = appSettings;
+            if (currentAppSettings != null)
+                currentAppSettings.PropertyChanged -= AppSettings_PropertyChanged;
+            currentAppSettings = appSettings;
             appSettings.PropertyChanged += AppSettings_PropertyChanged;
 
             var c = appSettings.BackGroundColor;
@@ -197,7 +197,7 @@ namespace DirectCanvas.UI.Controller
         {
             if (e.PropertyName == "BackGroundColor")
             {
-                var c = currentAppsettings.BackGroundColor;
+                var c = currentAppSettings.BackGroundColor;
                 graphicsContext.SetClearColor(c);
                 CanvasRerender();
             }

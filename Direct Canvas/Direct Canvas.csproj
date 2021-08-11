@@ -204,12 +204,9 @@
     <Compile Include="UI\DCUI_Canvas.xaml.cs">
       <DependentUpon>DCUI_Canvas.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\DCUI_Help.xaml.cs">
-      <DependentUpon>DCUI_Help.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\FloatingPanel.cs" />
     <Compile Include="UI\Input.cs" />
     <Compile Include="UI\ViewUIs.cs" />
+    <Compile Include="Util\BinaryWriterPlus.cs" />
     <Compile Include="Util\CubicBezierCurve.cs" />
     <Compile Include="Util\Converter\IsPureLayout.cs" />
     <Compile Include="Util\Converter\Vector4ToColor.cs" />
@@ -363,19 +360,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Styles\FloatingPanelStyle.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\DCUI_Canvas.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\DCUI_Help.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -401,7 +390,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="UI\Widgets\" />
+    <Folder Include="Styles\" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

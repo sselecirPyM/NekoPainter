@@ -76,7 +76,6 @@ namespace DirectCanvas.UI
         public void SetCanvasCase(CanvasCase canvasCase)
         {
             CanvasCase = canvasCase;
-            //CanvasRect = new CSRect(CanvasCase.DeviceResources, CanvasCase.Width, CanvasCase.Height);
             CanvasRect = new CSRect();
             CanvasRect.vertexShader = AppController.Instance.vertexShaders["default2DVertexShader"];
             CanvasRect.pixelShader = AppController.Instance.pixelShaders["PS2DTex1"];
@@ -86,7 +85,6 @@ namespace DirectCanvas.UI
             CanvasRect.Initialize(CanvasCase.DeviceResources, CanvasCase.Width, CanvasCase.Height);
 
             paintAgent = CanvasCase.PaintAgent;
-            //canvasCase.ViewRenderer.RenderAll();
             AppController.Instance.CanvasRerender();
         }
 

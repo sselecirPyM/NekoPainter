@@ -27,6 +27,19 @@ namespace CanvasRendering
 
         public void CreateDeviceResources()
         {
+            inputLayouts.Add("canvas", new InputElementDescription[]
+            {
+                new InputElementDescription("POSITION",0,Format.R32G32B32_Float,0),
+                new InputElementDescription("TEXCOORD",0,Format.R32G32_Float,0),
+                new InputElementDescription("COLOR",0,Format.R8G8B8A8_UNorm,0),
+            });
+            inputLayouts.Add("imgui", new InputElementDescription[]
+                {
+                    new InputElementDescription("POSITION",0,Format.R32G32_Float,0),
+                    new InputElementDescription("TEXCOORD",0,Format.R32G32_Float,0),
+                    new InputElementDescription("COLOR",0,Format.R8G8B8A8_UNorm,0),
+                });
+
             FeatureLevel[] featureLevels = new[]
             {
                 //FeatureLevel.Level_12_2,
@@ -117,8 +130,6 @@ namespace CanvasRendering
         void UpdateRenderTargetSize()
         {
             // 计算必要的呈现器目标大小(以像素为单位)。
-            //m_outputSize.X = ConvertDipsToPixels(m_logicalSize.X, m_dpi);
-            //m_outputSize.Y = ConvertDipsToPixels(m_logicalSize.Y, m_dpi);
             m_outputSize = m_logicalSize * (m_dpi / 96.0f);
 
             // 防止创建大小为零的 DirectX 内容。
@@ -172,6 +183,7 @@ namespace CanvasRendering
         public Format swapChainFormat = Format.R8G8B8A8_UNorm;
         public SwapChainFlags swapChainFlags = SwapChainFlags.AllowTearing;
 
+        public Dictionary<string, InputElementDescription[]> inputLayouts = new Dictionary<string, InputElementDescription[]>();
 
         public object panel;
     }

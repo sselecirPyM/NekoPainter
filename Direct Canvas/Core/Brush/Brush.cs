@@ -17,32 +17,11 @@ namespace DirectCanvas.Core
 {
     public class Brush : IDisposable, IComparable<Brush>
     {
-        private Brush(ComputeShader cBegin, ComputeShader cDoing, ComputeShader cEnd)
-        {
-            this.cBegin = cBegin;
-            this.cDoing = cDoing;
-            this.cEnd = cEnd;
-        }
-
-        static string componentCode1;
-        static string appUsedCultureName;
-
-        public static async Task LoadStaticResourcesAsync()
-        {
-            appUsedCultureName = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
-            componentCode1 = await DCUtil.ReadStringAsync("Shaders\\brush_c1.hlsl");
-        }
-
-        public static async Task<Brush[]> LoadFromFileAsync(DeviceResources deviceResources, StorageFile file)
+        public static async Task<Brush[]> LoadFromFileAsync(StorageFile file)
         {
             Stream stream = await file.OpenStreamForReadAsync();
 
             var brush1 = (BrushCode)xmlSerializer.Deserialize(stream);
-            string x = componentCode1;
-            ComputeShader begin = null;
-            //ComputeShader drawing = null;
-            //ComputeShader end = null;
-
 
             StringBuilder fCode = new StringBuilder();
             fCode.Append(@"
@@ -69,23 +48,38 @@ cbuffer BrushData: register(b0)
             fCode.Append("}\n");
             fCode.Append(brush1.Code);
 
-            begin = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", fCode.ToString())));
-
-            //Parallel.Invoke(
-            //     () => begin = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Begin"]))),
-            //     () => drawing = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["Doing"]))),
-            //     () => end = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(x.Replace("#define codehere", code["End"])))
-            //     );
-
-
-            Brush brush = new Brush(begin, begin, begin);
+            Brush brush = new Brush(fCode.ToString());
             brush.Name = brush1.Name;
             brush.Description = brush1.Description;
             brush.Size = brush1.BrushSize;
             brush.Parameters = brush1.Parameters;
-            Brush[] brushes = new Brush[1];
-            brushes[0] = brush;
+            Brush[] brushes = new Brush[1] { brush };
             return brushes;
+        }
+
+        static XmlSerializer xmlSerializer = new XmlSerializer(typeof(BrushCode));
+        static string componentCode1;
+        static string appUsedCultureName;
+
+        public static async Task LoadStaticResourcesAsync()
+        {
+            appUsedCultureName = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+            componentCode1 = await DCUtil.ReadStringAsync("Shaders\\brush_c1.hlsl");
+        }
+
+        private Brush(string generatedCode)
+        {
+            this.generatedCode = generatedCode;
+        }
+
+        public void CheckBrush(DeviceResources device)
+        {
+            if (cBegin == null)
+            {
+                cBegin = ComputeShader.CompileAndCreate(device, Encoding.UTF8.GetBytes(componentCode1.Replace("#define codehere", generatedCode)));
+                cDoing = cBegin;
+                cEnd = cBegin;
+            }
         }
 
         public void Dispose()
@@ -100,11 +94,11 @@ cbuffer BrushData: register(b0)
             return Name.CompareTo(other.Name);
         }
 
-        static XmlSerializer xmlSerializer = new XmlSerializer(typeof(BrushCode));
+        public string generatedCode;
 
-        public readonly ComputeShader cBegin;
-        public readonly ComputeShader cDoing;
-        public readonly ComputeShader cEnd;
+        public ComputeShader cBegin;
+        public ComputeShader cDoing;
+        public ComputeShader cEnd;
 
         public string Image;
 

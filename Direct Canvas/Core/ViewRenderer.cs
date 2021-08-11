@@ -66,33 +66,32 @@ namespace DirectCanvas
         //        texturePartClear.Dispatch(1, 1, (partCount + 15) / 16);
         //        buf.Dispose();
         //    }
+        //    int ofs = 0;
         //    for (int i = ManagedLayout.Count - 1; i >= 0; i--)
         //    {
-
         //        PictureLayout selectedLayout = ManagedLayout[i];
-        //        if (LayoutsHiddenData[i] == true) continue;
-        //        if (selectedLayout is StandardLayout standardLayout)
+        //        if (ManagedLayout[i].Hidden)
         //        {
-        //            RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
-        //            refs[0] = RenderTarget[0];
-        //            if (standardLayout.activated)
-        //            {
-        //                standardLayout.BlendMode?.Blend(PaintingTexture, RenderTarget[0], part, refs, RenderDataCaches[i]);
-        //            }
-        //            else if (standardLayout.tiledTexture != null && standardLayout.tiledTexture.tileRect.HaveIntersections(filterRect))
-        //            {
-        //                standardLayout.BlendMode?.Blend(standardLayout.tiledTexture, RenderTarget[0], part, refs, RenderDataCaches[i]);
-        //            }
+        //            ofs += 256;
+        //            continue;
         //        }
-        //        else if (selectedLayout is PureLayout pureLayout)
+        //        //if (selectedLayout is StandardLayout standardLayout)
+        //        //{
+        //        if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
         //        {
-        //            RenderTexture[] refs = new RenderTexture[Core.BlendMode.c_refCount];
-        //            refs[0] = RenderTarget[0];
-        //            pureLayout.BlendMode?.BlendColor(RenderTarget[0], part, refs, pureLayout.colorBuffer, RenderDataCaches[i]);
-        //        }
-        //        else
-        //        {
-        //            throw new System.NotImplementedException();
+        //            CanvasCase.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
+        //            if (selectedLayout.DataSource == PictureDataSource.Color)
+        //            {
+        //                blendMode?.BlendColor(RenderTarget[0], part, constantBuffer1, ofs, 256);
+        //            }
+        //            else if (CanvasCase.PaintAgent.CurrentLayout == selectedLayout)
+        //            {
+        //                blendMode?.Blend(PaintingTexture, RenderTarget[0], part, constantBuffer1, ofs, 256);
+        //            }
+        //            else if (tiledTexture != null && tiledTexture.tileRect.HaveIntersections(filterRect))
+        //            {
+        //                blendMode?.Blend(tiledTexture, RenderTarget[0], part, constantBuffer1, ofs, 256);
+        //            }
         //        }
         //    }
         //}

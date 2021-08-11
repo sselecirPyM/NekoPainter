@@ -7,7 +7,7 @@ using Vortice.D3DCompiler;
 
 namespace CanvasRendering
 {
-    public class VertexShader
+    public class VertexShader : IDisposable
     {
         public static VertexShader CompileAndCreate(DeviceResources deviceResources, byte[] source)
         {
@@ -18,19 +18,35 @@ namespace CanvasRendering
             VertexShader vertexShader = new VertexShader();
             var hr = Compiler.Compile(source, entryPoint, null, "vs_5_0", out vertexShader.data, out Blob errorBlob);
             vertexShader.vertexShader = deviceResources.device.CreateVertexShader(vertexShader.data);
-            InputElementDescription[] inputElementDescriptions = new InputElementDescription[]
-            {
-                new InputElementDescription("POSITION",0,Vortice.DXGI.Format.R32G32B32_Float,0),
-                new InputElementDescription("TEXCOORD",0,Vortice.DXGI.Format.R32G32_Float,0),
-                new InputElementDescription("COLOR",0,Vortice.DXGI.Format.R8G8B8A8_UNorm,0),
-            };
-            vertexShader.inputLayout = deviceResources.device.CreateInputLayout(inputElementDescriptions, vertexShader.data);
 
             return vertexShader;
         }
+        public ID3D11InputLayout GetInputLayout(DeviceResources deviceResources, string name)
+        {
+            if (inputLayouts.TryGetValue(name, out var inputLayout))
+            {
+                return inputLayout;
+            }
+            var inputElementDescriptions = deviceResources.inputLayouts[name];
+
+            inputLayout = deviceResources.device.CreateInputLayout(inputElementDescriptions, data);
+            inputLayouts[name] = inputLayout;
+            return inputLayout;
+        }
         public Blob data;
         public ID3D11VertexShader vertexShader;
-        public ID3D11InputLayout inputLayout;
-        public ID3D11InputLayout inputLayoutImgui;
+        public Dictionary<string, ID3D11InputLayout> inputLayouts = new Dictionary<string, ID3D11InputLayout>();
+        public void Dispose()
+        {
+            vertexShader?.Dispose();
+            vertexShader = null;
+            foreach(var pair in inputLayouts)
+            {
+                pair.Value.Dispose();
+            }
+            inputLayouts.Clear();
+            data?.Dispose();
+            data = null;
+        }
     }
 }

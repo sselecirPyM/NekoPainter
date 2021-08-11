@@ -28,12 +28,12 @@ namespace DirectCanvas.Pages
         public SettingsPage()
         {
             this.InitializeComponent();
-            BackgroundColorPicker.Color = Util.DCUtil.ToColor(AppController.Instance.currentAppsettings.BackGroundColor);
+            BackgroundColorPicker.Color = Util.DCUtil.ToColor(AppController.Instance.currentAppSettings.BackGroundColor);
         }
 
         private void ColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
         {
-            AppController.Instance.currentAppsettings.BackGroundColor =Util.DCUtil.ToVector4(args.NewColor);
+            AppController.Instance.currentAppSettings.BackGroundColor =Util.DCUtil.ToVector4(args.NewColor);
         }
 
 

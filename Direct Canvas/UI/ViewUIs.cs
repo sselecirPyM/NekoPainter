@@ -71,6 +71,8 @@ namespace DirectCanvas.UI
 
             if (paintAgent != null)
             {
+                LayoutsPanel();
+
                 var canvasCase = AppController.Instance?.CurrentCanvasCase;
                 ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
                 ImGui.SetNextWindowPos(new Vector2(200, 0), ImGuiCond.FirstUseEver);
@@ -92,10 +94,9 @@ namespace DirectCanvas.UI
                 }
                 ImGui.End();
 
-                LayoutsPanel();
-                BrushParametersPanel();
-                BrushPanel();
                 LayoutInfoPanel();
+                BrushPanel();
+                BrushParametersPanel();
             }
 
             ImGui.Render();
@@ -113,7 +114,7 @@ namespace DirectCanvas.UI
             var canvasCase = AppController.Instance?.CurrentCanvasCase;
             //var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.FirstUseEver);
             ImGui.Begin("图层");
             if (ImGui.Button("新建"))
             {
@@ -184,7 +185,7 @@ namespace DirectCanvas.UI
             var canvasCase = AppController.Instance?.CurrentCanvasCase;
             //var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(200, 400), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.Begin("图层信息");
             if (canvasCase.SelectedLayout != null)
             {
@@ -223,7 +224,7 @@ namespace DirectCanvas.UI
         {
             var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0,200), ImGuiCond.FirstUseEver);
             ImGui.Begin("笔刷参数");
             //ImGui.Text(TimeCost.ToString());
             ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
@@ -249,7 +250,7 @@ namespace DirectCanvas.UI
             var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
             ImGui.Begin("笔刷");
 
             var brushes = paintAgent.brushes;
@@ -353,7 +354,7 @@ namespace DirectCanvas.UI
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             var device = AppController.Instance.graphicsContext.DeviceResources;
             constantBuffer = new ConstantBuffer(device, 64);
-            mesh = new Mesh(device, 20);
+            mesh = new Mesh(device, 20, "imgui");
             io.Fonts.AddFontFromFileTTF("c:\\Windows\\Fonts\\SIMHEI.ttf", 13, null, io.Fonts.GetGlyphRangesChineseFull());
             FontAtlas = new RenderTexture();
             unsafe

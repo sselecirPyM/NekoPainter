@@ -42,7 +42,7 @@ namespace CanvasRendering
             context.PSSetConstantBuffer(0, constantBuffer);
             context.IASetVertexBuffers(0, new VertexBufferView(vertexBuffer, Marshal.SizeOf(typeof(vertex))));
             context.IASetIndexBuffer(indicesBuffer, Vortice.DXGI.Format.R16_UInt, 0);
-            context.IASetInputLayout(vertexShader.inputLayout);
+            context.IASetInputLayout(vertexShader.GetInputLayout(DeviceResources, "canvas"));
             context.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
             context.VSSetShader(vertexShader.vertexShader);
             context.PSSetShader(pixelShader.pixelShader);

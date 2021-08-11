@@ -70,30 +70,6 @@
             <!--画布-->
             <local3:DCUI_Canvas x:Name="DCUI_Canvas"/>
             <Canvas>
-                <!--<local3:FloatingPanel x:Name="FLayoutPanel" Header="图层" Canvas.Top="400" Width="200" Height="200" GotFocus="Panel_GotFocus" PointerPressed="FLayoutPanel_PointerPressed" Click="Panel_GotFocus">
-                    <local2:LayoutsPanel x:Name="LayoutsPanel"/>
-                </local3:FloatingPanel>-->
-                <!--<local3:FloatingPanel x:Name="FBrushPanel" Header="笔刷" Canvas.ZIndex="2" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Left="400" Canvas.Top="50" Width="180" Height="250" MinWidth="100" MinHeight="100">
-                    <local2:BrushPanel x:Name="BrushPanel"/>
-                </local3:FloatingPanel>-->
-                <!--<local3:FloatingPanel x:Name="FColorPanel" Header="颜色（向下滚动设置更多颜色）" Canvas.ZIndex="3" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Top="200" Width="230" Height="460" MinWidth="230" MinHeight="240">
-                    <local2:ColorAndOtherPanel x:Name="ColorAndOtherPanel"/>
-                </local3:FloatingPanel>-->
-                <!--<local3:FloatingPanel x:Name="FBlendModePanel" Header="混合模式" Canvas.ZIndex="4" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Top="400" Canvas.Left="400" Width="240" Height="260" MinWidth="240" MinHeight="240">
-                    <local2:BlendModePanel x:Name="BlendModePanel"/>
-                </local3:FloatingPanel>-->
-                <!--<local3:FloatingPanel x:Name="FLayoutInfoPanel" Header="图层信息" Canvas.ZIndex="5" GotFocus="Panel_GotFocus" PointerPressed="Panel_GotFocus" Click="Panel_GotFocus" Canvas.Top="300" Canvas.Left="200" Width="270" Height="260" MinWidth="240" MinHeight="270">
-                    <local2:LayoutInfoPanel CurrentPictureLayout="{x:Bind LayoutsPanel.SelectedPictureLayout,Mode=OneWay}" x:Name="LayoutInfoPanel"/>
-                </local3:FloatingPanel>-->
-                <!--<local3:FloatingPanel x:Name="FAnimationController" Header="动画控制器" Canvas.ZIndex="6" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus"  Canvas.Top="150" Canvas.Left="230" Width="550" Height="300" MinWidth="250" MinHeight="200" Visible="False">
-                    <local2:AnimationController x:Name="animationController"/>
-                </local3:FloatingPanel>
-                <local3:FloatingPanel x:Name="FTimeline" Header="时间线" Canvas.ZIndex="7" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus"  Canvas.Top="150" Canvas.Left="230" Width="550" Height="300" MinWidth="250" MinHeight="200" Visible="False">
-                    <local2:TimelinePlayer/>
-                </local3:FloatingPanel>-->
-                <local3:FloatingPanel x:Name="FHelp" Header="帮助" Canvas.ZIndex="8" PointerPressed="Panel_GotFocus" GotFocus="Panel_GotFocus" Click="Panel_GotFocus"  Canvas.Top="300" Canvas.Left="200" Width="400" Height="300" MinWidth="400" MinHeight="300" Visibility="Collapsed">
-                    <local3:DCUI_Help x:Name="DCUI_Help"/>
-                </local3:FloatingPanel>
             </Canvas>
             <Frame x:Name="frame"/>
         </Grid>

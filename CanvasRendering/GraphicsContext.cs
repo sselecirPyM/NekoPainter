@@ -81,6 +81,7 @@ namespace CanvasRendering
             deviceContext.IASetPrimitiveTopology(Vortice.Direct3D.PrimitiveTopology.TriangleList);
             deviceContext.IASetVertexBuffers(0, new VertexBufferView(mesh.vertexBuffer, mesh.stride));
             deviceContext.IASetIndexBuffer(mesh.indexBuffer, Vortice.DXGI.Format.R16_UInt, 0);
+            InputLayoutName = mesh.inputLayout;
         }
         public void Present()
         {
@@ -101,18 +102,8 @@ namespace CanvasRendering
         public void DrawIndexed(int indexCount, int startIndexLocation, int baseVertexLocation)
         {
             var context = DeviceResources.d3dContext;
-            DeviceResources.d3dContext.OMSetBlendState(defaultBlendState);
+            context.OMSetBlendState(defaultBlendState);
             context.OMSetDepthStencilState(depthStencilState);
-            if (VertexShader.inputLayoutImgui == null)
-            {
-                InputElementDescription[] inputElementDescriptions = new InputElementDescription[]
-                {
-                    new InputElementDescription("POSITION",0,Vortice.DXGI.Format.R32G32_Float,0),
-                    new InputElementDescription("TEXCOORD",0,Vortice.DXGI.Format.R32G32_Float,0),
-                    new InputElementDescription("COLOR",0,Vortice.DXGI.Format.R8G8B8A8_UNorm,0),
-                };
-                VertexShader.inputLayoutImgui = DeviceResources.device.CreateInputLayout(inputElementDescriptions, VertexShader.data);
-            }
             if (samplerState == null)
             {
                 samplerState = DeviceResources.device.CreateSamplerState(new SamplerDescription(Filter.MinMagMipLinear, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap));
@@ -121,9 +112,9 @@ namespace CanvasRendering
             {
                 rasterizerState = DeviceResources.device.CreateRasterizerState(new RasterizerDescription(CullMode.None, FillMode.Solid) { ScissorEnable = true });
             }
-            DeviceResources.d3dContext.PSSetSampler(0, samplerState);
-            DeviceResources.d3dContext.RSSetState(rasterizerState);
-            DeviceResources.d3dContext.IASetInputLayout(VertexShader.inputLayoutImgui);
+            context.PSSetSampler(0, samplerState);
+            context.RSSetState(rasterizerState);
+            context.IASetInputLayout(VertexShader.GetInputLayout(DeviceResources, InputLayoutName));
 
             context.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
         }
@@ -133,6 +124,7 @@ namespace CanvasRendering
         public DeviceResources DeviceResources { get; private set; } = new DeviceResources();
         public ID3D11BlendState defaultBlendState;
         public ID3D11SamplerState samplerState;
+        public string InputLayoutName;
         ID3D11RasterizerState rasterizerState;
 
         public VertexShader VertexShader;

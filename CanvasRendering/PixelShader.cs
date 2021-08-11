@@ -7,7 +7,7 @@ using Vortice.Direct3D11;
 
 namespace CanvasRendering
 {
-    public class PixelShader
+    public class PixelShader : IDisposable
     {
         public static PixelShader CompileAndCreate(DeviceResources deviceResources, byte[] source)
         {
@@ -22,5 +22,11 @@ namespace CanvasRendering
             return pixelShader;
         }
         public ID3D11PixelShader pixelShader;
+
+        public void Dispose()
+        {
+            pixelShader?.Dispose();
+            pixelShader = null;
+        }
     }
 }

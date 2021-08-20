@@ -21,21 +21,23 @@ namespace CanvasRendering
 
             return vertexShader;
         }
-        public ID3D11InputLayout GetInputLayout(DeviceResources deviceResources, string name)
+
+        public ID3D11InputLayout GetInputLayout(DeviceResources deviceResources, UnnamedInputLayout unnamedInputLayout)
         {
-            if (inputLayouts.TryGetValue(name, out var inputLayout))
+            if (unnamedInputLayouts.TryGetValue(unnamedInputLayout, out var inputLayout))
             {
                 return inputLayout;
             }
-            var inputElementDescriptions = deviceResources.inputLayouts[name];
+            var inputElementDescriptions = unnamedInputLayout.inputElementDescriptions;
 
             inputLayout = deviceResources.device.CreateInputLayout(inputElementDescriptions, data);
-            inputLayouts[name] = inputLayout;
+            unnamedInputLayouts[unnamedInputLayout] = inputLayout;
             return inputLayout;
         }
         public Blob data;
         public ID3D11VertexShader vertexShader;
         public Dictionary<string, ID3D11InputLayout> inputLayouts = new Dictionary<string, ID3D11InputLayout>();
+        public Dictionary<UnnamedInputLayout, ID3D11InputLayout> unnamedInputLayouts = new Dictionary<UnnamedInputLayout, ID3D11InputLayout>();
         public void Dispose()
         {
             vertexShader?.Dispose();

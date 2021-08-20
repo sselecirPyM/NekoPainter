@@ -13,12 +13,13 @@ namespace CanvasRendering
         public ID3D11Buffer indexBuffer;
         public DeviceResources deviceResources;
         public int stride;
-        public string inputLayout;
-        public Mesh(DeviceResources deviceResources, int stride, string inputLayout)
+        public UnnamedInputLayout unnamedInputLayout;
+
+        public Mesh(DeviceResources deviceResources, int stride, UnnamedInputLayout unnamedInputLayout)
         {
             this.deviceResources = deviceResources;
             this.stride = stride;
-            this.inputLayout = inputLayout;
+            this.unnamedInputLayout = unnamedInputLayout;
         }
 
         public void Update(byte[] vertice, byte[] indice)

@@ -5,6 +5,7 @@ using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Vortice.DXGI;
 
 namespace CanvasRendering
 {
@@ -42,7 +43,7 @@ namespace CanvasRendering
             context.PSSetConstantBuffer(0, constantBuffer);
             context.IASetVertexBuffers(0, new VertexBufferView(vertexBuffer, Marshal.SizeOf(typeof(vertex))));
             context.IASetIndexBuffer(indicesBuffer, Vortice.DXGI.Format.R16_UInt, 0);
-            context.IASetInputLayout(vertexShader.GetInputLayout(DeviceResources, "canvas"));
+            context.IASetInputLayout(vertexShader.GetInputLayout(DeviceResources, unnamedInputLayout));
             context.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
             context.VSSetShader(vertexShader.vertexShader);
             context.PSSetShader(pixelShader.pixelShader);
@@ -88,6 +89,15 @@ namespace CanvasRendering
         public ID3D11Buffer indicesBuffer;
         public ID3D11Buffer constantBuffer;
         public Vector2 Position;
+        public UnnamedInputLayout unnamedInputLayout = new UnnamedInputLayout
+        {
+            inputElementDescriptions = new InputElementDescription[]
+            {
+                new InputElementDescription("POSITION",0,Format.R32G32B32_Float,0),
+                new InputElementDescription("TEXCOORD",0,Format.R32G32_Float,0),
+                new InputElementDescription("COLOR",0,Format.R8G8B8A8_UNorm,0),
+            }
+        };
 
         public float Scale = 1.0f;
         public float Rotation;

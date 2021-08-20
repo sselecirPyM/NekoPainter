@@ -81,7 +81,7 @@ namespace CanvasRendering
             deviceContext.IASetPrimitiveTopology(Vortice.Direct3D.PrimitiveTopology.TriangleList);
             deviceContext.IASetVertexBuffers(0, new VertexBufferView(mesh.vertexBuffer, mesh.stride));
             deviceContext.IASetIndexBuffer(mesh.indexBuffer, Vortice.DXGI.Format.R16_UInt, 0);
-            InputLayoutName = mesh.inputLayout;
+            unnamedInputLayout = mesh.unnamedInputLayout;
         }
         public void Present()
         {
@@ -99,6 +99,11 @@ namespace CanvasRendering
         {
             DeviceResources.d3dContext.RSSetScissorRect(new Vortice.RawRect(0, 0, (int)DeviceResources.m_d3dRenderTargetSize.X, (int)DeviceResources.m_d3dRenderTargetSize.Y));
         }
+        public void SetSampler(SamplerState samplerState, int slot)
+        {
+            var context = DeviceResources.d3dContext;
+            context.PSSetSampler(slot, DeviceResources.GetSamplerState(samplerState));
+        }
         public void DrawIndexed(int indexCount, int startIndexLocation, int baseVertexLocation)
         {
             var context = DeviceResources.d3dContext;
@@ -114,7 +119,7 @@ namespace CanvasRendering
             }
             context.PSSetSampler(0, samplerState);
             context.RSSetState(rasterizerState);
-            context.IASetInputLayout(VertexShader.GetInputLayout(DeviceResources, InputLayoutName));
+            context.IASetInputLayout(VertexShader.GetInputLayout(DeviceResources, unnamedInputLayout));
 
             context.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
         }
@@ -124,7 +129,7 @@ namespace CanvasRendering
         public DeviceResources DeviceResources { get; private set; } = new DeviceResources();
         public ID3D11BlendState defaultBlendState;
         public ID3D11SamplerState samplerState;
-        public string InputLayoutName;
+        public UnnamedInputLayout unnamedInputLayout;
         ID3D11RasterizerState rasterizerState;
 
         public VertexShader VertexShader;

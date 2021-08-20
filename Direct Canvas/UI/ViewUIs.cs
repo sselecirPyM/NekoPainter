@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using CanvasRendering;
 using ImGuiNET;
 using System.Numerics;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace DirectCanvas.UI
 {
@@ -224,7 +226,7 @@ namespace DirectCanvas.UI
         {
             var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(0,200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             ImGui.Begin("笔刷参数");
             //ImGui.Text(TimeCost.ToString());
             ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
@@ -354,7 +356,7 @@ namespace DirectCanvas.UI
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             var device = AppController.Instance.graphicsContext.DeviceResources;
             constantBuffer = new ConstantBuffer(device, 64);
-            mesh = new Mesh(device, 20, "imgui");
+            mesh = new Mesh(device, 20, unnamedInputLayout);
             io.Fonts.AddFontFromFileTTF("c:\\Windows\\Fonts\\SIMHEI.ttf", 13, null, io.Fonts.GetGlyphRangesChineseFull());
             FontAtlas = new RenderTexture();
             unsafe
@@ -369,5 +371,14 @@ namespace DirectCanvas.UI
             }
             io.Fonts.TexID = new IntPtr(1);
         }
+        public static UnnamedInputLayout unnamedInputLayout = new UnnamedInputLayout
+        {
+            inputElementDescriptions = new InputElementDescription[]
+                {
+                    new InputElementDescription("POSITION",0,Format.R32G32_Float,0),
+                    new InputElementDescription("TEXCOORD",0,Format.R32G32_Float,0),
+                    new InputElementDescription("COLOR",0,Format.R8G8B8A8_UNorm,0),
+                }
+        };
     }
 }

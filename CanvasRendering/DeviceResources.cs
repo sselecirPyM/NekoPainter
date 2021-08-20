@@ -27,18 +27,6 @@ namespace CanvasRendering
 
         public void CreateDeviceResources()
         {
-            inputLayouts.Add("canvas", new InputElementDescription[]
-            {
-                new InputElementDescription("POSITION",0,Format.R32G32B32_Float,0),
-                new InputElementDescription("TEXCOORD",0,Format.R32G32_Float,0),
-                new InputElementDescription("COLOR",0,Format.R8G8B8A8_UNorm,0),
-            });
-            inputLayouts.Add("imgui", new InputElementDescription[]
-                {
-                    new InputElementDescription("POSITION",0,Format.R32G32_Float,0),
-                    new InputElementDescription("TEXCOORD",0,Format.R32G32_Float,0),
-                    new InputElementDescription("COLOR",0,Format.R8G8B8A8_UNorm,0),
-                });
 
             FeatureLevel[] featureLevels = new[]
             {
@@ -165,6 +153,17 @@ namespace CanvasRendering
             }
         }
 
+        public ID3D11SamplerState GetSamplerState(SamplerState samplerState)
+        {
+            if (samplerStates.TryGetValue(samplerState, out ID3D11SamplerState sampler))
+            {
+                return sampler;
+            }
+            sampler = device.CreateSamplerState(new SamplerDescription(Filter.MinMagPointMipLinear, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp));
+            samplerStates[samplerState] = sampler;
+            return sampler;
+        }
+
         public Vector2 m_d3dRenderTargetSize;
         public Vector2 m_outputSize;
         Vector2 m_logicalSize;
@@ -183,7 +182,8 @@ namespace CanvasRendering
         public Format swapChainFormat = Format.R8G8B8A8_UNorm;
         public SwapChainFlags swapChainFlags = SwapChainFlags.AllowTearing;
 
-        public Dictionary<string, InputElementDescription[]> inputLayouts = new Dictionary<string, InputElementDescription[]>();
+        public Dictionary<UnnamedInputLayout, UnnamedInputLayout> unnamedInputLayouts = new Dictionary<UnnamedInputLayout, UnnamedInputLayout>();
+        public Dictionary<SamplerState, ID3D11SamplerState> samplerStates = new Dictionary<SamplerState, ID3D11SamplerState>();
 
         public object panel;
     }

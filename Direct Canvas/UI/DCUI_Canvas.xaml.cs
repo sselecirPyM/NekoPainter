@@ -17,7 +17,7 @@ using Windows.UI.Xaml.Navigation;
 using Windows.System;
 using CanvasRendering;
 using System.Numerics;
-using DirectCanvas.UI.Controller;
+using DirectCanvas.Controller;
 using Windows.Graphics.Display;
 
 //https://go.microsoft.com/fwlink/?LinkId=234236 上介绍了“用户控件”项模板

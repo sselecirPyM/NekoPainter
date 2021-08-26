@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.Foundation;
-using DirectCanvas.Layout;
+using DirectCanvas.Core;
 using System.IO;
 using System.Xml;
 using CanvasRendering;

@@ -1,4 +1,4 @@
-﻿using DirectCanvas.Layout;
+﻿using DirectCanvas.Core;
 using System;
 using System.Numerics;
 using System.Collections;

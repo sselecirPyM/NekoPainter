@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DirectCanvas.Layout;
-using DirectCanvas.UI.Controller;
+using DirectCanvas.Core;
+using DirectCanvas.Controller;
 
 namespace DirectCanvas.UICommand
 {

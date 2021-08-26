@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using DirectCanvas.Layout;
+using DirectCanvas.Core;
 using CanvasRendering;
 using System.Numerics;
 using System.Runtime.InteropServices;

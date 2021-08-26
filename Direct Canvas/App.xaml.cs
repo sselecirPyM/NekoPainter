@@ -14,7 +14,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using DirectCanvas.UI.Controller;
+using DirectCanvas.Controller;
 
 namespace DirectCanvas
 {

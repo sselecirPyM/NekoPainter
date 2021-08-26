@@ -17,7 +17,7 @@ using CanvasRendering;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
-using DirectCanvas.UI.Controller;
+using DirectCanvas.Controller;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Core;
 using Windows.System;

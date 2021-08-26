@@ -1,10 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using DirectCanvas.Layout;
+using DirectCanvas.Core;
 using System.IO;
 using System.IO.Compression;
 using CanvasRendering;
-using DirectCanvas.Core;
 using System.Collections.ObjectModel;
 using DirectCanvas.Undo;
 using NotifyCollectionChangedAction = System.Collections.Specialized.NotifyCollectionChangedAction;
@@ -46,6 +45,7 @@ namespace DirectCanvas
             PaintingTexture = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
             PaintingTextureBackup = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
             PaintingTextureTemp = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
+            Controller.AppController.Instance.AddTexture("CurrentCanvas", RenderTarget[0]);
         }
 
         public void SetActivatedLayout(int layoutIndex)
@@ -111,7 +111,7 @@ namespace DirectCanvas
                 TiledTexture tiledTexture = null;
                 LayoutTex.TryGetValue(standardLayout.guid, out var standardLayouttiledTexture);
 
-                if (PaintAgent.CurrentLayout== standardLayout)
+                if (PaintAgent.CurrentLayout == standardLayout)
                 {
                     tiledTexture = new TiledTexture(PaintingTexture);
                 }

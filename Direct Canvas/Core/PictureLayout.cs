@@ -6,11 +6,8 @@ using DirectCanvas.Core;
 using System.ComponentModel;
 using System.Numerics;
 
-namespace DirectCanvas.Layout
+namespace DirectCanvas.Core
 {
-    /// <summary>
-    /// 所有图层的基类
-    /// </summary>
     public class PictureLayout : IDisposable
     {
         public Guid guid;

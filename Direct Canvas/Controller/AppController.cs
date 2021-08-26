@@ -14,8 +14,9 @@ using Windows.Foundation;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
+using DirectCanvas.UI;
 
-namespace DirectCanvas.UI.Controller
+namespace DirectCanvas.Controller
 {
     public class AppController
     {
@@ -276,6 +277,27 @@ namespace DirectCanvas.UI.Controller
         public Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
         public Dictionary<string, VertexShader> vertexShaders = new Dictionary<string, VertexShader>();
         public Dictionary<string, PixelShader> pixelShaders = new Dictionary<string, PixelShader>();
+        public Dictionary<long, RenderTexture> textures = new Dictionary<long, RenderTexture>();
+        public Dictionary<string, long> string2Id = new Dictionary<string, long>();
+        public RenderTexture GetTexture(string s)
+        {
+            return textures[GetId(s)];
+        }
+        public void AddTexture(string s, RenderTexture tex)
+        {
+            textures[GetId(s)] = tex;
+        }
+        public long GetId(string s)
+        {
+            if (string2Id.TryGetValue(s, out long id))
+                return id;
+            else
+            {
+                id = string2Id.Count;
+                string2Id[s] = id;
+                return id;
+            }
+        }
         #endregion
 
         public MainPage mainPage;

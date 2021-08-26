@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using DirectCanvas.Layout;
+using DirectCanvas.Core;
 namespace DirectCanvas.Undo
 {
     public class CMD_DeleteLayout : IUndoCommand

@@ -137,11 +137,10 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="AppSettings.cs" />
-    <Compile Include="Core\BlendMode\BlendMode.cs" />
+    <Compile Include="Core\BlendMode.cs" />
     <Compile Include="Core\Brush\Brush.cs" />
     <Compile Include="Core\Brush\DCParameter.cs" />
     <Compile Include="Core\CanvasCase.cs" />
-    <Compile Include="Core\DCLayout\PictureLayout.cs" />
     <Compile Include="Core\Director\Animation.cs" />
     <Compile Include="Core\Director\AnimationTag.cs" />
     <Compile Include="Core\Director\AnimationTagRail.cs" />
@@ -153,6 +152,7 @@
     <Compile Include="Core\Director\Timeline.cs" />
     <Compile Include="Core\Director\TimelineTrack.cs" />
     <Compile Include="Core\PaintAgent.cs" />
+    <Compile Include="Core\PictureLayout.cs" />
     <Compile Include="Core\TiledTexture\TiledTexture.cs" />
     <Compile Include="Core\TiledTexture\TileIndexCollection.cs" />
     <Compile Include="Core\TiledTexture\TileRect.cs" />
@@ -200,7 +200,7 @@
     <Compile Include="UICommand\Command_Redo.cs" />
     <Compile Include="UICommand\Command_Undo.cs" />
     <Compile Include="UICommand\Command_Unknow.cs" />
-    <Compile Include="UI\Controller\AppController.cs" />
+    <Compile Include="Controller\AppController.cs" />
     <Compile Include="UI\DCUI_Canvas.xaml.cs">
       <DependentUpon>DCUI_Canvas.xaml</DependentUpon>
     </Compile>

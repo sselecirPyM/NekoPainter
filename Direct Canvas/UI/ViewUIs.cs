@@ -1,4 +1,4 @@
-﻿using DirectCanvas.UI.Controller;
+﻿using DirectCanvas.Controller;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,6 +70,7 @@ namespace DirectCanvas.UI
 
             ImGui.NewFrame();
             ImGui.ShowDemoWindow();
+            MainMenuBar();
 
             if (paintAgent != null)
             {
@@ -99,6 +100,7 @@ namespace DirectCanvas.UI
                 LayoutInfoPanel();
                 BrushPanel();
                 BrushParametersPanel();
+                ThumbnailPanel();
             }
 
             ImGui.Render();
@@ -194,9 +196,9 @@ namespace DirectCanvas.UI
                 var layout = canvasCase.SelectedLayout;
                 ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
                 ImGui.ColorEdit4("颜色", ref layout.Color);
-                bool useColor = layout.DataSource == Layout.PictureDataSource.Color;
+                bool useColor = layout.DataSource == Core.PictureDataSource.Color;
                 ImGui.Checkbox("使用颜色", ref useColor);
-                layout.DataSource = useColor ? Layout.PictureDataSource.Color : Layout.PictureDataSource.Default;
+                layout.DataSource = useColor ? Core.PictureDataSource.Color : Core.PictureDataSource.Default;
                 ImGui.Checkbox("隐藏", ref layout.Hidden);
 
                 if (canvasCase.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
@@ -219,6 +221,15 @@ namespace DirectCanvas.UI
                 }
 
             }
+            ImGui.End();
+        }
+
+        static void ThumbnailPanel()
+        {
+            ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(200, 600), ImGuiCond.FirstUseEver);
+            ImGui.Begin("缩略图");
+            ImGui.Image(new IntPtr( AppController.Instance.GetId("CurrentCanvas")), new Vector2(180, 180));
             ImGui.End();
         }
 
@@ -281,10 +292,39 @@ namespace DirectCanvas.UI
             ImGui.End();
         }
 
+        static void MainMenuBar()
+        {
+            var canvasCase = AppController.Instance?.CurrentCanvasCase;
+            ImGui.BeginMainMenuBar();
+            if (ImGui.BeginMenu("File"))
+            {
+                ImGui.MenuItem("Exit");
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Edit"))
+            {
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("View"))
+            {
+                ImGui.EndMenu();
+            }
+            if (canvasCase != null)
+            {
+                ImGui.Text(canvasCase.Name);
+            }
+            else
+            {
+                ImGui.Text("No document");
+            }
+            ImGui.EndMainMenuBar();
+        }
+
         public static void Render()
         {
             var data = ImGui.GetDrawData();
             var context = AppController.Instance.graphicsContext;
+            var appcontroller = AppController.Instance;
             float L = data.DisplayPos.X;
             float R = data.DisplayPos.X + data.DisplaySize.X;
             float T = data.DisplayPos.Y;
@@ -338,7 +378,7 @@ namespace DirectCanvas.UI
                         var cmd = cmdList.CmdBuffer[j];
                         var rect = new Vortice.RawRect((int)(cmd.ClipRect.X - clip_off.X), (int)(cmd.ClipRect.Y - clip_off.Y), (int)(cmd.ClipRect.Z - clip_off.X), (int)(cmd.ClipRect.W - clip_off.Y));
                         context.RSSetScissorRect(rect);
-                        context.SetSRV(FontAtlas, 0);
+                        context.SetSRV(appcontroller.textures[(long)cmd.TextureId], 0);
                         context.DrawIndexed((int)cmd.ElemCount, (int)cmd.IdxOffset + idxOfs, (int)cmd.VtxOffset + vtxOfs);
                     }
                     vtxOfs += cmdList.VtxBuffer.Size;
@@ -350,6 +390,7 @@ namespace DirectCanvas.UI
 
         public static void Initialize()
         {
+            var appcontroller = AppController.Instance;
             var imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(imguiContext);
             var io = ImGui.GetIO();
@@ -369,7 +410,8 @@ namespace DirectCanvas.UI
 
                 FontAtlas.Create2(device, width, height, Vortice.DXGI.Format.R8G8B8A8_UNorm, false, data);
             }
-            io.Fonts.TexID = new IntPtr(1);
+            io.Fonts.TexID = new IntPtr(appcontroller.GetId("ImguiFont"));
+            appcontroller.AddTexture("ImguiFont", FontAtlas);
         }
         public static UnnamedInputLayout unnamedInputLayout = new UnnamedInputLayout
         {

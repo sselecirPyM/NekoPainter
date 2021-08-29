@@ -35,6 +35,7 @@ namespace DirectCanvas
     {
         public MainPage()
         {
+            AppController appController = new AppController();
             this.InitializeComponent();
             currentController = AppController.Instance;
             currentController.mainPage = this;
@@ -50,30 +51,16 @@ namespace DirectCanvas
             _MenuItem_Export.Command = currentController.command_Export;
             currentController.command_Export.executeAction += ExportDocument;
             _MenuItem_Undo.Command = currentController.command_Undo;
-            currentController.command_Undo.executeAction += AppController.Instance.CanvasRerender;
+            currentController.command_Undo.executeAction += AppController.Instance.CanvasRender;
             _MenuItem_Redo.Command = currentController.command_Redo;
-            currentController.command_Redo.executeAction += AppController.Instance.CanvasRerender;
+            currentController.command_Redo.executeAction += AppController.Instance.CanvasRender;
 
-            _MenuItem_ResetCanvasPosition.Command = currentController.command_ResetCanvasPosition;
+            //_MenuItem_ResetCanvasPosition.Command = currentController.command_ResetCanvasPosition;
 
             dcRenderView = currentController.graphicsContext;
             frame.Navigate(typeof(Pages.BlankPage));
         }
         AppController currentController;
-
-        private void Panel_GotFocus(object sender, RoutedEventArgs e)
-        {
-            Canvas.SetZIndex(sender as UIElement, controlZIndexMax);
-            controlZIndexMax++;
-        }
-
-        private void FLayoutPanel_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            Canvas.SetZIndex(sender as UIElement, controlZIndexMax);
-            controlZIndexMax++;
-        }
-
-        public CSRect canvasview;
 
         GraphicsContext dcRenderView;
 
@@ -87,7 +74,10 @@ namespace DirectCanvas
         {
             StorageFolder selectedFolder = await folderPicker.PickSingleFolderAsync();
             if (selectedFolder == null) return;
-            frame.Navigate(typeof(Pages.OpeningDocumentPage), new Util.CreateDocumentParameters() { Folder = selectedFolder });
+            //frame.Navigate(typeof(Pages.OpeningDocumentPage), new Util.CreateDocumentParameters() { Folder = selectedFolder });
+
+            await AppController.Instance.OpenDocument(selectedFolder);
+            AppController.Instance.mainPage.AfterOpen();
         }
 
         private async void SaveDocumentAsync()
@@ -142,67 +132,11 @@ namespace DirectCanvas
             }
         }
 
-        int controlZIndexMax = 100;
-
-        public async System.Threading.Tasks.Task AfterOpen()
+        public void AfterOpen()
         {
             CanvasCase canvasCase = currentController.CurrentCanvasCase;
 
-            DocumentTitle.SetBinding(TextBlock.TextProperty, new Binding() { Path = new PropertyPath("Name"), Source = canvasCase, Mode = BindingMode.TwoWay });
             DCUI_Canvas.SetCanvasCase(canvasCase);
-            //LayoutsPanel.SetCanvasCase(canvasCase);
-            //BrushPanel.SetCanvasCase(canvasCase);
-            //ColorAndOtherPanel.SetCanvasCase(canvasCase);
-            //BlendModePanel.SetCanvasCase(canvasCase);
-            //LayoutInfoPanel.SetCanvasCase(canvasCase);
-            //foreach (Core.Brush brush in canvasCase.PaintAgent.brushes)
-            //{
-            //    if (!string.IsNullOrEmpty(brush.ImagePath))
-            //    {
-            //        try
-            //        {
-            //            StorageFile f = await currentController.CurrentDCDocument.brushesFolder.GetFileAsync(brush.ImagePath);
-            //            BitmapImage image = new BitmapImage();
-            //            image.SetSource(await f.OpenReadAsync());
-            //            ImageBrush imageBrush = new ImageBrush { ImageSource = image };
-            //            brush.UIBrush = imageBrush;
-            //        }
-            //        catch { brush.UIBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0)); }
-            //    }
-            //    else
-            //    {
-            //        brush.UIBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0));
-            //    }
-            //    for (int i = 0; i < Core.Brush.c_refTextureCount; i++)
-            //        if (!string.IsNullOrEmpty(brush.RefTexturePath[i]))
-            //        {
-            //            try
-            //            {
-            //                StorageFile f = await currentController.CurrentDCDocument.brushesFolder.GetFileAsync(brush.RefTexturePath[i]);
-            //                var stream = await f.OpenStreamForReadAsync();
-            //                byte[] data = AppController.GetImageData(stream, out int width, out int height);
-            //                RenderTexture renderTexture = new RenderTexture(canvasCase.DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-            //                renderTexture.ReadImageData1(data, width, height, currentController.computeShaders["CImport"]);
-            //                brush.refTexture[i] = renderTexture;
-            //            }
-            //            catch { }
-            //        }
-            //}
-        }
-
-        private void _MenuItem_About_Click(object sender, RoutedEventArgs e)
-        {
-            frame.Navigate(typeof(Pages.AboutSoftwarePage));
-        }
-
-        private void _MenuItem_HelpHelp_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void _MenuItem_Settings_Click(object sender, RoutedEventArgs e)
-        {
-            frame.Navigate(typeof(Pages.SettingsPage));
         }
 
         private async void _MenuItem_ReferencePicture_Click(object sender, RoutedEventArgs e)

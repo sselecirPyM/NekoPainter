@@ -100,6 +100,7 @@ namespace CanvasRendering
 
             ComObject comObject = new ComObject(panel);
             Vortice.DXGI.ISwapChainPanelNative swapchainPanelNative = comObject.QueryInterfaceOrNull<Vortice.DXGI.ISwapChainPanelNative>();
+            comObject.Dispose();
             swapchainPanelNative.SetSwapChain(swapChain);
             swapchainPanelNative.Dispose();
             Matrix3x2 matrix3X2 = new Matrix3x2();

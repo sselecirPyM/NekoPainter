@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:mobile="http://schemas.microsoft.com/appx/manifest/mobile/windows10" xmlns:uap6="http://schemas.microsoft.com/appx/manifest/uap/windows10/6" xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4" IgnorableNamespaces="uap mp mobile uap6">
-  <Identity Name="c08e2ae1-ee6a-4961-91be-27c56f74050f" Publisher="CN=eveev" Version="1.0.14.0" />
+  <Identity Name="c08e2ae1-ee6a-4961-91be-27c56f74050f" Publisher="CN=sselecirPyM" Version="1.0.0.0" />
   <mp:PhoneIdentity PhoneProductId="c08e2ae1-ee6a-4961-91be-27c56f74050f" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Direct Canvas</DisplayName>
-    <PublisherDisplayName>eveev</PublisherDisplayName>
+    <PublisherDisplayName>sselecirPyM</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>

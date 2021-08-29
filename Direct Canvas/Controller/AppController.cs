@@ -15,6 +15,10 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.InteropServices;
 using DirectCanvas.UI;
+using Windows.UI.Core;
+using Windows.System.Threading;
+using Windows.UI.Xaml;
+using System.Threading;
 
 namespace DirectCanvas.Controller
 {
@@ -38,6 +42,16 @@ namespace DirectCanvas.Controller
             fileSavePicker.FileTypeChoices.Add("jpg图像", new string[] { ".jpg" });
 
             ApplySettings(AppSettings.LoadDefault());
+
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Tick += Tick1;
+            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(33);
+            dispatcherTimer.Start();
+        }
+
+        private async void Tick1(object sender, object e)
+        {
+            await UI.UIHelper.OnFrame();
         }
 
         public async Task CreateDocument(Util.CreateDocumentParameters parameters)
@@ -61,8 +75,6 @@ namespace DirectCanvas.Controller
             command_Export.Activate = true;
             command_Undo.CanvasCase = CurrentCanvasCase;
             command_Redo.CanvasCase = CurrentCanvasCase;
-
-            command_ResetCanvasPosition.Activate = true;
         }
 
         public async Task OpenDocument(StorageFolder folder)
@@ -79,8 +91,6 @@ namespace DirectCanvas.Controller
             command_Export.Activate = true;
             command_Undo.CanvasCase = CurrentCanvasCase;
             command_Redo.CanvasCase = CurrentCanvasCase;
-
-            command_ResetCanvasPosition.Activate = true;
         }
 
         public async Task CMDSaveDocument()
@@ -101,7 +111,7 @@ namespace DirectCanvas.Controller
                 CurrentCanvasCase.PaintingTexture.ReadImageData1(imgData, width, height, computeShaders["CImport"]);
                 CurrentCanvasCase.ActivatedLayout.saved = false;
             }
-            CanvasRerender();
+            CanvasRender();
             CurrentCanvasCase.PaintingTexture.CopyTo(CurrentCanvasCase.PaintingTextureBackup);
         }
 
@@ -116,8 +126,20 @@ namespace DirectCanvas.Controller
             span1.CopyTo(bytes);
             return bytes;
         }
-        PenInputFlag currentState;
-        public void CanvasRerender()
+
+        Task RenderTask;
+
+        public void GameLoop()
+        {
+            while(true)
+            {
+                CanvasRender();
+                Thread.Sleep(1);
+            }
+        }
+
+        //PenInputFlag currentState;
+        public void CanvasRender()
         {
             Input.mousePreviousPos = Input.mousePos;
             if (dcUI_Canvas != null)
@@ -134,42 +156,42 @@ namespace DirectCanvas.Controller
             }
             if (dcUI_Canvas != null)
             {
-                if (!Input.uiMouseCapture)
-                {
-                    dcUI_Canvas.WheelScale(Input.mousePos, Input.deltaWheel);
-                }
-                if (Input.canvasInputStatus == CanvasInputStatus.Drag)
-                {
-                    dcUI_Canvas.MoveProcess(Input.mousePos, Input.mousePreviousPos);
-                }
-                else if (Input.canvasInputStatus == CanvasInputStatus.DragRotate)
-                {
-                    dcUI_Canvas.RotateProcess(Input.mousePos, Input.mousePreviousPos);
-                }
-                while (Input.penInputData1.TryDequeue(out var result))
-                {
-                    var paintAgent = CurrentCanvasCase.PaintAgent;
-                    if (!Input.uiMouseCapture || currentState == PenInputFlag.Drawing)
-                    {
-                        currentState = result.penInputFlag;
-                        switch (result.penInputFlag)
-                        {
-                            case PenInputFlag.Begin:
-                                paintAgent.DrawBegin(result);
-                                break;
-                            case PenInputFlag.Drawing:
-                                paintAgent.Draw(result);
-                                break;
-                            case PenInputFlag.End:
-                                paintAgent.DrawEnd(result);
-                                break;
-                        }
-                        paintAgent.Process();
-                    }
-                }
+                //if (!Input.uiMouseCapture)
+                //{
+                //    dcUI_Canvas.WheelScale(Input.mousePos, Input.deltaWheel);
+                //    if (Input.canvasInputStatus == CanvasInputStatus.Drag)
+                //    {
+                //        dcUI_Canvas.MoveProcess(Input.mousePos, Input.mousePreviousPos);
+                //    }
+                //    else if (Input.canvasInputStatus == CanvasInputStatus.DragRotate)
+                //    {
+                //        dcUI_Canvas.RotateProcess(Input.mousePos, Input.mousePreviousPos);
+                //    }
+                //}
+                var paintAgent = CurrentCanvasCase?.PaintAgent;
+                //while (Input.penInputData1.TryDequeue(out var result))
+                //{
+                //    if (!Input.uiMouseCapture || currentState == PenInputFlag.Drawing)
+                //    {
+                //        currentState = result.penInputFlag;
+                //        switch (result.penInputFlag)
+                //        {
+                //            case PenInputFlag.Begin:
+                //                paintAgent.DrawBegin(result);
+                //                break;
+                //            case PenInputFlag.Drawing:
+                //                paintAgent.Draw(result);
+                //                break;
+                //            case PenInputFlag.End:
+                //                paintAgent.DrawEnd(result);
+                //                break;
+                //        }
+                //    }
+                //}
+                paintAgent?.Process();
 
                 graphicsContext.ClearScreen();
-                dcUI_Canvas.RenderContent();
+                //dcUI_Canvas.RenderContent();
                 if (LoadResourceTask.Status == TaskStatus.RanToCompletion)
                 {
                     ViewUIs.Render();
@@ -184,24 +206,11 @@ namespace DirectCanvas.Controller
 
         public void ApplySettings(AppSettings appSettings)
         {
-            if (currentAppSettings != null)
-                currentAppSettings.PropertyChanged -= AppSettings_PropertyChanged;
             currentAppSettings = appSettings;
-            appSettings.PropertyChanged += AppSettings_PropertyChanged;
 
             var c = appSettings.BackGroundColor;
             graphicsContext.SetClearColor(c);
-            CanvasRerender();
-        }
-
-        private void AppSettings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "BackGroundColor")
-            {
-                var c = currentAppSettings.BackGroundColor;
-                graphicsContext.SetClearColor(c);
-                CanvasRerender();
-            }
+            CanvasRender();
         }
 
         public DCUI_Canvas dcUI_Canvas;
@@ -216,7 +225,7 @@ namespace DirectCanvas.Controller
         public readonly Command_Undo command_Undo = new Command_Undo();
         public readonly Command_Redo command_Redo = new Command_Redo();
 
-        public readonly Command_Unknow command_ResetCanvasPosition = new Command_Unknow() { Activate = false };
+        //public readonly Command_Unknow command_ResetCanvasPosition = new Command_Unknow() { Activate = false };
         public readonly FileSavePicker fileSavePicker = new FileSavePicker() { SuggestedStartLocation = PickerLocationId.PicturesLibrary };
         public readonly FileOpenPicker fileOpenPicker = new FileOpenPicker() { SuggestedStartLocation = PickerLocationId.PicturesLibrary };
 

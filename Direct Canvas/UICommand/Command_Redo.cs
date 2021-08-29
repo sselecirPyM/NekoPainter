@@ -42,7 +42,6 @@ namespace DirectCanvas.UICommand
             lock (_canvasCase)
             {
                 _canvasCase.UndoManager.Redo();
-                Controller.AppController.Instance.CanvasRerender();
                 executeAction?.Invoke();
             }
         }

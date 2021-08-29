@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DirectCanvas.Controller;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -98,16 +99,19 @@ namespace DirectCanvas.Pages
             CheckCreateConditions();
         }
 
-        private void Button_Create_Click(object sender, RoutedEventArgs e)
+        private async void Button_Create_Click(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(CreatingDocumentPage), new Util.CreateDocumentParameters()
+            var parameters = new Util.CreateDocumentParameters()
             {
                 Folder = pickedDocumentLocation,
                 Width = str_width,
                 Height = str_height,
                 Name = DocumentName,
                 CreateDocumentResourcesOption = (Util.CreateDocumentResourcesOption)ComboBox_CreateDocumentResourcesOption.SelectedIndex
-            });
+            };
+            await AppController.Instance.CreateDocument(parameters);
+            AppController.Instance.mainPage.AfterOpen();
+            Frame.Navigate(typeof(BlankPage));
         }
 
         private void Button_Cancel_Click(object sender, RoutedEventArgs e)

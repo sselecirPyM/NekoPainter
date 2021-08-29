@@ -23,14 +23,12 @@ namespace DirectCanvas
     /// </summary>
     sealed partial class App : Application
     {
-        AppController appController;
         /// <summary>
         /// 初始化单一实例应用程序对象。这是执行的创作代码的第一行，
         /// 已执行，逻辑上等同于 main() 或 WinMain()。
         /// </summary>
         public App()
         {
-            appController = new AppController();
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }

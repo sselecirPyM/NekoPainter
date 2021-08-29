@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using DirectCanvas.Core;
-using DirectCanvas.Core;
 namespace DirectCanvas.Undo
 {
     public class CMD_BlendModeChange : IUndoCommand

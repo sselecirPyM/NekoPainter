@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace DirectCanvas.UICommand
 {
-    public class Command_Unknow:ICommand
+    public class Command_Unknow : ICommand
     {
         public Command_Unknow()
         {

@@ -141,16 +141,6 @@
     <Compile Include="Core\Brush\Brush.cs" />
     <Compile Include="Core\Brush\DCParameter.cs" />
     <Compile Include="Core\CanvasCase.cs" />
-    <Compile Include="Core\Director\Animation.cs" />
-    <Compile Include="Core\Director\AnimationTag.cs" />
-    <Compile Include="Core\Director\AnimationTagRail.cs" />
-    <Compile Include="Core\Director\AnimationTrack.cs" />
-    <Compile Include="Core\Director\DirectorRenderDataProvider.cs" />
-    <Compile Include="Core\Director\LayoutPropertyBag.cs" />
-    <Compile Include="Core\Director\TimelineRail.cs" />
-    <Compile Include="Core\Director\TimelineRailItem.cs" />
-    <Compile Include="Core\Director\Timeline.cs" />
-    <Compile Include="Core\Director\TimelineTrack.cs" />
     <Compile Include="Core\PaintAgent.cs" />
     <Compile Include="Core\PictureLayout.cs" />
     <Compile Include="Core\TiledTexture\TiledTexture.cs" />
@@ -165,33 +155,17 @@
     <Compile Include="Core\UndoCommand\IUndoCommand.cs" />
     <Compile Include="Core\Undo\UndoManager.cs" />
     <Compile Include="Core\ViewRenderer.cs" />
-    <Compile Include="FileFormat\DirectCanvasAnimationFormat.cs" />
     <Compile Include="FileFormat\DirectCanvasDocument.cs" />
     <Compile Include="FileFormat\DirectCanvasLayoutFormat.cs" />
-    <Compile Include="FileFormat\DirectCanvasTimelineFormat.cs" />
-    <Compile Include="Pages\AboutSoftwarePage.xaml.cs">
-      <DependentUpon>AboutSoftwarePage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\BlankPage.xaml.cs">
       <DependentUpon>BlankPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\CreateDocumentPage.xaml.cs">
       <DependentUpon>CreateDocumentPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\CreatingDocumentPage.xaml.cs">
-      <DependentUpon>CreatingDocumentPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\ExportPage.xaml.cs">
       <DependentUpon>ExportPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\OpeningDocumentPage.xaml.cs">
-      <DependentUpon>OpeningDocumentPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\SettingsPage.xaml.cs">
-      <DependentUpon>SettingsPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UICommand\Command_AniRailMute.cs" />
-    <Compile Include="UICommand\Command_LayoutHidden.cs" />
     <Compile Include="UICommand\Command_New.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -205,12 +179,11 @@
       <DependentUpon>DCUI_Canvas.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Input.cs" />
+    <Compile Include="UI\UIHelper.cs" />
     <Compile Include="UI\ViewUIs.cs" />
     <Compile Include="Util\BinaryWriterPlus.cs" />
+    <Compile Include="Util\BoolExt.cs" />
     <Compile Include="Util\CubicBezierCurve.cs" />
-    <Compile Include="Util\Converter\IsPureLayout.cs" />
-    <Compile Include="Util\Converter\Vector4ToColor.cs" />
-    <Compile Include="Util\Converter\ColorToVector4.cs" />
     <Compile Include="Util\CreateDocumentParameters.cs" />
     <Compile Include="Util\DCUtil.cs" />
   </ItemGroup>
@@ -328,10 +301,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Pages\AboutSoftwarePage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Pages\BlankPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -340,27 +309,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\CreatingDocumentPage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Pages\ExportPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\OpeningDocumentPage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\SettingsPage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -389,9 +342,7 @@
       <Name>CanvasRendering</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Styles\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

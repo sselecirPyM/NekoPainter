@@ -12,7 +12,7 @@ using Vortice.DXGI;
 
 namespace DirectCanvas
 {
-    public class CanvasCase : System.IDisposable, INotifyPropertyChanged
+    public class CanvasCase : System.IDisposable
     {
         public CanvasCase(DeviceResources device, int canvasWidth, int canvasHeight)
         {
@@ -77,7 +77,7 @@ namespace DirectCanvas
             ActivatedLayoutChanged?.Invoke();
         }
 
-        public PictureLayout NewStandardLayout(int insertIndex, int RenderBufferNum)
+        public PictureLayout NewStandardLayout(int insertIndex)
         {
             PictureLayout standardLayout = new PictureLayout()
             {
@@ -210,33 +210,15 @@ namespace DirectCanvas
         public PictureLayout SelectedLayout { get; set; }
         #endregion
 
-        #region Properties 
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                _name = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Name"));
-            }
-        }
-        string _name = "";
-        public string Description
-        {
-            get { return _description; }
-            set
-            {
-                _description = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Description"));
-            }
-        }
-        string _description = "";
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        #endregion
+        public string Name = "";
+        public string Description = "";
 
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
         public Dictionary<System.Guid, Core.BlendMode> blendmodesMap = new Dictionary<System.Guid, Core.BlendMode>();
+
+        public float logicScale = 1.0f;
+        public float rotation = 0.0f;
+        public System.Numerics.Vector2 position;
 
         public event System.Action ActivatedLayoutChanged;
 

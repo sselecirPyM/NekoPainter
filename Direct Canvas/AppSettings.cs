@@ -9,10 +9,8 @@ using Windows.Storage;
 
 namespace DirectCanvas
 {
-    public class AppSettings : INotifyPropertyChanged
+    public class AppSettings
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public static AppSettings LoadDefault()
         {
             AppSettings settings = new AppSettings();
@@ -40,17 +38,7 @@ namespace DirectCanvas
 
         ApplicationDataContainer container;
 
-        public Vector4 BackGroundColor
-        {
-            get => _backgroundColor;
-            set
-            {
-                _backgroundColor = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BackGroundColor"));
-                container.Values["Color"] = string.Format("{0} {1} {2} {3}", value.X, value.Y, value.Z, value.W);
-            }
-        }
-        Vector4 _backgroundColor;
+        public Vector4 BackGroundColor;
 
     }
 }

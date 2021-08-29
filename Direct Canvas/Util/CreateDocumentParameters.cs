@@ -15,9 +15,9 @@ namespace DirectCanvas.Util
     public class CreateDocumentParameters
     {
         public StorageFolder Folder;
-        public int Width;
-        public int Height;
-        public string Name;
+        public int Width = 1024;
+        public int Height = 1024;
+        public string Name = "";
         public CreateDocumentResourcesOption CreateDocumentResourcesOption;
     }
 }

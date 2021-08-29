@@ -21,6 +21,7 @@ namespace DirectCanvas.Core
         {
             Stream stream = await file.OpenStreamForReadAsync();
 
+
             var brush1 = (BrushCode)xmlSerializer.Deserialize(stream);
 
             StringBuilder fCode = new StringBuilder();

@@ -44,7 +44,7 @@
                 </MenuBarItem>
                 <MenuBarItem x:Name="_MenuItem_View" x:Uid="m_View">
                     <MenuFlyoutItem x:Name="_MenuItem_FullScreen" x:Uid="M_FullScreenSwitch" Click="_FullScreenButton_Click"/>
-                    <MenuFlyoutItem x:Name="_MenuItem_ResetCanvasPosition" x:Uid="M_ResetCanvasPosition"/>
+                    <!--<MenuFlyoutItem x:Name="_MenuItem_ResetCanvasPosition" x:Uid="M_ResetCanvasPosition"/>-->
                     <MenuFlyoutSeparator/>
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FBrushPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_BrushPanel" x:Uid="M_BrushPanel"/>-->
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FColorPanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_ColorPanel" x:Uid="M_ColorPanel"/>-->
@@ -53,17 +53,16 @@
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FBlendModePanel.Visible,Mode=TwoWay}" x:Name="_MenuItem_BlendModePanel" x:Uid="M_BlendModePanel"/>-->
                 </MenuBarItem>
                 <MenuBarItem x:Name="_MenuItem_Tools" AccessKey="T" Title="工具">
-                    <MenuFlyoutItem x:Name="_MenuItem_Settings" AccessKey="S" Text="设置..." Click="_MenuItem_Settings_Click"/>
+                    <!--<MenuFlyoutItem x:Name="_MenuItem_Settings" AccessKey="S" Text="设置..." Click="_MenuItem_Settings_Click"/>-->
                     <MenuFlyoutItem x:Name="_MenuItem_ReferencePicture" AccessKey="R" Text="参考图片..." Click="_MenuItem_ReferencePicture_Click"/>
                     <!--<ToggleMenuFlyoutItem IsChecked="{x:Bind FAnimationController.Visible,Mode=TwoWay}" x:Name="_MenuItem_Animation" AccessKey="A" Text="动画控制器"/>
                     <ToggleMenuFlyoutItem IsChecked="{x:Bind FTimeline.Visible,Mode=TwoWay}" x:Name="_MenuItem_Timeline" AccessKey="T" Text="时间线"/>-->
                 </MenuBarItem>
-                <MenuBarItem x:Name="_MenuItem_Help" x:Uid="M_Help">
+                <!--<MenuBarItem x:Name="_MenuItem_Help" x:Uid="M_Help">
                     <MenuFlyoutItem x:Name="_MenuItem_About" x:Uid="M_About" Click="_MenuItem_About_Click"/>
-                    <MenuFlyoutItem x:Name="_MenuItem_HelpHelp" x:Uid="M_HelpHelp" Click="_MenuItem_HelpHelp_Click"/>
-                </MenuBarItem>
+                </MenuBarItem>-->
             </MenuBar>
-            <TextBlock Grid.Column="1" x:Name="DocumentTitle" Text="未加载文档" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <!--<TextBlock Grid.Column="1" x:Name="DocumentTitle" Text="未加载文档" HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
         </Grid>
 
         <Grid Grid.Row="1">

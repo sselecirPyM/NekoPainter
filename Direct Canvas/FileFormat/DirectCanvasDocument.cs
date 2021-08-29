@@ -14,6 +14,7 @@ using Windows.ApplicationModel;
 using System.Xml.Serialization;
 using System.ComponentModel;
 using System.Numerics;
+using System.Collections.Concurrent;
 
 namespace DirectCanvas.FileFormat
 {
@@ -59,7 +60,7 @@ namespace DirectCanvas.FileFormat
                 await UpdateDCResourcePlugin();
             await LoadBlendmodes();
             await LoadBrushes();
-            canvasCase.PaintAgent.CurrentLayout = canvasCase.NewStandardLayout(0, 0);
+            canvasCase.PaintAgent.CurrentLayout = canvasCase.NewStandardLayout(0);
             await SaveAsync();
         }
 
@@ -219,12 +220,12 @@ namespace DirectCanvas.FileFormat
             {
                 if (!".dcbf".Equals(brushFile.FileType, StringComparison.CurrentCultureIgnoreCase)) continue;
                 var op2 = Core.Brush.LoadFromFileAsync(brushFile).ContinueWith((_) =>
-                   {
-                       lock (brushesList)
-                       {
-                           brushesList.AddRange(_.Result);
-                       }
-                   });
+                {
+                    lock (brushesList)
+                    {
+                        brushesList.AddRange(_.Result);
+                    }
+                });
                 asyncOperations.Add(op2);
             }
             await Task.WhenAll(asyncOperations);

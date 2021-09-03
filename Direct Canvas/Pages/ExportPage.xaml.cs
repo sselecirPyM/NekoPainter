@@ -86,14 +86,14 @@ namespace DirectCanvas.Pages
         private async void Button_Export_Click(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(BlankPage));
-            await FileIO.WriteBytesAsync(saveFile, new byte[0]);
-            var IRStream = await saveFile.OpenAsync(FileAccessMode.ReadWrite);
-            var stream = IRStream.AsStream();
-
             byte[] imageData = canvasCase.RenderTarget[0].GetData(Controller.AppController.Instance.computeShaders["CExport"]);
             int width = canvasCase.RenderTarget[0].width;
             int height = canvasCase.RenderTarget[0].height;
             var image = GetImage(width, height, imageData);
+
+
+            await FileIO.WriteBytesAsync(saveFile, new byte[0]);
+            var stream = await saveFile.OpenStreamForReadAsync();
 
             switch (saveFile.FileType.ToLower())
             {

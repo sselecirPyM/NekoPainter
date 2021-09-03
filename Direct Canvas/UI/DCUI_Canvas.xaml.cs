@@ -70,12 +70,6 @@ namespace DirectCanvas.UI
         }
         #endregion
 
-        public void SetCanvasCase(CanvasCase canvasCase)
-        {
-
-            AppController.Instance.CanvasRender();
-        }
-
         private void Canvas_PointerPressed(InkUnprocessedInput sender, PointerEventArgs args)
         {
             AppController.Instance.mainPage.Focus(FocusState.Programmatic);
@@ -146,18 +140,6 @@ namespace DirectCanvas.UI
             Input.EnqueueMouseWheel(position, pointer.Properties.MouseWheelDelta);
             AppController.Instance.CanvasRender();
         }
-
-        //private void ResetCanvasPosition()
-        //{
-        //    CanvasRect.Position = new Vector2(
-        //        ((float)swapChainPanel.ActualWidth * logicScale - CanvasCase.Width) * 0.5f,
-        //        ((float)swapChainPanel.ActualHeight * logicScale - CanvasCase.Height) * 0.5f);
-        //    CanvasRect.Rotation = 0.0f;
-        //    CanvasRect.Scale = 1.0f;
-        //    AppController.Instance.CurrentCanvasCase.rotation = CanvasRect.Rotation;
-        //    AppController.Instance.CurrentCanvasCase.position = CanvasRect.Position;
-        //    AppController.Instance.CanvasRender();
-        //}
 
         float logicScale = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().LogicalDpi / 96.0f;
 

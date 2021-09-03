@@ -283,28 +283,25 @@ namespace DirectCanvas.UI
                 ImGui.InvisibleButton("X", imageSize, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
                 ImGui.GetWindowDrawList().AddImage(imageId, pos, pos + imageSize);
 
-                if (ImGui.IsAnyItemActive()||currentState==PenInputFlag.Drawing)
+                if (ImGui.IsItemActive() || currentState == PenInputFlag.Drawing)
                 {
-                    //if (io.MouseClicked[0])
-                    //{
-                        while (Input.penInputData1.TryDequeue(out var penInput))
+                    while (Input.penInputData1.TryDequeue(out var penInput))
+                    {
+                        currentState = penInput.penInputFlag;
+                        penInput.point = (penInput.point - pos) / factor;
+                        switch (penInput.penInputFlag)
                         {
-                            currentState = penInput.penInputFlag;
-                            penInput.point = (penInput.point - pos) / factor;
-                            switch (penInput.penInputFlag)
-                            {
-                                case PenInputFlag.Begin:
-                                    paintAgent.DrawBegin(penInput);
-                                    break;
-                                case PenInputFlag.Drawing:
-                                    paintAgent.Draw(penInput);
-                                    break;
-                                case PenInputFlag.End:
-                                    paintAgent.DrawEnd(penInput);
-                                    break;
-                            }
+                            case PenInputFlag.Begin:
+                                paintAgent.DrawBegin(penInput);
+                                break;
+                            case PenInputFlag.Drawing:
+                                paintAgent.Draw(penInput);
+                                break;
+                            case PenInputFlag.End:
+                                paintAgent.DrawEnd(penInput);
+                                break;
                         }
-                    //}
+                    }
                 }
 
                 //if (ImGui.IsItemHovered())
@@ -413,14 +410,21 @@ namespace DirectCanvas.UI
             }
             if (ImGui.BeginMenu("Edit"))
             {
-                if (ImGui.MenuItem("Undo", "CTRL+Z"))
+                bool canUndo = false;
+                bool canRedo = false;
+                if (canvasCase?.UndoManager.UndoStackIsNotEmpty == true)
+                    canUndo = true;
+                if (canvasCase?.UndoManager.RedoStackIsNotEmpty == true)
+                    canRedo = true;
+                if (ImGui.MenuItem("Undo", "CTRL+Z", false, canUndo))
                 {
-                    if (AppController.Instance.command_Undo.CanExecute(null)) AppController.Instance?.command_Undo.Execute(null);
+                    canvasCase.UndoManager.Undo();
                 }
-                if (ImGui.MenuItem("Redo", "CTRL+Y", false, false))
+                if (ImGui.MenuItem("Redo", "CTRL+Y", false, canRedo))
                 {
-                    if (AppController.Instance.command_Redo.CanExecute(null)) AppController.Instance?.command_Redo.Execute(null);
+                    canvasCase.UndoManager.Redo();
                 }
+
                 ImGui.Separator();
                 ImGui.EndMenu();
             }

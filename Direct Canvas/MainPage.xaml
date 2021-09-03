@@ -23,10 +23,10 @@
             </Grid.ColumnDefinitions>
             <MenuBar>
                 <MenuBarItem x:Name="_MenuItem_File" x:Uid="M_File">
-                    <MenuFlyoutItem x:Name="_MenuItem_New" x:Uid="M_New"/>
+                    <!--<MenuFlyoutItem x:Name="_MenuItem_New" x:Uid="M_New"/>
                     <MenuFlyoutItem x:Name="_MenuItem_Open" x:Uid="M_Open"/>
                     <MenuFlyoutSeparator/>
-                    <MenuFlyoutItem x:Name="_MenuItem_Save" x:Uid="M_Save"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Save" x:Uid="M_Save"/>-->
                     <!--<MenuFlyoutItem x:Name="_MenuItem_SaveAs" Text="Save As..."/>-->
                     <MenuFlyoutSeparator/>
                     <MenuFlyoutItem x:Name="_MenuItem_Import" x:Uid="M_Import"/>
@@ -35,8 +35,8 @@
                     <MenuFlyoutItem x:Name="_MenuItem_Exit" x:Uid="M_Exit" Click="ExitApp"/>
                 </MenuBarItem>
                 <MenuBarItem x:Name="_MenuItem_Edit" x:Uid="M_Edit">
-                    <MenuFlyoutItem x:Name="_MenuItem_Undo" x:Uid="M_Undo"/>
-                    <MenuFlyoutItem x:Name="_MenuItem_Redo" x:Uid="M_Redo"/>
+                    <!--<MenuFlyoutItem x:Name="_MenuItem_Undo" x:Uid="M_Undo"/>
+                    <MenuFlyoutItem x:Name="_MenuItem_Redo" x:Uid="M_Redo"/>-->
                     <!--<MenuFlyoutSeparator/>-->
                     <!--<MenuFlyoutItem x:Name="_MenuItem_Copy" Text="Copy"/>
                     <MenuFlyoutItem x:Name="_MenuItem_Paste" Text="Paste"/>

@@ -39,23 +39,21 @@ namespace DirectCanvas
             this.InitializeComponent();
             currentController = AppController.Instance;
             currentController.mainPage = this;
-            folderPicker.FileTypeFilter.Add("*");
-            _MenuItem_New.Command = currentController.command_New;
-            currentController.command_New.executeAction += ShowCreateDocumentPage;
-            _MenuItem_Open.Command = currentController.command_Open;
-            currentController.command_Open.executeAction += OpenDocumentAsync;
-            _MenuItem_Save.Command = currentController.command_Save;
-            currentController.command_Save.executeAction += SaveDocumentAsync;
+            //folderPicker.FileTypeFilter.Add("*");
+            //_MenuItem_New.Command = currentController.command_New;
+            //currentController.command_New.executeAction += ShowCreateDocumentPage;
+            //_MenuItem_Open.Command = currentController.command_Open;
+            //currentController.command_Open.executeAction += OpenDocumentAsync;
+            //_MenuItem_Save.Command = currentController.command_Save;
+            //currentController.command_Save.executeAction += SaveDocumentAsync;
             _MenuItem_Import.Command = currentController.command_Import;
             currentController.command_Import.executeAction += ImportDocumentAsync;
             _MenuItem_Export.Command = currentController.command_Export;
             currentController.command_Export.executeAction += ExportDocument;
-            _MenuItem_Undo.Command = currentController.command_Undo;
-            currentController.command_Undo.executeAction += AppController.Instance.CanvasRender;
-            _MenuItem_Redo.Command = currentController.command_Redo;
-            currentController.command_Redo.executeAction += AppController.Instance.CanvasRender;
-
-            //_MenuItem_ResetCanvasPosition.Command = currentController.command_ResetCanvasPosition;
+            //_MenuItem_Undo.Command = currentController.command_Undo;
+            //currentController.command_Undo.executeAction += AppController.Instance.CanvasRender;
+            //_MenuItem_Redo.Command = currentController.command_Redo;
+            //currentController.command_Redo.executeAction += AppController.Instance.CanvasRender;
 
             dcRenderView = currentController.graphicsContext;
             frame.Navigate(typeof(Pages.BlankPage));
@@ -64,28 +62,27 @@ namespace DirectCanvas
 
         GraphicsContext dcRenderView;
 
-        private void ShowCreateDocumentPage()
-        {
-            frame.Navigate(typeof(Pages.CreateDocumentPage));
-        }
+        //private void ShowCreateDocumentPage()
+        //{
+        //    frame.Navigate(typeof(Pages.CreateDocumentPage));
+        //}
 
-        public readonly FolderPicker folderPicker = new FolderPicker() { SuggestedStartLocation = PickerLocationId.PicturesLibrary, ViewMode = PickerViewMode.Thumbnail };
-        private async void OpenDocumentAsync()
-        {
-            StorageFolder selectedFolder = await folderPicker.PickSingleFolderAsync();
-            if (selectedFolder == null) return;
-            //frame.Navigate(typeof(Pages.OpeningDocumentPage), new Util.CreateDocumentParameters() { Folder = selectedFolder });
+        //public readonly FolderPicker folderPicker = new FolderPicker() { SuggestedStartLocation = PickerLocationId.PicturesLibrary, ViewMode = PickerViewMode.Thumbnail };
+        //private async void OpenDocumentAsync()
+        //{
+        //    StorageFolder selectedFolder = await folderPicker.PickSingleFolderAsync();
+        //    if (selectedFolder == null) return;
 
-            await AppController.Instance.OpenDocument(selectedFolder);
-            AppController.Instance.mainPage.AfterOpen();
-        }
+        //    await AppController.Instance.OpenDocument(selectedFolder);
+        //    AfterOpen();
+        //}
 
-        private async void SaveDocumentAsync()
-        {
-            SavingDisplay.Visibility = Visibility.Visible;
-            await currentController.CMDSaveDocument();
-            SavingDisplay.Visibility = Visibility.Collapsed;
-        }
+        //private async void SaveDocumentAsync()
+        //{
+        //    SavingDisplay.Visibility = Visibility.Visible;
+        //    await currentController.CMDSaveDocument();
+        //    SavingDisplay.Visibility = Visibility.Collapsed;
+        //}
 
         private void ExportDocument()
         {
@@ -99,23 +96,23 @@ namespace DirectCanvas
 
         private async void ExitApp(object sender, RoutedEventArgs e)
         {
-            if (currentController.CurrentCanvasCase != null)
-            {
-                ContentDialog contentDialog = new ContentDialog()
-                {
-                    Content = "在退出之前保存文档？",
-                    CloseButtonText = "取消",
-                    PrimaryButtonText = "保存",
-                    SecondaryButtonText = "不保存"
-                };
-                var result = await contentDialog.ShowAsync();
-                if (result == ContentDialogResult.None)
-                    return;
-                else if (result == ContentDialogResult.Primary)
-                {
-                    await currentController.CMDSaveDocument();
-                }
-            }
+            //if (currentController.CurrentCanvasCase != null)
+            //{
+            //    ContentDialog contentDialog = new ContentDialog()
+            //    {
+            //        Content = "在退出之前保存文档？",
+            //        CloseButtonText = "取消",
+            //        PrimaryButtonText = "保存",
+            //        SecondaryButtonText = "不保存"
+            //    };
+            //    var result = await contentDialog.ShowAsync();
+            //    if (result == ContentDialogResult.None)
+            //        return;
+            //    else if (result == ContentDialogResult.Primary)
+            //    {
+            //        await currentController.CMDSaveDocument();
+            //    }
+            //}
             Application.Current.Exit();
         }
 
@@ -130,13 +127,6 @@ namespace DirectCanvas
             {
                 view.TryEnterFullScreenMode();
             }
-        }
-
-        public void AfterOpen()
-        {
-            CanvasCase canvasCase = currentController.CurrentCanvasCase;
-
-            DCUI_Canvas.SetCanvasCase(canvasCase);
         }
 
         private async void _MenuItem_ReferencePicture_Click(object sender, RoutedEventArgs e)
@@ -179,21 +169,21 @@ namespace DirectCanvas
         {
             var ctrlState = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
             var isCtrlPressed = ctrlState.HasFlag(CoreVirtualKeyStates.Down) || ctrlState.HasFlag(CoreVirtualKeyStates.Locked);
-            if (e.Key == VirtualKey.S && isCtrlPressed)
-            {
-                e.Handled = true;
-                if (currentController.command_Save.CanExecute(this)) currentController.command_Save.Execute(this);
-            }
-            else if (e.Key == VirtualKey.Z && isCtrlPressed)
-            {
-                e.Handled = true;
-                if (currentController.command_Undo.CanExecute(this)) currentController.command_Undo.Execute(this);
-            }
-            else if (e.Key == VirtualKey.Y && isCtrlPressed)
-            {
-                e.Handled = true;
-                if (currentController.command_Redo.CanExecute(this)) currentController.command_Redo.Execute(this);
-            }
+            //if (e.Key == VirtualKey.S && isCtrlPressed)
+            //{
+            //    e.Handled = true;
+            //    if (currentController.command_Save.CanExecute(this)) currentController.command_Save.Execute(this);
+            //}
+            // if (e.Key == VirtualKey.Z && isCtrlPressed)
+            //{
+            //    e.Handled = true;
+            //    if (currentController.command_Undo.CanExecute(this)) currentController.command_Undo.Execute(this);
+            //}
+            //else if (e.Key == VirtualKey.Y && isCtrlPressed)
+            //{
+            //    e.Handled = true;
+            //    if (currentController.command_Redo.CanExecute(this)) currentController.command_Redo.Execute(this);
+            //}
         }
     }
 }

@@ -59,7 +59,7 @@ namespace DirectCanvas.UI
             if (createDocument.SetFalse())
             {
                 await AppController.Instance.CreateDocument(createDocumentParameters);
-                AppController.Instance.mainPage.AfterOpen();
+                AppController.Instance.CanvasRender();
             }
             if (openDocument.SetFalse())
             {
@@ -67,7 +67,7 @@ namespace DirectCanvas.UI
                 if (folder != null)
                 {
                     await AppController.Instance.OpenDocument(folder);
-                    AppController.Instance.mainPage.AfterOpen();
+                    AppController.Instance.CanvasRender();
                 }
             }
             if(saveDocument.SetFalse())
@@ -106,7 +106,6 @@ namespace DirectCanvas.UI
             };
             StorageFolder folder = await folderPicker.PickSingleFolderAsync();
             if (folder == null) return null;
-            //UIHelper.folder = folder;
             return folder;
         }
     }

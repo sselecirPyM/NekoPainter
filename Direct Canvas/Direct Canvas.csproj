@@ -160,19 +160,13 @@
     <Compile Include="Pages\BlankPage.xaml.cs">
       <DependentUpon>BlankPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\CreateDocumentPage.xaml.cs">
-      <DependentUpon>CreateDocumentPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\ExportPage.xaml.cs">
       <DependentUpon>ExportPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UICommand\Command_New.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UICommand\Command_Redo.cs" />
-    <Compile Include="UICommand\Command_Undo.cs" />
     <Compile Include="UICommand\Command_Unknow.cs" />
     <Compile Include="Controller\AppController.cs" />
     <Compile Include="UI\DCUI_Canvas.xaml.cs">
@@ -302,10 +296,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="Pages\BlankPage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\CreateDocumentPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

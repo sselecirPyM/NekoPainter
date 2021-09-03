@@ -9,9 +9,9 @@ namespace DirectCanvas
         public Stack<IUndoCommand> redoStack;
         public bool UndoStackIsNotEmpty { get => undoStack.First != null; }
         public bool RedoStackIsNotEmpty { get => redoStack.Count != 0; }
-        public event System.EventHandler UndoHappened;
-        public event System.EventHandler RedoHappened;
-        public event System.EventHandler UndoAdded;
+        //public event System.EventHandler UndoHappened;
+        //public event System.EventHandler RedoHappened;
+        //public event System.EventHandler UndoAdded;
         /// <summary>
         /// 撤销
         /// </summary>
@@ -22,7 +22,7 @@ namespace DirectCanvas
             undoStack.RemoveFirst();
             redoStack.Push(redoCmd);
             eCmd.Dispose();
-            UndoHappened?.Invoke(this,new System.EventArgs());
+            //UndoHappened?.Invoke(this,new System.EventArgs());
         }
         /// <summary>
         /// 重做
@@ -33,7 +33,7 @@ namespace DirectCanvas
             IUndoCommand undoCmd = eCmd.Execute();
             undoStack.AddFirst(undoCmd);
             eCmd.Dispose();
-            RedoHappened?.Invoke(this, new System.EventArgs());
+            //RedoHappened?.Invoke(this, new System.EventArgs());
         }
         public UndoManager()
         {
@@ -58,7 +58,7 @@ namespace DirectCanvas
                 if (undoStack.Last.Value is ICanDeleteCommand a) a.Delete();
                 undoStack.RemoveLast();
             }
-            UndoAdded?.Invoke(this,new System.EventArgs());
+            //UndoAdded?.Invoke(this,new System.EventArgs());
         }
 
         public void Dispose()

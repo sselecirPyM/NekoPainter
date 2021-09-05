@@ -11,15 +11,6 @@ namespace CanvasRendering
 {
     public class DeviceResources
     {
-        public void SetUAV(int slot)
-        {
-            d3dContext.CSSetUnorderedAccessView(slot, null);
-        }
-        public void SetSRV(int slot)
-        {
-            d3dContext.CSSetShaderResource(slot, null);
-        }
-
         public DeviceResources()
         {
             CreateDeviceResources();
@@ -93,20 +84,10 @@ namespace CanvasRendering
                 dxgiDevice3.MaximumFrameLatency = 1;
                 dxgiAdapter = dxgiDevice3.GetAdapter();
                 dxgiFactory4 = dxgiAdapter.GetParent<IDXGIFactory4>();
-                var swapChain1 = dxgiFactory4.CreateSwapChainForComposition(device, swapChainDescription1);
+                var swapChain1 = dxgiFactory4.CreateSwapChainForHwnd(device, hwnd, swapChainDescription1);
                 swapChain = swapChain1.QueryInterface<IDXGISwapChain3>();
                 swapChain1.Dispose();
             }
-
-            ComObject comObject = new ComObject(panel);
-            Vortice.DXGI.ISwapChainPanelNative swapchainPanelNative = comObject.QueryInterfaceOrNull<Vortice.DXGI.ISwapChainPanelNative>();
-            comObject.Dispose();
-            swapchainPanelNative.SetSwapChain(swapChain);
-            swapchainPanelNative.Dispose();
-            Matrix3x2 matrix3X2 = new Matrix3x2();
-            matrix3X2.M11 = 1;
-            matrix3X2.M22 = 1;
-            swapChain.MatrixTransform = matrix3X2;
 
             ID3D11Texture2D1 backBaffer = swapChain.GetBuffer<ID3D11Texture2D1>(0);
             renderTargetView1 = device.CreateRenderTargetView1(backBaffer);
@@ -118,8 +99,7 @@ namespace CanvasRendering
 
         void UpdateRenderTargetSize()
         {
-            // 计算必要的呈现器目标大小(以像素为单位)。
-            m_outputSize = m_logicalSize * (m_dpi / 96.0f);
+            m_outputSize = m_logicalSize;
 
             // 防止创建大小为零的 DirectX 内容。
             m_outputSize.X = Math.Max(m_outputSize.X, 1);
@@ -135,11 +115,9 @@ namespace CanvasRendering
                 throw new Exception(hr.ToString());
         }
 
-        public void SetSwapChainPanel(object panel, Vector2 compositionScale, Vector2 logicalSize, float dpi)
+        public void SetSwapChainPanel(IntPtr hwnd, Vector2 logicalSize)
         {
-            this.panel = panel;
-            this.m_dpi = dpi;
-            this.m_compositionScale = compositionScale;
+            this.hwnd = hwnd;
             this.m_logicalSize = logicalSize;
 
             CreateWindowSizeDependentResources();
@@ -168,8 +146,6 @@ namespace CanvasRendering
         public Vector2 m_d3dRenderTargetSize;
         public Vector2 m_outputSize;
         Vector2 m_logicalSize;
-        Vector2 m_compositionScale;
-        public float m_dpi;
 
         const int c_frameCount = 2;
         public IDXGIDevice3 dxgiDevice3;
@@ -183,9 +159,8 @@ namespace CanvasRendering
         public Format swapChainFormat = Format.R8G8B8A8_UNorm;
         public SwapChainFlags swapChainFlags = SwapChainFlags.AllowTearing;
 
-        public Dictionary<UnnamedInputLayout, UnnamedInputLayout> unnamedInputLayouts = new Dictionary<UnnamedInputLayout, UnnamedInputLayout>();
         public Dictionary<SamplerState, ID3D11SamplerState> samplerStates = new Dictionary<SamplerState, ID3D11SamplerState>();
 
-        public object panel;
+        public IntPtr hwnd;
     }
 }

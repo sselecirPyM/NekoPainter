@@ -123,7 +123,6 @@ namespace CanvasRendering
 
             context.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
         }
-        public void SetSwapChainPanel(object panel, Vector2 compositionScale, Vector2 logicalSize, float dpi) => DeviceResources.SetSwapChainPanel(panel, compositionScale, logicalSize, dpi);
         public void SetClearColor(Vector4 color) => this.color = new Vortice.Mathematics.Color4(color);
         public Vortice.Mathematics.Color4 color;
         public DeviceResources DeviceResources { get; private set; } = new DeviceResources();

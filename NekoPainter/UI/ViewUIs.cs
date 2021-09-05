@@ -457,7 +457,7 @@ namespace NekoPainter.UI
                 {
                     canvasCase.UndoManager.Redo();
                 }
-                if(io.KeyCtrl && ImGui.IsKeyPressed('S'))
+                if (io.KeyCtrl && ImGui.IsKeyPressed('S'))
                 {
                     UIHelper.saveDocument = true;
                 }
@@ -488,8 +488,11 @@ namespace NekoPainter.UI
                 }
                 if (ImGui.Button("打开"))
                 {
-                    ImGui.CloseCurrentPopup();
-                    UIHelper.openDocument = true;
+                    if (!string.IsNullOrEmpty(UIHelper.openDocumentPath))
+                    {
+                        ImGui.CloseCurrentPopup();
+                        UIHelper.openDocument = true;
+                    }
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("取消"))

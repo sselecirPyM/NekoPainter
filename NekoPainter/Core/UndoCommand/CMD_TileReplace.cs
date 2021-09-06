@@ -10,7 +10,7 @@ namespace NekoPainter.Undo
 
         public readonly TiledTexture Data;
 
-        public CanvasCase canvasCase;
+        public LivedNekoPainterDocument document;
 
         public string Name;
 
@@ -27,21 +27,21 @@ namespace NekoPainter.Undo
         IUndoCommand IUndoCommand.Execute()
         {
             //Host.ReplaceTiles(Data, ref Host.tiledTexture, canvasCase.PaintingTextureTemp, canvasCase.PaintingTexture, out TiledTexture before);
-            canvasCase.LayoutTex.TryGetValue(Host.guid, out TiledTexture tiledTexture);
-            PictureLayout.ReplaceTiles1(Data, ref tiledTexture, canvasCase.PaintingTextureTemp, canvasCase.PaintingTexture, out TiledTexture before, canvasCase.PaintAgent.CurrentLayout == Host);
-            canvasCase.LayoutTex[Host.guid] = tiledTexture;
+            document.LayoutTex.TryGetValue(Host.guid, out TiledTexture tiledTexture);
+            PictureLayout.ReplaceTiles1(Data, ref tiledTexture, document.PaintingTextureTemp, document.PaintingTexture, out TiledTexture before, document.PaintAgent.CurrentLayout == Host);
+            document.LayoutTex[Host.guid] = tiledTexture;
 
-            canvasCase.PaintingTexture.CopyTo(canvasCase.PaintingTextureBackup);
-            CMD_TileReplace undo = new CMD_TileReplace(Host, before, canvasCase);
+            document.PaintingTexture.CopyTo(document.PaintingTextureBackup);
+            CMD_TileReplace undo = new CMD_TileReplace(Host, before, document);
             Host.saved = false;
             return undo;
         }
 
-        public CMD_TileReplace(PictureLayout host, TiledTexture undoData, CanvasCase canvasCase)
+        public CMD_TileReplace(PictureLayout host, TiledTexture undoData, LivedNekoPainterDocument document)
         {
             Host = host;
             Data = undoData;
-            this.canvasCase = canvasCase;
+            this.document = document;
         }
     }
 }

@@ -9,13 +9,13 @@ namespace NekoPainter.Undo
 {
     public class CMD_MoveLayout : IUndoCommand
     {
-        readonly CanvasCase canvasCase;
+        readonly LivedNekoPainterDocument document;
         readonly int indexBefore;
         readonly int indexAfter;
 
-        public CMD_MoveLayout(CanvasCase canvasCase,int indexBefore,int indexAfter)
+        public CMD_MoveLayout(LivedNekoPainterDocument document,int indexBefore,int indexAfter)
         {
-            this.canvasCase = canvasCase;
+            this.document = document;
             this.indexBefore = indexBefore;
             this.indexAfter = indexAfter;
         }
@@ -27,10 +27,8 @@ namespace NekoPainter.Undo
 
         public IUndoCommand Execute()
         {
-            //canvasCase.watched = false;
-            canvasCase.Layouts.Move(indexBefore, indexAfter);
-            //canvasCase.watched = true;
-            return new CMD_MoveLayout(canvasCase, indexAfter, indexBefore);
+            document.Layouts.Move(indexBefore, indexAfter);
+            return new CMD_MoveLayout(document, indexAfter, indexBefore);
         }
     }
 }

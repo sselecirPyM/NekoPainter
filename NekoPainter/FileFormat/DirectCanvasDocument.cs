@@ -18,7 +18,7 @@ namespace NekoPainter.FileFormat
     {
         public NekoPainterDocument(DeviceResources deviceResources, DirectoryInfo caseFolder)
         {
-            CaseFolder = caseFolder;
+            Folder = caseFolder;
             this.DeviceResources = deviceResources;
         }
 
@@ -32,9 +32,9 @@ namespace NekoPainter.FileFormat
             IgnoreComments = true,
         };
 
-        public DirectoryInfo CaseFolder;
+        public DirectoryInfo Folder;
         DeviceResources DeviceResources;
-        public CanvasCase canvasCase;
+        public LivedNekoPainterDocument livedDocument;
         public DirectoryInfo blendModesFolder;
         public DirectoryInfo brushesFolder;
 
@@ -42,28 +42,28 @@ namespace NekoPainter.FileFormat
 
         Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
 
-        public void CreateAsync(int width, int height, bool extraResources)
+        public void Create(int width, int height, bool extraResources)
         {
-            blendModesFolder = Directory.CreateDirectory(CaseFolder + "/BlendModes");
-            brushesFolder = Directory.CreateDirectory(CaseFolder + "/Brushes");
-            layoutsFolder = Directory.CreateDirectory(CaseFolder + "/Layouts");
+            blendModesFolder = Directory.CreateDirectory(Folder + "/BlendModes");
+            brushesFolder = Directory.CreateDirectory(Folder + "/Brushes");
+            layoutsFolder = Directory.CreateDirectory(Folder + "/Layouts");
 
-            canvasCase = new CanvasCase(DeviceResources, width, height);
-            canvasCase.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
+            livedDocument = new LivedNekoPainterDocument(DeviceResources, width, height, Folder.FullName);
+            livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             UpdateDCResource();
             if (extraResources)
                 UpdateDCResourcePlugin();
             LoadBlendmodes();
             LoadBrushes();
-            canvasCase.PaintAgent.CurrentLayout = canvasCase.NewStandardLayout(0);
-            SaveAsync();
+            livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
+            Save();
         }
 
-        public void LoadAsync()
+        public void Load()
         {
-            blendModesFolder = Directory.CreateDirectory(CaseFolder + "/BlendModes");
-            brushesFolder = Directory.CreateDirectory(CaseFolder + "/Brushes");
-            layoutsFolder = Directory.CreateDirectory(CaseFolder + "/Layouts");
+            blendModesFolder = Directory.CreateDirectory(Folder + "/BlendModes");
+            brushesFolder = Directory.CreateDirectory(Folder + "/Brushes");
+            layoutsFolder = Directory.CreateDirectory(Folder + "/Layouts");
 
             LoadDocInfo();
 
@@ -72,15 +72,15 @@ namespace NekoPainter.FileFormat
             LoadBrushes();
         }
 
-        public void SaveAsync()
+        public void Save()
         {
             SaveDocInfo();
 
-            Stream layoutsInfoStream = new FileStream(CaseFolder + "/Layouts.xml", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            Stream layoutsInfoStream = new FileStream(Folder + "/Layouts.xml", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
             var layoutInfos = new _PictureLayouts();
             layoutInfos._PictureLayoutSaves = new List<_PictureLayoutSave>();
-            foreach (PictureLayout layout in canvasCase.Layouts)
+            foreach (PictureLayout layout in livedDocument.Layouts)
             {
                 layoutInfos._PictureLayoutSaves.Add(new _PictureLayoutSave()
                 {
@@ -95,11 +95,9 @@ namespace NekoPainter.FileFormat
                 });
             }
             layoutsInfoSerializer.Serialize(layoutsInfoStream, layoutInfos);
-
-
             layoutsInfoStream.Dispose();
 
-            foreach (var layout in canvasCase.Layouts)
+            foreach (var layout in livedDocument.Layouts)
             {
                 if (!layout.saved)
                 {
@@ -109,22 +107,22 @@ namespace NekoPainter.FileFormat
                         storageFile = new FileInfo(string.Format("{0}.dclf", layout.guid.ToString()));
                         layoutFileMap[layout.guid] = storageFile;
                     }
-                    layout.SaveToFileAsync(canvasCase, storageFile);
+                    layout.SaveToFile(livedDocument, storageFile);
                 }
             }
             HashSet<Guid> existLayoutGuids = new HashSet<Guid>();
-            foreach (var layout in canvasCase.Layouts)
+            foreach (var layout in livedDocument.Layouts)
             {
                 existLayoutGuids.Add(layout.guid);
             }
-            foreach (var cmd in canvasCase.UndoManager.undoStack)
+            foreach (var cmd in livedDocument.UndoManager.undoStack)
             {
                 if (cmd is Undo.CMD_DeleteLayout delLCmd)
                     existLayoutGuids.Add(delLCmd.layout.guid);
                 else if (cmd is Undo.CMD_RecoverLayout recLCmd)
                     existLayoutGuids.Add(recLCmd.layout.guid);
             }
-            foreach (var cmd in canvasCase.UndoManager.redoStack)
+            foreach (var cmd in livedDocument.UndoManager.redoStack)
             {
                 if (cmd is Undo.CMD_DeleteLayout delLCmd)
                     existLayoutGuids.Add(delLCmd.layout.guid);
@@ -153,11 +151,11 @@ namespace NekoPainter.FileFormat
             foreach (var layoutFile in layoutFiles)
             {
                 if (!".dclf".Equals(layoutFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                Guid guid = NekoPainterLayoutFormat.LoadFromFileAsync(canvasCase, layoutFile);
+                Guid guid = NekoPainterLayoutFormat.LoadFromFileAsync(livedDocument, layoutFile);
                 layoutFileMap[guid] = layoutFile;
             }
 
-            FileInfo layoutSettingsFile = new FileInfo(CaseFolder.FullName + "/Layouts.xml");
+            FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.xml");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
             _PictureLayouts layouts = (_PictureLayouts)layoutsInfoSerializer.Deserialize(settingsStream);
@@ -182,7 +180,7 @@ namespace NekoPainter.FileFormat
                         {
                             pictureLayout.parameters[parameter.Name] = parameter;
                         }
-                    canvasCase.Layouts.Add(pictureLayout);
+                    livedDocument.Layouts.Add(pictureLayout);
                 }
             }
 
@@ -192,13 +190,13 @@ namespace NekoPainter.FileFormat
         private void LoadBlendmodes()
         {
             var BlendmodeFiles = blendModesFolder.GetFiles();
-            var blendmodesMap = canvasCase.blendmodesMap;
+            var blendmodesMap = livedDocument.blendmodesMap;
             foreach (FileInfo blendmodeFile in BlendmodeFiles)
             {
                 if (!".dcbm".Equals(blendmodeFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var blendmode = Core.BlendMode.LoadFromFileAsync(canvasCase.DeviceResources, blendmodeFile.FullName);
+                var blendmode = Core.BlendMode.LoadFromFileAsync(livedDocument.DeviceResources, blendmodeFile.FullName);
                 blendmodesMap.Add(blendmode.Guid, blendmode);
-                canvasCase.blendModes.Add(blendmode);
+                livedDocument.blendModes.Add(blendmode);
             }
         }
 
@@ -217,35 +215,35 @@ namespace NekoPainter.FileFormat
                 }
             }
             brushesList.Sort();
-            canvasCase.PaintAgent.brushes = new List<Core.Brush>(brushesList);
+            livedDocument.PaintAgent.brushes = new List<Core.Brush>(brushesList);
         }
 
         private void LoadDocInfo()
         {
-            FileInfo layoutSettingsFile = new FileInfo(CaseFolder + "/Document.xml");
+            FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.xml");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
             _DCDocument document = (_DCDocument)docInfoSerializer.Deserialize(settingsStream);
-            canvasCase = new CanvasCase(DeviceResources, document.Width, document.Height);
-            canvasCase.Name = document.Name;
-            canvasCase.Description = document.Description;
-            canvasCase.DefaultBlendMode = document.DefaultBlendMode;
+            livedDocument = new LivedNekoPainterDocument(DeviceResources, document.Width, document.Height, Folder.FullName);
+            livedDocument.Name = document.Name;
+            livedDocument.Description = document.Description;
+            livedDocument.DefaultBlendMode = document.DefaultBlendMode;
 
             settingsStream.Dispose();
         }
 
         private void SaveDocInfo()
         {
-            FileInfo SettingsFile = new FileInfo(CaseFolder + "/Document.xml");
+            FileInfo SettingsFile = new FileInfo(Folder + "/Document.xml");
             Stream settingsStream = SettingsFile.OpenWrite();
 
             docInfoSerializer.Serialize(settingsStream, new _DCDocument()
             {
-                Name = canvasCase.Name,
-                Description = canvasCase.Description,
-                DefaultBlendMode = canvasCase.DefaultBlendMode,
-                Width = canvasCase.Width,
-                Height = canvasCase.Height,
+                Name = livedDocument.Name,
+                Description = livedDocument.Description,
+                DefaultBlendMode = livedDocument.DefaultBlendMode,
+                Width = livedDocument.Width,
+                Height = livedDocument.Height,
             });
 
             settingsStream.Dispose();

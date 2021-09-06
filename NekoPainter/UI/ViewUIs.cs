@@ -66,7 +66,7 @@ namespace NekoPainter.UI
             }
             var io = ImGui.GetIO();
             io.DisplaySize = device.m_d3dRenderTargetSize;
-            var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            var document = AppController.Instance?.CurrentLivedDocument;
 
             ImGui.NewFrame();
             ImGui.ShowDemoWindow();
@@ -79,27 +79,26 @@ namespace NekoPainter.UI
                 Input.penInputData1.Enqueue(result);
             }
             //Input.penInputData.Clear();
-            if (paintAgent != null)
+            if (document != null)
             {
                 LayoutsPanel();
 
-                var canvasCase = AppController.Instance?.CurrentCanvasCase;
                 ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
                 ImGui.SetNextWindowPos(new Vector2(200, 20), ImGuiCond.FirstUseEver);
                 if (ImGui.Begin("混合模式"))
                 {
-                    if (canvasCase.SelectedLayout != null)
+                    if (document.SelectedLayout != null)
                     {
-                        for (int i = 0; i < canvasCase.blendModes.Count; i++)
+                        for (int i = 0; i < document.blendModes.Count; i++)
                         {
-                            Core.BlendMode blendMode = canvasCase.blendModes[i];
-                            bool selected = blendMode.Guid == canvasCase.SelectedLayout.BlendMode;
+                            Core.BlendMode blendMode = document.blendModes[i];
+                            bool selected = blendMode.Guid == document.SelectedLayout.BlendMode;
                             ImGui.Selectable(string.Format("{0}###{1}", blendMode.Name, blendMode.Guid), ref selected);
                             if (ImGui.IsItemHovered())
                                 ImGui.SetTooltip(blendMode.Description);
-                            if (blendMode.Guid != canvasCase.SelectedLayout.BlendMode && selected)
+                            if (blendMode.Guid != document.SelectedLayout.BlendMode && selected)
                             {
-                                canvasCase.SetBlendMode(canvasCase.SelectedLayout, blendMode);
+                                document.SetBlendMode(document.SelectedLayout, blendMode);
                             }
                         }
                     }
@@ -110,7 +109,10 @@ namespace NekoPainter.UI
                 BrushPanel();
                 BrushParametersPanel();
                 ThumbnailPanel();
-                Canvas();
+                foreach (var livedDocument in AppController.Instance.livedDocuments)
+                {
+                    Canvas(livedDocument.Value, livedDocument.Key);
+                }
             }
 
             ImGui.Render();
@@ -120,8 +122,7 @@ namespace NekoPainter.UI
 
         static void LayoutsPanel()
         {
-            var canvasCase = AppController.Instance?.CurrentCanvasCase;
-            //var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            var document = AppController.Instance?.CurrentLivedDocument;
             ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 20), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("图层"))
@@ -130,11 +131,11 @@ namespace NekoPainter.UI
                 {
                     if (selectedIndex != -1)
                     {
-                        canvasCase.NewStandardLayout(selectedIndex);
+                        document.NewStandardLayout(selectedIndex);
                     }
-                    else if (canvasCase != null)
+                    else if (document != null)
                     {
-                        canvasCase.NewStandardLayout(0);
+                        document.NewStandardLayout(0);
                     }
                 }
 
@@ -144,33 +145,33 @@ namespace NekoPainter.UI
                 if (ImGui.Button("复制"))
                 {
                     if (selectedIndex != -1)
-                        canvasCase.CopyLayout(selectedIndex);
+                        document.CopyLayout(selectedIndex);
                 }
                 ImGui.SameLine();
                 if (ImGui.Button("删除"))
                 {
                     if (selectedIndex != -1)
-                        canvasCase.DeleteLayout(selectedIndex);
+                        document.DeleteLayout(selectedIndex);
                 }
 
-                if (canvasCase != null)
+                if (document != null)
                 {
                     selectedIndex = -1;
-                    var layouts = canvasCase.Layouts;
+                    var layouts = document.Layouts;
                     for (int i = 0; i < layouts.Count; i++)
                     {
                         var layout = layouts[i];
 
-                        bool selected = layout == canvasCase.SelectedLayout;
+                        bool selected = layout == document.SelectedLayout;
                         //if (ImGui.Button(string.Format("{0}###0{1}", layout.Hidden ? "显示" : "隐藏", layout.guid)))
                         //    layout.Hidden = !layout.Hidden;
                         //ImGui.SameLine();
                         ImGui.Selectable(string.Format("{0}###1{1}", layout.Name, layout.guid), ref selected);
                         if (selected)
                         {
-                            if (layout != canvasCase.SelectedLayout)
-                                canvasCase.SetActivatedLayout(layout);
-                            canvasCase.SelectedLayout = layout;
+                            if (layout != document.SelectedLayout)
+                                document.SetActivatedLayout(layout);
+                            document.SelectedLayout = layout;
                             selectedIndex = i;
                         }
                         if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
@@ -181,7 +182,7 @@ namespace NekoPainter.UI
                                 layouts[i] = layouts[n_next];
                                 layouts[n_next] = layout;
                                 ImGui.ResetMouseDragDelta();
-                                canvasCase.UndoManager.AddUndoData(new Undo.CMD_MoveLayout(canvasCase, i, n_next));
+                                document.UndoManager.AddUndoData(new Undo.CMD_MoveLayout(document, i, n_next));
                             }
                         }
                     }
@@ -193,14 +194,13 @@ namespace NekoPainter.UI
 
         static void LayoutInfoPanel()
         {
-            var canvasCase = AppController.Instance?.CurrentCanvasCase;
-            //var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            var document = AppController.Instance?.CurrentLivedDocument;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(200, 200), ImGuiCond.FirstUseEver);
 
-            if (ImGui.Begin("图层信息") && canvasCase.SelectedLayout != null)
+            if (ImGui.Begin("图层信息") && document.SelectedLayout != null)
             {
-                var layout = canvasCase.SelectedLayout;
+                var layout = document.SelectedLayout;
                 ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
                 ImGui.ColorEdit4("颜色", ref layout.Color);
                 bool useColor = layout.DataSource == Core.PictureDataSource.Color;
@@ -208,7 +208,7 @@ namespace NekoPainter.UI
                 layout.DataSource = useColor ? Core.PictureDataSource.Color : Core.PictureDataSource.Default;
                 ImGui.Checkbox("隐藏", ref layout.Hidden);
 
-                if (canvasCase.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
+                if (document.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
                 {
                     for (int i = 0; i < blendMode.Paramerters.Length; i++)
                     {
@@ -237,9 +237,10 @@ namespace NekoPainter.UI
             ImGui.SetNextWindowPos(new Vector2(200, 600), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("缩略图"))
             {
-                IntPtr imageId = new IntPtr(AppController.Instance.GetId("CurrentCanvas"));
+                string texPath = string.Format("{0}/Canvas", AppController.Instance.CurrentLivedDocument.Path);
+                IntPtr imageId = new IntPtr(AppController.Instance.GetId(texPath));
                 Vector2 pos = ImGui.GetCursorScreenPos();
-                var tex = AppController.Instance.GetTexture("CurrentCanvas");
+                var tex = AppController.Instance.GetTexture(texPath);
                 Vector2 spaceSize = ImGui.GetWindowSize() - new Vector2(20, 40);
                 float factor = MathF.Max(MathF.Min(spaceSize.X / tex.width, spaceSize.Y / tex.height), 0.01f);
 
@@ -262,28 +263,33 @@ namespace NekoPainter.UI
 
 
         static PenInputFlag currentState;
-        static void Canvas()
+        static void Canvas(LivedNekoPainterDocument document, string path)
         {
             var io = ImGui.GetIO();
-            var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(400, 0), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("画布"))
+            if (ImGui.Begin(string.Format("画布{0}###{1}", document.Name, path)))
             {
-                IntPtr imageId = new IntPtr(AppController.Instance.GetId("CurrentCanvas"));
+                if (ImGui.IsWindowFocused())
+                {
+                    AppController.Instance.CurrentDCDocument = AppController.Instance.documents[path];
+                    AppController.Instance.CurrentLivedDocument = AppController.Instance.livedDocuments[path];
+                }
+                string texPath = string.Format("{0}/Canvas", path);
+                IntPtr imageId = new IntPtr(AppController.Instance.GetId(texPath));
                 Vector2 pos = ImGui.GetCursorScreenPos();
-                var tex = AppController.Instance.GetTexture("CurrentCanvas");
-                var canvasCase = AppController.Instance.CurrentCanvasCase;
+                var tex = AppController.Instance.GetTexture(texPath);
 
                 Vector2 spaceSize = ImGui.GetWindowSize() - new Vector2(20, 40);
-                float factor = MathF.Max(MathF.Min(spaceSize.X / canvasCase.Width, spaceSize.Y / canvasCase.Height), 0.01f);
+                float factor = MathF.Max(MathF.Min(spaceSize.X / document.Width, spaceSize.Y / document.Height), 0.01f);
 
-                Vector2 imageSize = new Vector2(canvasCase.Width * factor, canvasCase.Height * factor);
+                Vector2 imageSize = new Vector2(document.Width * factor, document.Height * factor);
 
                 ImGui.InvisibleButton("X", imageSize, ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight | ImGuiButtonFlags.MouseButtonMiddle);
                 ImGui.GetWindowDrawList().AddImage(imageId, pos, pos + imageSize);
 
-                if (ImGui.IsItemActive() || currentState == PenInputFlag.Drawing)
+                if (ImGui.IsItemActive() || (currentState == PenInputFlag.Drawing && ImGui.IsWindowFocused()))
                 {
                     while (Input.penInputData1.TryDequeue(out var penInput))
                     {
@@ -322,7 +328,7 @@ namespace NekoPainter.UI
 
         static void BrushParametersPanel()
         {
-            var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("笔刷参数"))
@@ -349,7 +355,7 @@ namespace NekoPainter.UI
 
         static void BrushPanel()
         {
-            var paintAgent = AppController.Instance?.CurrentCanvasCase?.PaintAgent;
+            var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
@@ -385,12 +391,12 @@ namespace NekoPainter.UI
 
         static void MainMenuBar()
         {
-            var canvasCase = AppController.Instance?.CurrentCanvasCase;
+            var document = AppController.Instance?.CurrentLivedDocument;
             bool canUndo = false;
             bool canRedo = false;
-            if (canvasCase?.UndoManager.UndoStackIsNotEmpty == true)
+            if (document?.UndoManager.UndoStackIsNotEmpty == true)
                 canUndo = true;
-            if (canvasCase?.UndoManager.RedoStackIsNotEmpty == true)
+            if (document?.UndoManager.RedoStackIsNotEmpty == true)
                 canRedo = true;
 
             var io = ImGui.GetIO();
@@ -424,11 +430,11 @@ namespace NekoPainter.UI
             {
                 if (ImGui.MenuItem("Undo", "CTRL+Z", false, canUndo))
                 {
-                    canvasCase.UndoManager.Undo();
+                    document.UndoManager.Undo();
                 }
                 if (ImGui.MenuItem("Redo", "CTRL+Y", false, canRedo))
                 {
-                    canvasCase.UndoManager.Redo();
+                    document.UndoManager.Redo();
                 }
 
                 ImGui.Separator();
@@ -438,24 +444,24 @@ namespace NekoPainter.UI
             {
                 ImGui.EndMenu();
             }
-            if (canvasCase != null)
+            if (document != null)
             {
-                ImGui.Text(canvasCase.Name);
+                ImGui.Text(document.Name);
             }
             else
             {
                 ImGui.Text("No document");
             }
             ImGui.EndMainMenuBar();
-            if (canvasCase != null)
+            if (document != null)
             {
                 if (canUndo && io.KeyCtrl && ImGui.IsKeyPressed('Z'))
                 {
-                    canvasCase.UndoManager.Undo();
+                    document.UndoManager.Undo();
                 }
                 if (canRedo && io.KeyCtrl && ImGui.IsKeyPressed('Y'))
                 {
-                    canvasCase.UndoManager.Redo();
+                    document.UndoManager.Redo();
                 }
                 if (io.KeyCtrl && ImGui.IsKeyPressed('S'))
                 {

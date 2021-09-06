@@ -12,18 +12,19 @@ using Vortice.DXGI;
 
 namespace NekoPainter
 {
-    public class CanvasCase : System.IDisposable
+    public class LivedNekoPainterDocument : System.IDisposable
     {
-        public CanvasCase(DeviceResources device, int canvasWidth, int canvasHeight)
+        public LivedNekoPainterDocument(DeviceResources device, int width, int height, string path)
         {
-            Width = canvasWidth;
-            Height = canvasHeight;
+            Width = width;
+            Height = height;
 
             DeviceResources = device;
             RenderTarget = new RenderTexture[1];
 
             //SelectionMaskTexture = new RenderTexture(device, canvasWidth, canvasHeight, RenderTextureFormat.RENDERTEXTURE_FORMAT_R8_UNORM, false);
-            SizeChange(canvasWidth, canvasHeight);
+            this.Path = path;
+            SizeChange(width, height);
 
             UndoManager = new UndoManager();
             PaintAgent = new PaintAgent(this);
@@ -34,16 +35,16 @@ namespace NekoPainter
             ViewRenderer = new ViewRenderer(this);
         }
 
-        public void SizeChange(int canvasWidth, int canvasHeight)
+        public void SizeChange(int width, int height)
         {
             for (int i = 0; i < 1; i++)
             {
-                RenderTarget[i] = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
+                RenderTarget[i] = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
             }
-            PaintingTexture = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            PaintingTextureBackup = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            PaintingTextureTemp = new RenderTexture(DeviceResources, canvasWidth, canvasHeight, Format.R32G32B32A32_Float, false);
-            Controller.AppController.Instance.AddTexture("CurrentCanvas", RenderTarget[0]);
+            PaintingTexture = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
+            PaintingTextureBackup = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
+            PaintingTextureTemp = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
+            Controller.AppController.Instance.AddTexture(string.Format("{0}/Canvas", Path), RenderTarget[0]);
         }
 
         public void SetActivatedLayout(int layoutIndex)
@@ -210,6 +211,7 @@ namespace NekoPainter
 
         public string Name = "";
         public string Description = "";
+        public string Path = "";
 
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
         public Dictionary<System.Guid, Core.BlendMode> blendmodesMap = new Dictionary<System.Guid, Core.BlendMode>();

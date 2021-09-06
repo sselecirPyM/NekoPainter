@@ -11,14 +11,14 @@ namespace NekoPainter.FileFormat
     public static class NekoPainterLayoutFormat
     {
         static byte[] header = { 0x44, 0x43, 0x4c, 0x46 };//DCLF
-        public static void SaveToFileAsync(this PictureLayout layout, CanvasCase canvasCase, FileInfo file)
+        public static void SaveToFile(this PictureLayout layout, LivedNekoPainterDocument document, FileInfo file)
         {
             var stream = file.OpenWrite();
             TiledTexture tex0 = null;
             int count;
             //if (standardLayout.activated)
             //{
-            //    tex0 = new TiledTexture(canvasCase.PaintingTexture);
+            //    tex0 = new TiledTexture(document.PaintingTexture);
             //    count = tex0.tilesCount;
             //}
             //else if (standardLayout.tiledTexture != null)
@@ -27,7 +27,7 @@ namespace NekoPainter.FileFormat
             //    count = tex0.tilesCount;
             //}
             //else
-            if (canvasCase.LayoutTex.TryGetValue(layout.guid, out var tiledTexture))
+            if (document.LayoutTex.TryGetValue(layout.guid, out var tiledTexture))
             {
                 tex0 = new TiledTexture(tiledTexture);
                 count = tex0.tilesCount;
@@ -60,7 +60,7 @@ namespace NekoPainter.FileFormat
 
         }
 
-        public static Guid LoadFromFileAsync(CanvasCase canvasCase, FileInfo file)
+        public static Guid LoadFromFileAsync(LivedNekoPainterDocument document, FileInfo file)
         {
             var stream = file.OpenRead();
             BinaryReader reader = new BinaryReader(stream);
@@ -71,8 +71,8 @@ namespace NekoPainter.FileFormat
             byte[] oData = reader.ReadBytes(count * 8);
             byte[] bData = reader.ReadBytes(count * 1024);
 
-            TiledTexture tTex = new TiledTexture(canvasCase.DeviceResources, bData, oData);
-            canvasCase.LayoutTex[readedGuid] = tTex;
+            TiledTexture tTex = new TiledTexture(document.DeviceResources, bData, oData);
+            document.LayoutTex[readedGuid] = tTex;
             return readedGuid;
         }
     }

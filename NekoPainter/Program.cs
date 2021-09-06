@@ -29,7 +29,7 @@ namespace NekoPainter
             };
 
             RegisterClassEx(ref wndClass);
-            Win32Window window1 = new Win32Window(wndClass.ClassName, "NekoPainter", 800, 600);
+            Win32Window window1 = new Win32Window(wndClass.ClassName, "NekoPainter", 1024, 768);
             windows.Add(window1.Handle, window1);
             User32.ShowWindow(window1.Handle, ShowWindowCommand.Normal);
             window1.Initialize();

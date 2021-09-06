@@ -20,9 +20,9 @@ namespace NekoPainter
         /// <summary>
         /// 创建一个新的绘画代理。
         /// </summary>
-        public PaintAgent(CanvasCase canvasCase)
+        public PaintAgent(LivedNekoPainterDocument document)
         {
-            CanvasCase = canvasCase;
+            this.document = document;
             MemoryStream memoryStream = new MemoryStream(brushData1);
             brushDataWriter = new BinaryWriterPlus(memoryStream);
         }
@@ -37,9 +37,9 @@ namespace NekoPainter
             int pTilesX = (_width + 31) / 32;
             int pTilesY = (_height + 31) / 32;
             paintTilesBuffer?.Dispose();
-            paintTilesBuffer = new ComputeBuffer(CanvasCase.DeviceResources, pTilesX * pTilesY, 8);
+            paintTilesBuffer = new ComputeBuffer(document.DeviceResources, pTilesX * pTilesY, 8);
             brushDataBuffer?.Dispose();
-            brushDataBuffer = new ConstantBuffer(CanvasCase.DeviceResources, brushData1.Length);
+            brushDataBuffer = new ConstantBuffer(document.DeviceResources, brushData1.Length);
             _mapForUndoStride = (_width + 7) / 8 + 4;
             _mapForUndoCount = _mapForUndoStride * (((_height + 7) / 8) + 4);
             mapForUndo = new BitArray(_mapForUndoCount);
@@ -52,7 +52,7 @@ namespace NekoPainter
             if (currentBrush != null)
                 currentBrush.Size = BrushSize;
             currentBrush = brush;
-            currentBrush.CheckBrush(CanvasCase.DeviceResources);
+            currentBrush.CheckBrush(document.DeviceResources);
             BrushSize = currentBrush.Size;
         }
 
@@ -88,7 +88,7 @@ namespace NekoPainter
                 UpdateBrushData2(inputPointerData);
                 CurrentLayout.saved = false;
                 List<Int2> tilesCovered = GetPaintingTiles(drawPrevPos, position, out TileRect coveredRect);
-                currentBrush.CheckBrush(CanvasCase.DeviceResources);
+                currentBrush.CheckBrush(document.DeviceResources);
                 if (tilesCovered.Count != 0)
                 {
                     if (inputPointerData.KeyDown)
@@ -109,13 +109,13 @@ namespace NekoPainter
                         }
                     }
                     if (paintCoveredTiles.Count != 0)
-                        UndoManager.AddUndoData(new Undo.CMD_TileReplace(CurrentLayout, new TiledTexture(PaintingTextureBackup, paintCoveredTiles), CanvasCase));
+                        UndoManager.AddUndoData(new Undo.CMD_TileReplace(CurrentLayout, new TiledTexture(PaintingTextureBackup, paintCoveredTiles), document));
                     mapForUndo.SetAll(false);
                     PaintingTexture.CopyTo(PaintingTextureBackup);
 
-                    if (CanvasCase.LayoutTex.TryGetValue(CurrentLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
+                    if (document.LayoutTex.TryGetValue(CurrentLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
                     var tiledTexture = new TiledTexture(PaintingTexture);
-                    CanvasCase.LayoutTex[CurrentLayout.guid] = tiledTexture;
+                    document.LayoutTex[CurrentLayout.guid] = tiledTexture;
                 }
 
                 //drawPrevPos = Vector2.Zero;
@@ -154,7 +154,7 @@ namespace NekoPainter
         /// </summary>
         public RenderTexture PaintingTextureBackup;
 
-        public CanvasCase CanvasCase;
+        public LivedNekoPainterDocument document;
         /// <summary>
         /// 当前要画的图层
         /// </summary>
@@ -215,22 +215,6 @@ namespace NekoPainter
                     inRangeTiles.Add(vx);
                 }
             return inRangeTiles;
-        }
-
-        void Write1(Span<byte> target, Vector4 vec4, ref int ofs)
-        {
-            MemoryMarshal.Write(target, ref vec4);
-            ofs += 16;
-        }
-        void Write1(Span<byte> target, int val, ref int ofs)
-        {
-            MemoryMarshal.Write(target, ref val);
-            ofs += 4;
-        }
-        void Write1(Span<byte> target, float val, ref int ofs)
-        {
-            MemoryMarshal.Write(target, ref val);
-            ofs += 4;
         }
 
         public static PointerData GetBrushData(Vector2 position, NekoPainter.Core.PointerPoint pointerPoint)

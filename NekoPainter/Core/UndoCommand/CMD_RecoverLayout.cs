@@ -8,18 +8,18 @@ namespace NekoPainter.Undo
     {
         public readonly PictureLayout layout;
         readonly int insertIndex;
-        readonly CanvasCase canvasCase;
+        readonly LivedNekoPainterDocument document;
 
-        public CMD_RecoverLayout(PictureLayout layout, CanvasCase canvasCase, int insertIndex)
+        public CMD_RecoverLayout(PictureLayout layout, LivedNekoPainterDocument document, int insertIndex)
         {
             this.layout = layout;
             this.insertIndex = insertIndex;
-            this.canvasCase = canvasCase;
+            this.document = document;
         }
         public void Delete()
         {
             layout.Dispose();
-            canvasCase.LayoutTex.Remove(layout.guid, out TiledTexture tiledTexture);
+            document.LayoutTex.Remove(layout.guid, out TiledTexture tiledTexture);
             tiledTexture?.Dispose();
         }
 
@@ -30,10 +30,8 @@ namespace NekoPainter.Undo
 
         public IUndoCommand Execute()
         {
-            //canvasCase.watched = false;
-            canvasCase.Layouts.Insert(insertIndex, layout);
-            //canvasCase.watched = true;
-            return new CMD_DeleteLayout(layout, canvasCase, insertIndex);
+            document.Layouts.Insert(insertIndex, layout);
+            return new CMD_DeleteLayout(layout, document, insertIndex);
         }
     }
 }

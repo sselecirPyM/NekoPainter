@@ -26,7 +26,7 @@ namespace NekoPainter.Controller
             LoadResourceFun();
 
             //graphicsContext.SetClearColor(new System.Numerics.Vector4(0.392156899f, 0.584313750f, 0.929411829f, 1.000000000f));
-            graphicsContext.SetClearColor(new System.Numerics.Vector4(0.2f, 0.2f, 0.2f, 1.000000000f));
+            graphicsContext.SetClearColor(new System.Numerics.Vector4(0.2f, 0.2f, 0.2f, 1.0f));
 
             //RenderTask = Task.Factory.StartNew(GameLoop, TaskCreationOptions.LongRunning);
         }
@@ -46,23 +46,22 @@ namespace NekoPainter.Controller
 
             var documentStorageFolder = new DirectoryInfo(folder).CreateSubdirectory(name);
             CurrentDCDocument = new NekoPainterDocument(graphicsContext.DeviceResources, documentStorageFolder);
-            CurrentDCDocument.CreateAsync(width, height, parameters.CreateDocumentResourcesOption.HasFlag(Util.CreateDocumentResourcesOption.Plugin));
-            CurrentCanvasCase = CurrentDCDocument.canvasCase;
-            CurrentCanvasCase.Name = name;
+            CurrentDCDocument.Create(width, height, parameters.CreateDocumentResourcesOption.HasFlag(Util.CreateDocumentResourcesOption.Plugin));
+            CurrentLivedDocument = CurrentDCDocument.livedDocument;
+            CurrentLivedDocument.Name = name;
+            livedDocuments.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument.livedDocument);
+            documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
         }
 
         public void OpenDocument(string folder)
         {
             ApplyAllResources();
-            CurrentDCDocument = new NekoPainterDocument(graphicsContext.DeviceResources,new DirectoryInfo( folder));
-            CurrentDCDocument.LoadAsync();
-            CurrentCanvasCase = CurrentDCDocument.canvasCase;
+            CurrentDCDocument = new NekoPainterDocument(graphicsContext.DeviceResources, new DirectoryInfo(folder));
+            CurrentDCDocument.Load();
+            CurrentLivedDocument = CurrentDCDocument.livedDocument;
+            livedDocuments.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument.livedDocument);
+            documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
         }
-
-        //public async Task CMDSaveDocument()
-        //{
-        //    await CurrentDCDocument.SaveAsync();
-        //}
 
         //public async Task CMDImportDocument()
         //{
@@ -109,12 +108,12 @@ namespace NekoPainter.Controller
             Input.mousePreviousPos = Input.mousePos;
             ViewUIs.InputProcess();
             ViewUIs.Draw();
-            if (CurrentCanvasCase != null)
+
+            foreach (var livedDocument in livedDocuments.Values)
             {
-                CurrentCanvasCase.ViewRenderer.RenderAll();
+                livedDocument.PaintAgent.Process();
+                livedDocument.ViewRenderer.RenderAll();
             }
-            var paintAgent = CurrentCanvasCase?.PaintAgent;
-            paintAgent?.Process();
 
             graphicsContext.ClearScreen();
             ViewUIs.Render();
@@ -125,8 +124,11 @@ namespace NekoPainter.Controller
 
         public readonly GraphicsContext graphicsContext = new GraphicsContext();
 
-        public CanvasCase CurrentCanvasCase { get; private set; }
-        public NekoPainterDocument CurrentDCDocument { get; private set; }
+        public Dictionary<string, LivedNekoPainterDocument> livedDocuments = new Dictionary<string, LivedNekoPainterDocument>();
+        public Dictionary<string, NekoPainterDocument> documents = new Dictionary<string, NekoPainterDocument>();
+
+        public LivedNekoPainterDocument CurrentLivedDocument { get; set; }
+        public NekoPainterDocument CurrentDCDocument { get; set; }
 
         #region Resources
         void LoadResourceFun()

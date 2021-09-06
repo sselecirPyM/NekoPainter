@@ -7,13 +7,13 @@ namespace NekoPainter.Undo
     public class CMD_DeleteLayout : IUndoCommand
     {
         readonly public PictureLayout layout;
-        readonly CanvasCase canvasCase;
+        readonly LivedNekoPainterDocument document;
         readonly int atIndex;
 
-        public CMD_DeleteLayout(PictureLayout layout, CanvasCase case1, int atIndex)
+        public CMD_DeleteLayout(PictureLayout layout, LivedNekoPainterDocument case1, int atIndex)
         {
             this.layout = layout;
-            canvasCase = case1;
+            document = case1;
             this.atIndex = atIndex;
         }
         public void Dispose()
@@ -23,14 +23,12 @@ namespace NekoPainter.Undo
 
         public IUndoCommand Execute()
         {
-            //canvasCase.watched = false;
-            if (canvasCase.ActivatedLayout == canvasCase.Layouts[atIndex])
+            if (document.ActivatedLayout == document.Layouts[atIndex])
             {
-                canvasCase.SetActivatedLayout(-1);
+                document.SetActivatedLayout(-1);
             }
-            canvasCase.Layouts.RemoveAt(atIndex);
-            //canvasCase.watched = true;
-            return new CMD_RecoverLayout(layout, canvasCase, atIndex);
+            document.Layouts.RemoveAt(atIndex);
+            return new CMD_RecoverLayout(layout, document, atIndex);
         }
     }
 }

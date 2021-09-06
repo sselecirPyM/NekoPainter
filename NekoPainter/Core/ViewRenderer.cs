@@ -12,9 +12,9 @@ namespace NekoPainter
 {
     public class ViewRenderer
     {
-        public ViewRenderer(CanvasCase canvasCase)
+        public ViewRenderer(LivedNekoPainterDocument livedDocument)
         {
-            CanvasCase = canvasCase;
+            this.livedDocument = livedDocument;
         }
 
         public void RenderAll()
@@ -31,14 +31,14 @@ namespace NekoPainter
                     ofs += 256;
                     continue;
                 }
-                CanvasCase.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
-                if (CanvasCase.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
+                if (livedDocument.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                 {
                     if (selectedLayout.DataSource == PictureDataSource.Color)
                     {
                         blendMode?.BlendPure(RenderTarget[0], constantBuffer1, ofs, 256);
                     }
-                    else if (CanvasCase.PaintAgent.CurrentLayout == selectedLayout)
+                    else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout)
                     {
                         blendMode?.Blend(PaintingTexture, RenderTarget[0], constantBuffer1, ofs, 256);
                     }
@@ -119,7 +119,7 @@ namespace NekoPainter
 
         public void GetData(PictureLayout layout, Span<byte> outData)
         {
-            if (CanvasCase.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
+            if (livedDocument.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
             {
                 int ofs = 0;
                 for (int i = 0; i < blendMode.Paramerters.Length; i++)
@@ -143,12 +143,12 @@ namespace NekoPainter
             MemoryMarshal.Write(target, ref value);
         }
 
-        IReadOnlyList<RenderTexture> RenderTarget { get { return CanvasCase.RenderTarget; } }
-        RenderTexture PaintingTexture { get { return CanvasCase.PaintingTexture; } }
-        DeviceResources DeviceResources { get { return CanvasCase.DeviceResources; } }
-        IReadOnlyList<PictureLayout> ManagedLayout { get { return CanvasCase.Layouts; } }
+        IReadOnlyList<RenderTexture> RenderTarget { get { return livedDocument.RenderTarget; } }
+        RenderTexture PaintingTexture { get { return livedDocument.PaintingTexture; } }
+        DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
+        IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
 
-        public readonly CanvasCase CanvasCase;
+        public readonly LivedNekoPainterDocument livedDocument;
 
         int bufferSize = 0;
         ConstantBuffer constantBuffer1;

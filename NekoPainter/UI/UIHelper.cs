@@ -66,7 +66,7 @@ namespace NekoPainter.UI
             }
             if (saveDocument.SetFalse())
             {
-                AppController.Instance.CurrentDCDocument.SaveAsync();
+                AppController.Instance.CurrentDCDocument.Save();
             }
         }
 

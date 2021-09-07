@@ -5,12 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using NekoPainter.Core;
 using System.IO;
-using System.Xml;
 using CanvasRendering;
-using System.Xml.Serialization;
 using System.ComponentModel;
 using System.Numerics;
-using System.Collections.Concurrent;
+using Newtonsoft.Json;
 
 namespace NekoPainter.FileFormat
 {
@@ -22,16 +20,6 @@ namespace NekoPainter.FileFormat
             this.DeviceResources = deviceResources;
         }
 
-        static XmlWriterSettings xmlWriterSettings = xmlWriterSettings = new XmlWriterSettings()
-        {
-            Encoding = Encoding.UTF8,
-            Indent = true
-        };
-        static XmlReaderSettings xmlReaderSettings = new XmlReaderSettings()
-        {
-            IgnoreComments = true,
-        };
-
         public DirectoryInfo Folder;
         DeviceResources DeviceResources;
         public LivedNekoPainterDocument livedDocument;
@@ -42,7 +30,7 @@ namespace NekoPainter.FileFormat
 
         Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
 
-        public void Create(int width, int height, bool extraResources)
+        public void Create(int width, int height, string name)
         {
             blendModesFolder = Directory.CreateDirectory(Folder + "/BlendModes");
             brushesFolder = Directory.CreateDirectory(Folder + "/Brushes");
@@ -51,11 +39,10 @@ namespace NekoPainter.FileFormat
             livedDocument = new LivedNekoPainterDocument(DeviceResources, width, height, Folder.FullName);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             UpdateDCResource();
-            if (extraResources)
-                UpdateDCResourcePlugin();
             LoadBlendmodes();
             LoadBrushes();
             livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
+            livedDocument.Name = name;
             Save();
         }
 
@@ -76,13 +63,12 @@ namespace NekoPainter.FileFormat
         {
             SaveDocInfo();
 
-            Stream layoutsInfoStream = new FileStream(Folder + "/Layouts.xml", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            Stream layoutsInfoStream = new FileStream(Folder + "/Layouts.json", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
-            var layoutInfos = new _PictureLayouts();
-            layoutInfos._PictureLayoutSaves = new List<_PictureLayoutSave>();
+            List<_PictureLayoutSave> layoutInfos = new List<_PictureLayoutSave>();
             foreach (PictureLayout layout in livedDocument.Layouts)
             {
-                layoutInfos._PictureLayoutSaves.Add(new _PictureLayoutSave()
+                layoutInfos.Add(new _PictureLayoutSave()
                 {
                     Alpha = layout.Alpha,
                     BlendMode = layout.BlendMode,
@@ -94,7 +80,12 @@ namespace NekoPainter.FileFormat
                     Parameters = layout.parameters.Count > 0 ? new List<Core.ParameterN>(layout.parameters.Values) : null,
                 });
             }
-            layoutsInfoSerializer.Serialize(layoutsInfoStream, layoutInfos);
+            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
+            jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            string json = JsonConvert.SerializeObject(layoutInfos, jsonSerializerSettings);
+            StreamWriter writer1 = new StreamWriter(layoutsInfoStream);
+            writer1.Write(json);
+            writer1.Dispose();
             layoutsInfoStream.Dispose();
 
             foreach (var layout in livedDocument.Layouts)
@@ -104,7 +95,7 @@ namespace NekoPainter.FileFormat
                     if (!layoutFileMap.TryGetValue(layout.guid, out var storageFile))
                     {
                         //storageFile = await layoutsFolder.CreateFileAsync(, CreationCollisionOption.ReplaceExisting);
-                        storageFile = new FileInfo(string.Format("{0}.dclf", layout.guid.ToString()));
+                        storageFile = new FileInfo(Path.Combine(layoutsFolder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
                         layoutFileMap[layout.guid] = storageFile;
                     }
                     layout.SaveToFile(livedDocument, storageFile);
@@ -155,14 +146,17 @@ namespace NekoPainter.FileFormat
                 layoutFileMap[guid] = layoutFile;
             }
 
-            FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.xml");
+            FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
-            _PictureLayouts layouts = (_PictureLayouts)layoutsInfoSerializer.Deserialize(settingsStream);
 
-            if (layouts._PictureLayoutSaves != null)
+            var reader = new StreamReader(settingsStream);
+
+            List<_PictureLayoutSave> layouts = JsonConvert.DeserializeObject<List<_PictureLayoutSave>>(reader.ReadToEnd());
+
+            if (layouts != null)
             {
-                foreach (var layout in layouts._PictureLayoutSaves)
+                foreach (var layout in layouts)
                 {
                     PictureLayout pictureLayout = new PictureLayout
                     {
@@ -220,10 +214,10 @@ namespace NekoPainter.FileFormat
 
         private void LoadDocInfo()
         {
-            FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.xml");
+            FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
-
-            _DCDocument document = (_DCDocument)docInfoSerializer.Deserialize(settingsStream);
+            StreamReader reader = new StreamReader(settingsStream);
+            _DCDocument document = JsonConvert.DeserializeObject<_DCDocument>(reader.ReadToEnd());
             livedDocument = new LivedNekoPainterDocument(DeviceResources, document.Width, document.Height, Folder.FullName);
             livedDocument.Name = document.Name;
             livedDocument.Description = document.Description;
@@ -234,18 +228,21 @@ namespace NekoPainter.FileFormat
 
         private void SaveDocInfo()
         {
-            FileInfo SettingsFile = new FileInfo(Folder + "/Document.xml");
-            Stream settingsStream = SettingsFile.OpenWrite();
+            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
+            jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
 
-            docInfoSerializer.Serialize(settingsStream, new _DCDocument()
+            FileInfo SettingsFile = new FileInfo(Folder + "/Document.json");
+            Stream settingsStream = SettingsFile.OpenWrite();
+            StreamWriter streamWriter = new StreamWriter(settingsStream);
+            streamWriter.Write(JsonConvert.SerializeObject(new _DCDocument()
             {
                 Name = livedDocument.Name,
                 Description = livedDocument.Description,
                 DefaultBlendMode = livedDocument.DefaultBlendMode,
                 Width = livedDocument.Width,
                 Height = livedDocument.Height,
-            });
-
+            }, jsonSerializerSettings));
+            streamWriter.Dispose();
             settingsStream.Dispose();
         }
 
@@ -263,28 +260,9 @@ namespace NekoPainter.FileFormat
                 file.CopyTo(blendModesFolder.FullName + "/" + file.Name);
             }
         }
-
-        private void UpdateDCResourcePlugin()
-        {
-            var dcBrushes = new DirectoryInfo("DCResources\\Plugin\\Brushes");
-            var dcBlendModes = new DirectoryInfo("DCResources\\Plugin\\BlendModes");
-
-            foreach (var file in dcBrushes.GetFiles())
-            {
-                file.CopyTo(brushesFolder.FullName + "/" + file.Name);
-            }
-            foreach (var file in dcBlendModes.GetFiles())
-            {
-                file.CopyTo(blendModesFolder.FullName + "/" + file.Name);
-            }
-        }
-        public static XmlSerializer layoutsInfoSerializer = new XmlSerializer(typeof(_PictureLayouts));
-        public static XmlSerializer docInfoSerializer = new XmlSerializer(typeof(_DCDocument));
     }
-    [XmlType("DCDocument")]
     public class _DCDocument
     {
-        [XmlAttribute]
         public string Name;
         public string Description;
         public int Width;
@@ -293,16 +271,8 @@ namespace NekoPainter.FileFormat
 
     }
 
-    [XmlType("Layouts")]
-    public class _PictureLayouts
-    {
-        [XmlElement("Layout")]
-        public List<_PictureLayoutSave> _PictureLayoutSaves;
-    }
-    [XmlType("Layout")]
     public class _PictureLayoutSave
     {
-        [XmlAttribute]
         public string Name = "";
 
         public Guid Guid;

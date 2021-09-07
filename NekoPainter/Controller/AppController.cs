@@ -31,11 +31,6 @@ namespace NekoPainter.Controller
             //RenderTask = Task.Factory.StartNew(GameLoop, TaskCreationOptions.LongRunning);
         }
 
-        //private async void Tick1(object sender, object e)
-        //{
-        //    await UI.UIHelper.OnFrame();
-        //}
-
         public void CreateDocument(Util.CreateDocumentParameters parameters)
         {
             ApplyAllResources();
@@ -46,9 +41,8 @@ namespace NekoPainter.Controller
 
             var documentStorageFolder = new DirectoryInfo(folder).CreateSubdirectory(name);
             CurrentDCDocument = new NekoPainterDocument(graphicsContext.DeviceResources, documentStorageFolder);
-            CurrentDCDocument.Create(width, height, parameters.CreateDocumentResourcesOption.HasFlag(Util.CreateDocumentResourcesOption.Plugin));
+            CurrentDCDocument.Create(width, height, name);
             CurrentLivedDocument = CurrentDCDocument.livedDocument;
-            CurrentLivedDocument.Name = name;
             livedDocuments.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument.livedDocument);
             documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
         }

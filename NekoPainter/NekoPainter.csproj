@@ -182,49 +182,49 @@
     <Content Include="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Fringe1.dcbf">
+    <Content Include="DCResources\Base\Brushes\DC Fringe1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Fringe1.png">
+    <Content Include="DCResources\Base\Brushes\DC Fringe1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Grid1.dcbf">
+    <Content Include="DCResources\Base\Brushes\DC Grid1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Grid1.png">
+    <Content Include="DCResources\Base\Brushes\DC Grid1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Grid1G.png">
+    <Content Include="DCResources\Base\Brushes\DC Grid1G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Hive1.dcbf">
+    <Content Include="DCResources\Base\Brushes\DC Hive1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Hive1.png">
+    <Content Include="DCResources\Base\Brushes\DC Hive1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.dcbf">
+    <Content Include="DCResources\Base\Brushes\DC Rhombus1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.png">
+    <Content Include="DCResources\Base\Brushes\DC Rhombus1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1G.png">
+    <Content Include="DCResources\Base\Brushes\DC Rhombus1G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Ring1.dcbf">
+    <Content Include="DCResources\Base\Brushes\DC Ring1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Ring1.png">
+    <Content Include="DCResources\Base\Brushes\DC Ring1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Ring2.dcbf">
+    <Content Include="DCResources\Base\Brushes\DC Ring2.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Ring2.png">
+    <Content Include="DCResources\Base\Brushes\DC Ring2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Plugin\Brushes\DC Ring2G.png">
+    <Content Include="DCResources\Base\Brushes\DC Ring2G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\Basic\CExport.hlsl">
@@ -295,6 +295,7 @@
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     <PackageReference Include="Vortice.Mathematics" Version="1.3.21" />
   </ItemGroup>
@@ -305,6 +306,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CanvasRendering\CanvasRendering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DCResources\Plugin\Brushes\" />
   </ItemGroup>
 
 </Project>

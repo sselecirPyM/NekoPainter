@@ -108,7 +108,7 @@ namespace CanvasRendering
 
         public void Present()
         {
-            var hr = swapChain.Present(0, PresentFlags.AllowTearing, new PresentParameters());
+            var hr = swapChain.Present(0, PresentFlags.None, new PresentParameters());
             d3dContext.DiscardView1(renderTargetView1);
             d3dContext.DiscardView1(depthStencilView);
             if (hr.Failure)

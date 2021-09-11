@@ -1,0 +1,7 @@
+{
+  "NekoPainter.Core.LayoutDataSource": {
+    "Default": "默认",
+    "Color": "颜色",
+    "Image": "图像"
+  }
+}

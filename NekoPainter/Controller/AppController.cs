@@ -23,7 +23,7 @@ namespace NekoPainter.Controller
         {
             if (Instance != null) throw new Exception("InnerERR: Too Many Controller");
             Instance = this;
-            LoadResourceFun();
+            LoadResources();
 
             //graphicsContext.SetClearColor(new System.Numerics.Vector4(0.392156899f, 0.584313750f, 0.929411829f, 1.000000000f));
             graphicsContext.SetClearColor(new System.Numerics.Vector4(0.2f, 0.2f, 0.2f, 1.0f));
@@ -86,20 +86,25 @@ namespace NekoPainter.Controller
             return bytes;
         }
 
-        Task RenderTask;
+        //Task RenderTask;
 
-        public void GameLoop()
-        {
-            while (true)
-            {
-                CanvasRender();
-                Thread.Sleep(1);
-            }
-        }
+        //public void GameLoop()
+        //{
+        //    while (true)
+        //    {
+        //        CanvasRender();
+        //        Thread.Sleep(1);
+        //    }
+        //}
+
+        public string language = "zh-cn";
 
         public void CanvasRender()
         {
-            Input.mousePreviousPos = Input.mousePos;
+            if (StringTranslations.current != language)
+            {
+                StringTranslations.Load(language);
+            }
             ViewUIs.InputProcess();
             ViewUIs.Draw();
 
@@ -125,7 +130,7 @@ namespace NekoPainter.Controller
         public NekoPainterDocument CurrentDCDocument { get; set; }
 
         #region Resources
-        void LoadResourceFun()
+        void LoadResources()
         {
             Brush.LoadStaticResourcesAsync();
             BlendMode.LoadStaticResourcesAsync();

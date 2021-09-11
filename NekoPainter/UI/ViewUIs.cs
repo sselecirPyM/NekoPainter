@@ -125,9 +125,9 @@ namespace NekoPainter.UI
             var document = AppController.Instance?.CurrentLivedDocument;
             ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 20), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("图层"))
+            if (ImGuiExt.Begin("Layouts"))
             {
-                if (ImGui.Button("新建"))
+                if (ImGuiExt.Button("New"))
                 {
                     if (selectedIndex != -1)
                     {
@@ -142,13 +142,13 @@ namespace NekoPainter.UI
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("新建图层");
                 ImGui.SameLine();
-                if (ImGui.Button("复制"))
+                if (ImGuiExt.Button("Copy"))
                 {
                     if (selectedIndex != -1)
                         document.CopyLayout(selectedIndex);
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("删除"))
+                if (ImGuiExt.Button("Delete"))
                 {
                     if (selectedIndex != -1)
                         document.DeleteLayout(selectedIndex);
@@ -203,10 +203,8 @@ namespace NekoPainter.UI
                 var layout = document.SelectedLayout;
                 ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
                 ImGui.ColorEdit4("颜色", ref layout.Color);
-                bool useColor = layout.DataSource == Core.PictureDataSource.Color;
-                ImGui.Checkbox("使用颜色", ref useColor);
-                layout.DataSource = useColor ? Core.PictureDataSource.Color : Core.PictureDataSource.Default;
-                ImGui.Checkbox("隐藏", ref layout.Hidden);
+                ImGuiExt.ComboBox("DataSource", ref layout.DataSource);
+                ImGuiExt.Checkbox("Hidden", ref layout.Hidden);
 
                 if (document.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
                 {
@@ -235,7 +233,7 @@ namespace NekoPainter.UI
             var io = ImGui.GetIO();
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(200, 600), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("缩略图"))
+            if (ImGuiExt.Begin("Thumbnail"))
             {
                 string texPath = string.Format("{0}/Canvas", AppController.Instance.CurrentLivedDocument.Path);
                 IntPtr imageId = new IntPtr(AppController.Instance.GetId(texPath));
@@ -269,7 +267,7 @@ namespace NekoPainter.UI
             var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(400, 0), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin(string.Format("画布{0}###{1}", document.Name, path)))
+            if (ImGui.Begin(string.Format("画布 {0}###{1}", document.Name, path)))
             {
                 if (ImGui.IsWindowFocused())
                 {
@@ -359,7 +357,7 @@ namespace NekoPainter.UI
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("笔刷"))
+            if (ImGuiExt.Begin("Brushes"))
             {
                 var brushes = paintAgent.brushes;
                 for (int i = 0; i < brushes.Count; i++)
@@ -401,38 +399,40 @@ namespace NekoPainter.UI
 
             var io = ImGui.GetIO();
             ImGui.BeginMainMenuBar();
-            bool beginMenuFile = ImGui.BeginMenu("File");
-            if (beginMenuFile)
+            if (ImGuiExt.BeginMenu("File"))
             {
-                if (ImGui.MenuItem("New"))
+                if (ImGuiExt.MenuItem("New"))
                 {
                     newDocument = true;
                 }
-                if (ImGui.MenuItem("Open", "CTRL+O"))
+                if (ImGuiExt.MenuItem("Open", "CTRL+O"))
                 {
                     openDocument = true;
                 }
-                if (ImGui.MenuItem("Save", "CTRL+S"))
+                if (ImGuiExt.MenuItem("Save", "CTRL+S"))
                 {
                     UIHelper.saveDocument = true;
                 }
                 ImGui.Separator();
-                if (ImGui.MenuItem("Import"))
+                if (ImGuiExt.MenuItem("Import"))
                 {
                     UIHelper.selectOpenFile = true;
                 }
-                ImGui.MenuItem("Export");
+                ImGuiExt.MenuItem("Export");
                 ImGui.Separator();
-                ImGui.MenuItem("Exit");
+                if (ImGuiExt.MenuItem("Exit"))
+                {
+                    UIHelper.quit = true;
+                }
                 ImGui.EndMenu();
             }
-            if (ImGui.BeginMenu("Edit"))
+            if (ImGuiExt.BeginMenu("Edit"))
             {
-                if (ImGui.MenuItem("Undo", "CTRL+Z", false, canUndo))
+                if (ImGuiExt.MenuItem("Undo", "CTRL+Z", false, canUndo))
                 {
                     document.UndoManager.Undo();
                 }
-                if (ImGui.MenuItem("Redo", "CTRL+Y", false, canRedo))
+                if (ImGuiExt.MenuItem("Redo", "CTRL+Y", false, canRedo))
                 {
                     document.UndoManager.Redo();
                 }
@@ -488,11 +488,11 @@ namespace NekoPainter.UI
                 ImGui.InputText("path", ref UIHelper.openDocumentPath, 260);
 
                 ImGui.SameLine();
-                if (ImGui.Button("浏览"))
+                if (ImGuiExt.Button("Browse"))
                 {
                     UIHelper.selectFolder = true;
                 }
-                if (ImGui.Button("打开"))
+                if (ImGuiExt.Button("Open"))
                 {
                     if (!string.IsNullOrEmpty(UIHelper.openDocumentPath))
                     {
@@ -501,7 +501,7 @@ namespace NekoPainter.UI
                     }
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("取消"))
+                if (ImGuiExt.Button("Cancel"))
                 {
                     ImGui.CloseCurrentPopup();
                 }
@@ -531,21 +531,21 @@ namespace NekoPainter.UI
                     ImGui.InputText("path", ref CreateDocumentParameters.Folder, 260);
 
                 ImGui.SameLine();
-                if (ImGui.Button("浏览"))
+                if (ImGuiExt.Button("Browse"))
                 {
                     UIHelper.selectFolder = true;
                 }
-                ImGui.InputText("文档名", ref CreateDocumentParameters.Name, 200);
-                ImGui.InputInt("宽度", ref CreateDocumentParameters.Width);
-                ImGui.InputInt("高度", ref CreateDocumentParameters.Height);
-                if (ImGui.Button("创建"))
+                ImGuiExt.InputText("Name", ref CreateDocumentParameters.Name, 200);
+                ImGuiExt.InputInt("Width", ref CreateDocumentParameters.Width);
+                ImGuiExt.InputInt("Height", ref CreateDocumentParameters.Height);
+                if (ImGuiExt.Button("Create"))
                 {
                     ImGui.CloseCurrentPopup();
                     UIHelper.createDocumentParameters = CreateDocumentParameters;
                     UIHelper.createDocument = true;
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("取消"))
+                if (ImGuiExt.Button("Cancel"))
                 {
                     ImGui.CloseCurrentPopup();
                 }

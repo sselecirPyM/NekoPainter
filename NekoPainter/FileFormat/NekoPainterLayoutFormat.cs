@@ -16,17 +16,6 @@ namespace NekoPainter.FileFormat
             var stream = file.OpenWrite();
             TiledTexture tex0 = null;
             int count;
-            //if (standardLayout.activated)
-            //{
-            //    tex0 = new TiledTexture(document.PaintingTexture);
-            //    count = tex0.tilesCount;
-            //}
-            //else if (standardLayout.tiledTexture != null)
-            //{
-            //    tex0 = new TiledTexture(standardLayout.tiledTexture);
-            //    count = tex0.tilesCount;
-            //}
-            //else
             if (document.LayoutTex.TryGetValue(layout.guid, out var tiledTexture))
             {
                 tex0 = new TiledTexture(tiledTexture);
@@ -60,7 +49,7 @@ namespace NekoPainter.FileFormat
 
         }
 
-        public static Guid LoadFromFileAsync(LivedNekoPainterDocument document, FileInfo file)
+        public static Guid LoadFromFile(LivedNekoPainterDocument document, FileInfo file)
         {
             var stream = file.OpenRead();
             BinaryReader reader = new BinaryReader(stream);

@@ -33,6 +33,8 @@ namespace NekoPainter.Core
 
         public Vector4 Color = Vector4.One;
 
+        public string DataPath = "";
+
         public PictureLayout(PictureLayout pictureLayout)
         {
             BlendMode = pictureLayout.BlendMode;
@@ -73,14 +75,15 @@ namespace NekoPainter.Core
 
         }
 
-        public PictureDataSource DataSource;
+        public LayoutDataSource DataSource;
 
         public bool saved = false;
     }
 
-    public enum PictureDataSource
+    public enum LayoutDataSource
     {
         Default,
         Color,
+        Image,
     }
 }

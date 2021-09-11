@@ -14,27 +14,26 @@ namespace NekoPainter.FileFormat
 {
     public class NekoPainterDocument
     {
-        public NekoPainterDocument(DeviceResources deviceResources, DirectoryInfo caseFolder)
+        public NekoPainterDocument(DeviceResources deviceResources, DirectoryInfo folder)
         {
-            Folder = caseFolder;
             this.DeviceResources = deviceResources;
+            Folder = folder;
         }
 
-        public DirectoryInfo Folder;
         DeviceResources DeviceResources;
         public LivedNekoPainterDocument livedDocument;
+        public DirectoryInfo Folder;
         public DirectoryInfo blendModesFolder;
         public DirectoryInfo brushesFolder;
-
         public DirectoryInfo layoutsFolder;
 
         Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
 
         public void Create(int width, int height, string name)
         {
-            blendModesFolder = Directory.CreateDirectory(Folder + "/BlendModes");
-            brushesFolder = Directory.CreateDirectory(Folder + "/Brushes");
-            layoutsFolder = Directory.CreateDirectory(Folder + "/Layouts");
+            blendModesFolder = Folder.CreateSubdirectory("BlendModes");
+            brushesFolder = Folder.CreateSubdirectory("Brushes");
+            layoutsFolder = Folder.CreateSubdirectory("Layouts");
 
             livedDocument = new LivedNekoPainterDocument(DeviceResources, width, height, Folder.FullName);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
@@ -48,9 +47,9 @@ namespace NekoPainter.FileFormat
 
         public void Load()
         {
-            blendModesFolder = Directory.CreateDirectory(Folder + "/BlendModes");
-            brushesFolder = Directory.CreateDirectory(Folder + "/Brushes");
-            layoutsFolder = Directory.CreateDirectory(Folder + "/Layouts");
+            blendModesFolder = Folder.CreateSubdirectory("BlendModes");
+            brushesFolder = Folder.CreateSubdirectory("Brushes");
+            layoutsFolder = Folder.CreateSubdirectory("Layouts");
 
             LoadDocInfo();
 
@@ -80,12 +79,16 @@ namespace NekoPainter.FileFormat
                     Parameters = layout.parameters.Count > 0 ? new List<Core.ParameterN>(layout.parameters.Values) : null,
                 });
             }
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-            jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            string json = JsonConvert.SerializeObject(layoutInfos, jsonSerializerSettings);
-            StreamWriter writer1 = new StreamWriter(layoutsInfoStream);
-            writer1.Write(json);
-            writer1.Dispose();
+            JsonSerializer jsonSerializer = new JsonSerializer();
+            jsonSerializer.NullValueHandling = NullValueHandling.Ignore;
+            jsonSerializer.Converters.Add(new VectorConverter());
+            jsonSerializer.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+
+            using (StreamWriter writer1 = new StreamWriter(layoutsInfoStream))
+            using (JsonTextWriter jsonWriter = new JsonTextWriter(writer1))
+            {
+                jsonSerializer.Serialize(jsonWriter, layoutInfos);
+            }
             layoutsInfoStream.Dispose();
 
             foreach (var layout in livedDocument.Layouts)
@@ -94,7 +97,6 @@ namespace NekoPainter.FileFormat
                 {
                     if (!layoutFileMap.TryGetValue(layout.guid, out var storageFile))
                     {
-                        //storageFile = await layoutsFolder.CreateFileAsync(, CreationCollisionOption.ReplaceExisting);
                         storageFile = new FileInfo(Path.Combine(layoutsFolder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
                         layoutFileMap[layout.guid] = storageFile;
                     }
@@ -142,7 +144,7 @@ namespace NekoPainter.FileFormat
             foreach (var layoutFile in layoutFiles)
             {
                 if (!".dclf".Equals(layoutFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                Guid guid = NekoPainterLayoutFormat.LoadFromFileAsync(livedDocument, layoutFile);
+                Guid guid = NekoPainterLayoutFormat.LoadFromFile(livedDocument, layoutFile);
                 layoutFileMap[guid] = layoutFile;
             }
 
@@ -152,7 +154,7 @@ namespace NekoPainter.FileFormat
 
             var reader = new StreamReader(settingsStream);
 
-            List<_PictureLayoutSave> layouts = JsonConvert.DeserializeObject<List<_PictureLayoutSave>>(reader.ReadToEnd());
+            List<_PictureLayoutSave> layouts = JsonConvert.DeserializeObject<List<_PictureLayoutSave>>(reader.ReadToEnd(), new VectorConverter(), new Newtonsoft.Json.Converters.StringEnumConverter());
 
             if (layouts != null)
             {
@@ -214,10 +216,16 @@ namespace NekoPainter.FileFormat
 
         private void LoadDocInfo()
         {
+            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
+            jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            jsonSerializerSettings.Converters.Add(new VectorConverter());
+            jsonSerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+
             FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
             StreamReader reader = new StreamReader(settingsStream);
-            _DCDocument document = JsonConvert.DeserializeObject<_DCDocument>(reader.ReadToEnd());
+
+            _DCDocument document = JsonConvert.DeserializeObject<_DCDocument>(reader.ReadToEnd(), jsonSerializerSettings);
             livedDocument = new LivedNekoPainterDocument(DeviceResources, document.Width, document.Height, Folder.FullName);
             livedDocument.Name = document.Name;
             livedDocument.Description = document.Description;
@@ -230,6 +238,8 @@ namespace NekoPainter.FileFormat
         {
             JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
             jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            jsonSerializerSettings.Converters.Add(new VectorConverter());
+            jsonSerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
 
             FileInfo SettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = SettingsFile.OpenWrite();
@@ -282,8 +292,8 @@ namespace NekoPainter.FileFormat
         public bool Hidden;
         [DefaultValue(1.0f)]
         public float Alpha = 1.0f;
-        [DefaultValue(PictureDataSource.Default)]
-        public PictureDataSource DataSource;
+        [DefaultValue(LayoutDataSource.Default)]
+        public LayoutDataSource DataSource;
 
         public Vector4 Color;
 

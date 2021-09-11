@@ -91,7 +91,7 @@
     <None Remove="DCResources\Plugin\Brushes\DC Ring2.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Ring2.png" />
     <None Remove="DCResources\Plugin\Brushes\DC Ring2G.png" />
-    <None Remove="UI\DCUI_Canvas.xaml" />
+    <None Remove="Strings\zh-cn\UITranslations.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -291,6 +291,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\brush_c2.hlsl" />
+    <Content Include="Strings\zh-cn\UITranslations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Strings\zh-cn\EnumTransations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

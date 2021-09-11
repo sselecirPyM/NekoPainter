@@ -74,9 +74,11 @@ namespace NekoPainter
             imguiInputHandler.Update();
             UIHelper.OnFrame();
             appController.CanvasRender();
+            if(UIHelper.quit)
+            {
+                PostQuitMessage(0);
+            }
         }
-
-        bool leftButtonDown = false;
 
         public bool ProcessMessage(uint msg, UIntPtr wParam, IntPtr lParam)
         {
@@ -118,8 +120,6 @@ namespace NekoPainter
             int y = Utils.Hiword((int)lParam);
 
             var _wparam = (uint)wParam;
-            if ((_wparam & 0x1) != 0)
-                leftButtonDown = true;
             switch ((WindowMessage)msg)
             {
                 case WindowMessage.LButtonDown:

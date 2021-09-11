@@ -22,7 +22,6 @@ namespace NekoPainter
             DeviceResources = device;
             RenderTarget = new RenderTexture[1];
 
-            //SelectionMaskTexture = new RenderTexture(device, canvasWidth, canvasHeight, RenderTextureFormat.RENDERTEXTURE_FORMAT_R8_UNORM, false);
             this.Path = path;
             SizeChange(width, height);
 
@@ -31,7 +30,7 @@ namespace NekoPainter
             PaintAgent.SetPaintTarget(PaintingTexture, PaintingTextureBackup);
             PaintAgent.UndoManager = UndoManager;
 
-            Layouts = new ObservableCollection<PictureLayout>();
+            Layouts = new List<PictureLayout>();
             ViewRenderer = new ViewRenderer(this);
         }
 
@@ -105,28 +104,24 @@ namespace NekoPainter
         {
             PictureLayout pictureLayout = Layouts[index];
             PictureLayout newPictureLayout = null;
-            if (pictureLayout is PictureLayout standardLayout)
+            TiledTexture tiledTexture = null;
+            LayoutTex.TryGetValue(pictureLayout.guid, out var standardLayouttiledTexture);
+
+            if (PaintAgent.CurrentLayout == pictureLayout)
             {
-                TiledTexture tiledTexture = null;
-                LayoutTex.TryGetValue(standardLayout.guid, out var standardLayouttiledTexture);
-
-                if (PaintAgent.CurrentLayout == standardLayout)
-                {
-                    tiledTexture = new TiledTexture(PaintingTexture);
-                }
-                else if (standardLayouttiledTexture != null)
-                {
-                    tiledTexture = new TiledTexture(standardLayouttiledTexture);
-                }
-
-                newPictureLayout = new PictureLayout(standardLayout)
-                {
-                    Name = string.Format("{0} 复制", standardLayout.Name),
-                    //tiledTexture = tiledTexture,
-                };
-
-                LayoutTex[newPictureLayout.guid] = tiledTexture;
+                tiledTexture = new TiledTexture(PaintingTexture);
             }
+            else if (standardLayouttiledTexture != null)
+            {
+                tiledTexture = new TiledTexture(standardLayouttiledTexture);
+            }
+
+            newPictureLayout = new PictureLayout(pictureLayout)
+            {
+                Name = string.Format("{0} 复制", pictureLayout.Name),
+            };
+
+            LayoutTex[newPictureLayout.guid] = tiledTexture;
             Layouts.Insert(index, newPictureLayout);
             UndoManager.AddUndoData(new CMD_DeleteLayout(newPictureLayout, this, index));
             return newPictureLayout;
@@ -172,7 +167,7 @@ namespace NekoPainter
         #region Members
         public int Width { get; private set; }
         public int Height { get; private set; }
-        public readonly ObservableCollection<PictureLayout> Layouts;
+        public readonly List<PictureLayout> Layouts;
         public readonly Dictionary<System.Guid, PictureLayout> LayoutsMap = new Dictionary<System.Guid, PictureLayout>();
         public readonly Dictionary<System.Guid, TiledTexture> LayoutTex = new Dictionary<System.Guid, TiledTexture>();
         /// <summary>
@@ -189,7 +184,6 @@ namespace NekoPainter
         public RenderTexture PaintingTextureBackup;
         public RenderTexture PaintingTextureTemp;
 
-        //public RenderTexture SelectionMaskTexture;
         /// <summary>
         /// 此案例中的撤销/重做管理器
         /// </summary>

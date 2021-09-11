@@ -34,7 +34,7 @@ namespace NekoPainter
                 livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
                 if (livedDocument.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
                 {
-                    if (selectedLayout.DataSource == PictureDataSource.Color)
+                    if (selectedLayout.DataSource == LayoutDataSource.Color)
                     {
                         blendMode?.BlendPure(RenderTarget[0], constantBuffer1, ofs, 256);
                     }

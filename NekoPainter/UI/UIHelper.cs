@@ -26,6 +26,8 @@ namespace NekoPainter.UI
         public static bool openDocument;
         public static string openDocumentPath = "";
 
+        public static bool quit;
+
         public static void OnFrame()
         {
             //if (selectFolder.SetFalse())

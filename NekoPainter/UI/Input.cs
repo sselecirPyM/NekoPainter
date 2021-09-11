@@ -49,7 +49,6 @@ namespace NekoPainter.UI
         public static ConcurrentQueue<InputData> inputDatas = new ConcurrentQueue<InputData>();
         public static bool uiMouseCapture = false;
         public static Vector2 mousePos;
-        public static Vector2 mousePreviousPos;
         public static float deltaWheel;
         public static ConcurrentQueue<PenInputData> penInputData = new ConcurrentQueue<PenInputData>();
         public static ConcurrentQueue<PenInputData> penInputData1 = new ConcurrentQueue<PenInputData>();

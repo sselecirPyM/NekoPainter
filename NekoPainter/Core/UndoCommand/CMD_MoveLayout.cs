@@ -1,9 +1,9 @@
-﻿using NekoPainter.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NekoPainter.Util;
 
 namespace NekoPainter.Undo
 {
@@ -13,7 +13,7 @@ namespace NekoPainter.Undo
         readonly int indexBefore;
         readonly int indexAfter;
 
-        public CMD_MoveLayout(LivedNekoPainterDocument document,int indexBefore,int indexAfter)
+        public CMD_MoveLayout(LivedNekoPainterDocument document, int indexBefore, int indexAfter)
         {
             this.document = document;
             this.indexBefore = indexBefore;

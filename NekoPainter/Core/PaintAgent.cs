@@ -56,49 +56,46 @@ namespace NekoPainter
             BrushSize = currentBrush.Size;
         }
 
-        public bool DrawBegin(PenInputData penInputData)
-        {
-            if (CurrentLayout == null || currentBrush == null) { return false; }
-            inputPointerDatas.Enqueue(new InputPointerData { PointerData = GetBrushData(penInputData.point, penInputData.pointerPoint), KeyDown = true });
-            return true;
-        }
         public bool Draw(PenInputData penInputData)
         {
             if (CurrentLayout == null || currentBrush == null) { return false; }
-            inputPointerDatas.Enqueue(new InputPointerData { PointerData = GetBrushData(penInputData.point, penInputData.pointerPoint) });
+            inputPointerDatas.Enqueue(new InputPointerData { PointerData = GetBrushData(penInputData.point, penInputData.pointerPoint), penInputFlag = penInputData.penInputFlag });
             return true;
         }
-        public bool DrawEnd(PenInputData penInputData)
-        {
-            if (CurrentLayout == null || currentBrush == null) { return false; }
-            inputPointerDatas.Enqueue(new InputPointerData { PointerData = GetBrushData(penInputData.point, penInputData.pointerPoint), keyUp = true });
-            return true;
-        }
-
+        Stroke stroke;
         public void Process()
         {
             while (inputPointerDatas.TryDequeue(out var inputPointerData))
             {
                 Vector2 position = inputPointerData.PointerData.Position;
-                if (inputPointerData.KeyDown)
+                if (inputPointerData.penInputFlag == PenInputFlag.Begin)
                 {
                     drawPrevPos = position;
+                    stroke = new Stroke() { position = new List<Vector2>(), deltaTime = new List<float>(), startTime = DateTime.Now };
                     FillPointerData(inputPointerData);
                 }
+                stroke.deltaTime.Add(0);
+                stroke.position.Add(position);
+                if (inputPointerData.penInputFlag == PenInputFlag.End)
+                {
+                    document.Strokes.Add(stroke);
+                    stroke = null;
+                }
+
                 UpdateBrushData2(inputPointerData);
                 CurrentLayout.saved = false;
                 List<Int2> tilesCovered = GetPaintingTiles(drawPrevPos, position, out TileRect coveredRect);
                 currentBrush.CheckBrush(document.DeviceResources);
                 if (tilesCovered.Count != 0)
                 {
-                    if (inputPointerData.KeyDown)
+                    if (inputPointerData.penInputFlag == PenInputFlag.Begin)
                         ComputeBrush(currentBrush.cBegin, tilesCovered);
-                    else if (inputPointerData.keyUp)
+                    else if (inputPointerData.penInputFlag == PenInputFlag.End)
                         ComputeBrush(currentBrush.cEnd, tilesCovered);
                     else
                         ComputeBrush(currentBrush.cDoing, tilesCovered);
                 }
-                if (inputPointerData.keyUp)
+                if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     List<Int2> paintCoveredTiles = new List<Int2>();
                     for (int i = 0; i < _mapForUndoCount; i++)
@@ -299,8 +296,7 @@ namespace NekoPainter
         public struct InputPointerData
         {
             public PointerData PointerData;
-            public bool KeyDown;
-            public bool keyUp;
+            public PenInputFlag penInputFlag;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]

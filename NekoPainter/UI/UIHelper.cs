@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NekoPainter.Util;
 using NekoPainter.Controller;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace NekoPainter.UI
 {
@@ -30,10 +31,12 @@ namespace NekoPainter.UI
 
         public static void OnFrame()
         {
-            //if (selectFolder.SetFalse())
-            //{
-            //    folder = await OpenResourceFolder();
-            //}
+            if (selectFolder.SetFalse())
+            {
+                string path = OpenResourceFolder();
+                if (!string.IsNullOrEmpty(path))
+                    folder = new DirectoryInfo(path);
+            }
             //if (selectSaveFile.SetFalse())
             //{
             //    var picker = new FileSavePicker()
@@ -71,6 +74,17 @@ namespace NekoPainter.UI
                 AppController.Instance.CurrentDCDocument.Save();
             }
         }
+        [DllImport("Comdlg32.dll", SetLastError = true, ThrowOnUnmappableChar = true, CharSet = CharSet.Auto)]
+        public static extern bool GetOpenFileName([In, Out] FileOpenDialog ofn);
+
+        [DllImport("Comdlg32.dll", SetLastError = true, ThrowOnUnmappableChar = true, CharSet = CharSet.Auto)]
+        public static extern bool GetSaveFileName([In, Out] FileOpenDialog ofn);
+
+        [DllImport("shell32.dll", SetLastError = true, ThrowOnUnmappableChar = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr SHBrowseForFolder([In, Out] OpenDialogDir ofn);
+
+        [DllImport("shell32.dll", SetLastError = true, ThrowOnUnmappableChar = true, CharSet = CharSet.Auto)]
+        public static extern bool SHGetPathFromIDList([In] IntPtr pidl, [In, Out] char[] fileName);
 
         //public static async Task<StorageFolder> OpenFolder(string identifier)
         //{
@@ -88,21 +102,60 @@ namespace NekoPainter.UI
         //    return folder;
         //}
 
-        //public static async Task<StorageFolder> OpenResourceFolder()
-        //{
-        //    FolderPicker folderPicker = new FolderPicker()
-        //    {
-        //        FileTypeFilter =
-        //        {
-        //            "*"
-        //        },
-        //        SuggestedStartLocation = PickerLocationId.ComputerFolder,
-        //        ViewMode = PickerViewMode.Thumbnail,
-        //        SettingsIdentifier = "ResourceFolder",
-        //    };
-        //    StorageFolder folder = await folderPicker.PickSingleFolderAsync();
-        //    if (folder == null) return null;
-        //    return folder;
-        //}
+        public static string OpenResourceFolder()
+        {
+            OpenDialogDir openDialogDir = new OpenDialogDir();
+            openDialogDir.pszDisplayName = new string(new char[2000]);
+            openDialogDir.lpszTitle = "Open Project";
+            IntPtr pidlPtr = SHBrowseForFolder(openDialogDir);
+            char[] charArray = new char[2000];
+            Array.Fill(charArray, '\0');
+
+            SHGetPathFromIDList(pidlPtr, charArray);
+            int length = Array.IndexOf(charArray, '\0');
+            string fullDirPath = new String(charArray, 0, length);
+
+            return fullDirPath;
+        }
     }
+}
+
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+public class FileOpenDialog
+{
+    public int structSize = 0;
+    public IntPtr dlgOwner = IntPtr.Zero;
+    public IntPtr instance = IntPtr.Zero;
+    public String filter = null;
+    public String customFilter = null;
+    public int maxCustFilter = 0;
+    public int filterIndex = 0;
+    public String file = null;
+    public int maxFile = 0;
+    public String fileTitle = null;
+    public int maxFileTitle = 0;
+    public String initialDir = null;
+    public String title = null;
+    public int flags = 0;
+    public short fileOffset = 0;
+    public short fileExtension = 0;
+    public String defExt = null;
+    public IntPtr custData = IntPtr.Zero;
+    public IntPtr hook = IntPtr.Zero;
+    public String templateName = null;
+    public IntPtr reservedPtr = IntPtr.Zero;
+    public int reservedInt = 0;
+    public int flagsEx = 0;
+}
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+public class OpenDialogDir
+{
+    public IntPtr hwndOwner = IntPtr.Zero;
+    public IntPtr pidlRoot = IntPtr.Zero;
+    public String pszDisplayName = null;
+    public String lpszTitle = null;
+    public UInt32 ulFlags = 0;
+    public IntPtr lpfn = IntPtr.Zero;
+    public IntPtr lParam = IntPtr.Zero;
+    public int iImage = 0;
 }

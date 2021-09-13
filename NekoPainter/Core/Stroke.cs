@@ -9,7 +9,9 @@ namespace NekoPainter.Core
 {
     public class Stroke
     {
-        public List<Vector2> positions;
-        public List<float> deltas;
+        public List<Vector2> position;
+        public List<float> deltaTime;
+        public List<float> presure;
+        public DateTime startTime;
     }
 }

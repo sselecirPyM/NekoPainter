@@ -298,13 +298,9 @@ namespace NekoPainter.UI
                             switch (penInput.penInputFlag)
                             {
                                 case PenInputFlag.Begin:
-                                    paintAgent.DrawBegin(penInput);
-                                    break;
                                 case PenInputFlag.Drawing:
-                                    paintAgent.Draw(penInput);
-                                    break;
                                 case PenInputFlag.End:
-                                    paintAgent.DrawEnd(penInput);
+                                    paintAgent.Draw(penInput);
                                     break;
                             }
                         }
@@ -481,12 +477,11 @@ namespace NekoPainter.UI
             {
                 if (UIHelper.folder != null)
                 {
-                    CreateDocumentParameters.Folder = UIHelper.folder.FullName;
+                    UIHelper.openDocumentPath = UIHelper.folder.FullName;
                     UIHelper.folder = null;
                 }
                 ImGui.SetNextItemWidth(200);
                 ImGui.InputText("path", ref UIHelper.openDocumentPath, 260);
-
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Browse"))
                 {
@@ -525,10 +520,7 @@ namespace NekoPainter.UI
                     UIHelper.folder = null;
                 }
                 ImGui.SetNextItemWidth(200);
-                if (CreateDocumentParameters.Folder != null)
-                    ImGui.InputText("path", ref CreateDocumentParameters.Folder, 260);
-                else
-                    ImGui.InputText("path", ref CreateDocumentParameters.Folder, 260);
+                ImGui.InputText("path", ref CreateDocumentParameters.Folder, 260);
 
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Browse"))

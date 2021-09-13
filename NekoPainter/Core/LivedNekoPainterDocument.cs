@@ -6,7 +6,6 @@ using System.IO.Compression;
 using CanvasRendering;
 using System.Collections.ObjectModel;
 using NekoPainter.Undo;
-using NotifyCollectionChangedAction = System.Collections.Specialized.NotifyCollectionChangedAction;
 using System.ComponentModel;
 using Vortice.DXGI;
 
@@ -127,19 +126,19 @@ namespace NekoPainter
             return newPictureLayout;
         }
 
-        public PictureLayout CopyBuffer(int insertIndex)
-        {
-            PictureLayout pictureLayout = new PictureLayout()
-            {
-                BlendMode = DefaultBlendMode,
-                guid = System.Guid.NewGuid(),
-                Name = string.Format("图层 {0}", Layouts.Count + 1)
-            };
-            LayoutTex[pictureLayout.guid] = new TiledTexture(RenderTarget[0]);
-            Layouts.Insert(insertIndex, pictureLayout);
-            UndoManager.AddUndoData(new CMD_DeleteLayout(pictureLayout, this, insertIndex));
-            return pictureLayout;
-        }
+        //public PictureLayout CopyBuffer(int insertIndex)
+        //{
+        //    PictureLayout pictureLayout = new PictureLayout()
+        //    {
+        //        BlendMode = DefaultBlendMode,
+        //        guid = System.Guid.NewGuid(),
+        //        Name = string.Format("图层 {0}", Layouts.Count + 1)
+        //    };
+        //    LayoutTex[pictureLayout.guid] = new TiledTexture(RenderTarget[0]);
+        //    Layouts.Insert(insertIndex, pictureLayout);
+        //    UndoManager.AddUndoData(new CMD_DeleteLayout(pictureLayout, this, insertIndex));
+        //    return pictureLayout;
+        //}
 
         /// <summary>
         /// 设置混合模式并加入撤销
@@ -209,6 +208,7 @@ namespace NekoPainter
 
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
         public Dictionary<System.Guid, Core.BlendMode> blendmodesMap = new Dictionary<System.Guid, Core.BlendMode>();
+        public List<Stroke> Strokes = new List<Stroke>();
 
         public float logicScale = 1.0f;
         public float rotation = 0.0f;

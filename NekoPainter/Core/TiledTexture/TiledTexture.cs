@@ -33,7 +33,7 @@ namespace NekoPainter
 
         public TiledTexture(RenderTexture tex)
         {
-            deviceResources = tex.GetDeviceResources();
+            deviceResources = tex.GetDevice();
             int width = tex.width;
             int height = tex.height;
             int x = (width + 31) / 32;
@@ -61,9 +61,9 @@ namespace NekoPainter
             tilesCount = TilePositionList.Count;
             if (tilesCount == 0) return;
 
-            BlocksData = new ComputeBuffer(tex.GetDeviceResources(), tilesCount, 1024);
+            BlocksData = new ComputeBuffer(tex.GetDevice(), tilesCount, 1024);
 
-            BlocksOffsetsData = new ComputeBuffer(tex.GetDeviceResources(), tilesCount, 8, TilePositionList.ToArray());
+            BlocksOffsetsData = new ComputeBuffer(tex.GetDevice(), tilesCount, 8, TilePositionList.ToArray());
 
             Texture2TT.SetSRV(tex, 0);
             Texture2TT.SetSRV(BlocksOffsetsData, 1);
@@ -74,7 +74,7 @@ namespace NekoPainter
         }
         public TiledTexture(RenderTexture tex, List<Int2> tiles)
         {
-            deviceResources = tex.GetDeviceResources();
+            deviceResources = tex.GetDevice();
             tilesCount = tiles.Count;
             BlocksData = new ComputeBuffer(deviceResources, tilesCount, 1024);
             BlocksOffsetsData = new ComputeBuffer(deviceResources, tilesCount, 8, tiles.ToArray());

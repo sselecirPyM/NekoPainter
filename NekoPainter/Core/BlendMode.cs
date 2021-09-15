@@ -18,7 +18,6 @@ namespace NekoPainter.Core
             csBlend = cX;
         }
         static string[] componentCode = new string[c_csBlendCount];
-        public const int c_parameterCount = 32;
         //const int c_csBlendCount = 7;
         const int c_csBlendCount = 6;
 
@@ -133,7 +132,7 @@ namespace NekoPainter.Core
         {
             if (part == null || part.Count == 0) return;
             int z = (part.Count + 15) / 16;
-            ComputeBuffer buf_Part = new ComputeBuffer(source.GetDeviceResources(), part.Count, 8, part.ToArray());
+            ComputeBuffer buf_Part = new ComputeBuffer(source.GetDevice(), part.Count, 8, part.ToArray());
             csBlend[2].SetSRV(source, 0);
             csBlend[2].SetSRV(buf_Part, 1);
             csBlend[2].SetUAV(target, 0);
@@ -201,7 +200,7 @@ namespace NekoPainter.Core
         {
             if (part == null || part.Count == 0) return;
             int z = (part.Count + 15) / 16;
-            ComputeBuffer buf_Part = new ComputeBuffer(target.GetDeviceResources(), part.Count, 8, part.ToArray());
+            ComputeBuffer buf_Part = new ComputeBuffer(target.GetDevice(), part.Count, 8, part.ToArray());
             csBlend[5].SetSRV(buf_Part, 0);
             csBlend[5].SetUAV(target, 0);
             csBlend[5].SetCBV(parametersData, 0, ofs, size);
@@ -224,8 +223,6 @@ namespace NekoPainter.Core
         //}
 
         private readonly ComputeShader[] csBlend = new ComputeShader[c_csBlendCount];
-
-        //public DCParameter[] Parameters = new DCParameter[c_parameterCount];
 
         public string Name { get; set; }
         public string Description { get; set; }

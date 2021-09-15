@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using CanvasRendering;
 using Color = System.Numerics.Vector4;
 using System.Runtime.InteropServices;
-using System.ComponentModel;
-using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
 using NekoPainter.UI;
 using NekoPainter.Util;
 using System.IO;
+using NekoPainter.Nodes;
+using NekoPainter.Core.UndoCommand;
 
 namespace NekoPainter
 {
@@ -23,26 +23,12 @@ namespace NekoPainter
         public PaintAgent(LivedNekoPainterDocument document)
         {
             this.document = document;
-            MemoryStream memoryStream = new MemoryStream(brushData1);
-            brushDataWriter = new BinaryWriterPlus(memoryStream);
         }
 
         public void SetPaintTarget(RenderTexture target, RenderTexture targetBackup)
         {
             PaintingTexture = target;
             PaintingTextureBackup = targetBackup;
-            _width = PaintingTexture.width;
-            _height = PaintingTexture.height;
-
-            int pTilesX = (_width + 31) / 32;
-            int pTilesY = (_height + 31) / 32;
-            paintTilesBuffer?.Dispose();
-            paintTilesBuffer = new ComputeBuffer(document.DeviceResources, pTilesX * pTilesY, 8);
-            brushDataBuffer?.Dispose();
-            brushDataBuffer = new ConstantBuffer(document.DeviceResources, brushData1.Length);
-            _mapForUndoStride = (_width + 7) / 8 + 4;
-            _mapForUndoCount = _mapForUndoStride * (((_height + 7) / 8) + 4);
-            mapForUndo = new BitArray(_mapForUndoCount);
         }
         /// <summary>
         /// 设置当前使用的笔刷。
@@ -71,43 +57,59 @@ namespace NekoPainter
                 if (inputPointerData.penInputFlag == PenInputFlag.Begin)
                 {
                     drawPrevPos = position;
-                    stroke = new Stroke() { position = new List<Vector2>(), deltaTime = new List<float>(), startTime = DateTime.Now };
-                    FillPointerData(inputPointerData);
+                    stroke = new Stroke()
+                    {
+                        position = new List<Vector2>(),
+                        deltaTime = new List<float>(),
+                        presure = new List<float>(),
+                        startTime = DateTime.Now
+                    };
+                    if (CurrentLayout.graph == null)
+                    {
+                        CurrentLayout.graph = new Graph();
+                        CurrentLayout.graph.Initialize();
+                    }
+                    var graph = CurrentLayout.graph;
+                    Paint2DNode paint2dNode = new Paint2DNode();
+                    paint2dNode.color = _color;
+                    paint2dNode.color2 = _color2;
+                    paint2dNode.color3 = _color3;
+                    paint2dNode.color4 = _color4;
+                    paint2dNode.size = BrushSize;
+                    paint2dNode.brushPath = currentBrush.path;
+                    StrokeNode strokeNode = new StrokeNode();
+                    strokeNode.stroke = stroke;
+                    graph.AddNode(paint2dNode);
+                    graph.AddNode(strokeNode);
+                    graph.Link(strokeNode, "context", paint2dNode, "stroke");
+                    if (graph.Nodes.ContainsKey(graph.outputNode))
+                        graph.Link(graph.Nodes[graph.outputNode], "context", paint2dNode, "context");
+
+                    var removeNode = new CMD_Remove_RecoverNodes();
+                    removeNode.graph = CurrentLayout.graph;
+                    removeNode.removeNodes = new List<int>() { paint2dNode.Luid, strokeNode.Luid };
+                    removeNode.setOutputNode = graph.outputNode;
+                    UndoManager.AddUndoData(removeNode);
+
+                    graph.outputNode = paint2dNode.Luid;
                 }
                 stroke.deltaTime.Add(0);
                 stroke.position.Add(position);
+                stroke.presure.Add(0.5f);
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     document.Strokes.Add(stroke);
+
                     stroke = null;
                 }
 
-                UpdateBrushData2(inputPointerData);
                 CurrentLayout.saved = false;
-                List<Int2> tilesCovered = GetPaintingTiles(drawPrevPos, position, out TileRect coveredRect);
+
+
                 currentBrush.CheckBrush(document.DeviceResources);
-                if (tilesCovered.Count != 0)
-                {
-                    if (inputPointerData.penInputFlag == PenInputFlag.Begin)
-                        ComputeBrush(currentBrush.cBegin, tilesCovered);
-                    else if (inputPointerData.penInputFlag == PenInputFlag.End)
-                        ComputeBrush(currentBrush.cEnd, tilesCovered);
-                    else
-                        ComputeBrush(currentBrush.cDoing, tilesCovered);
-                }
+
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
-                    List<Int2> paintCoveredTiles = new List<Int2>();
-                    for (int i = 0; i < _mapForUndoCount; i++)
-                    {
-                        if (mapForUndo[i])
-                        {
-                            paintCoveredTiles.Add(new Int2((i % _mapForUndoStride) * 8, (i / _mapForUndoStride) * 8));
-                        }
-                    }
-                    if (paintCoveredTiles.Count != 0)
-                        UndoManager.AddUndoData(new Undo.CMD_TileReplace(CurrentLayout, new TiledTexture(PaintingTextureBackup, paintCoveredTiles), document));
-                    mapForUndo.SetAll(false);
                     PaintingTexture.CopyTo(PaintingTextureBackup);
 
                     if (document.LayoutTex.TryGetValue(CurrentLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
@@ -122,24 +124,7 @@ namespace NekoPainter
 
         public void Dispose()
         {
-            brushDataBuffer?.Dispose();
-            paintTilesBuffer?.Dispose();
-        }
 
-        byte[] brushData1 = new byte[64 * 8 + 208];
-
-        BinaryWriterPlus brushDataWriter;
-
-        ConstantBuffer brushDataBuffer;
-
-        PointerData[] pointerDatas = new PointerData[8];
-
-        void FillPointerData(InputPointerData inputPointerData)
-        {
-            for (int i = 0; i < pointerDatas.Length; i++)
-            {
-                pointerDatas[i] = inputPointerData.PointerData;
-            }
         }
 
         /// <summary>
@@ -175,44 +160,9 @@ namespace NekoPainter
 
         private Vector2 drawPrevPos;
 
-        private ComputeBuffer paintTilesBuffer;
-
         public UndoManager UndoManager;
 
         public List<Brush> brushes;
-
-        int _mapForUndoStride;
-        int _mapForUndoCount;
-        BitArray mapForUndo;
-        List<Int2> inRangeTiles = new List<Int2>(2048);
-        List<Int2> GetPaintingTiles(Vector2 start, Vector2 end, out TileRect rect)
-        {
-            inRangeTiles.Clear();
-            int minx = Math.Max((int)MathF.Min(start.X - BrushSize, end.X - BrushSize), 0);
-            int miny = Math.Max((int)MathF.Min(start.Y - BrushSize, end.Y - BrushSize), 0);
-            minx &= -32;
-            miny &= -32;
-            int maxx = Math.Min((int)MathF.Max(start.X + BrushSize, end.X + BrushSize), _width);
-            int maxy = Math.Min((int)MathF.Max(start.Y + BrushSize, end.Y + BrushSize), _height);
-
-            rect = new TileRect() { minX = minx, minY = miny, maxX = maxx + 32, maxY = maxy + 32 };
-
-            Vector2 NS2E = start - end;
-            Vector2 OSS2 = new Vector2(4.0f, 4.0f) - start;
-            Vector2 normalizedRS2E = Vector2.Normalize(new Vector2(NS2E.Y, -NS2E.X));
-
-            float sRange2 = BrushSize + 6f;//6大于4*sqrt2=5.656854
-
-            for (int x = minx; x < maxx; x += 8)
-                for (int y = miny; y < maxy; y += 8)
-                {
-                    if (MathF.Abs(Vector2.Dot(new Vector2(x, y) + OSS2, normalizedRS2E)) > sRange2) continue;
-                    Int2 vx = new Int2(x, y);
-                    mapForUndo[(vx.X / 8) % _mapForUndoStride + vx.Y / 8 * _mapForUndoStride] = true;
-                    inRangeTiles.Add(vx);
-                }
-            return inRangeTiles;
-        }
 
         public static PointerData GetBrushData(Vector2 position, NekoPainter.Core.PointerPoint pointerPoint)
         {
@@ -241,78 +191,26 @@ namespace NekoPainter
             return pointerData;
         }
 
-        void UpdateBrushData2(InputPointerData inputPointerData)
-        {
-            brushDataWriter.Seek(0, SeekOrigin.Begin);
-            brushDataWriter.Write(_color);
-            brushDataWriter.Write(_color2);
-            brushDataWriter.Write(_color3);
-            brushDataWriter.Write(_color4);
-            brushDataWriter.Write(BrushSize);
-            brushDataWriter.Write(new Vector3());
-
-            int ofs = 80;
-
-            for (int i = pointerDatas.Length - 1; i >= 1; i--)
-            {
-                pointerDatas[i] = pointerDatas[i - 1];
-            }
-            pointerDatas[0] = inputPointerData.PointerData;
-            MemoryMarshal.Cast<PointerData, byte>(pointerDatas).CopyTo(new Span<byte>(brushData1, ofs, 512));
-            ofs += 512;
-            brushDataWriter.Seek(592, SeekOrigin.Begin);
-
-            if (currentBrush.Parameters != null)
-                for (int i = 0; i < currentBrush.Parameters.Length; i++)
-                {
-                    if (currentBrush.Parameters[i].IsFloat)
-                        brushDataWriter.Write((float)currentBrush.Parameters[i].Value);
-                    else
-                        brushDataWriter.Write((int)currentBrush.Parameters[i].Value);
-                }
-            else
-            {
-
-            }
-
-            brushDataBuffer.UpdateResource<byte>(brushData1);
-
-        }
-        void ComputeBrush(ComputeShader c, List<Int2> tilesCovered)
-        {
-            ComputeBuffer tilesPos = new ComputeBuffer(PaintingTexture.GetDeviceResources(), tilesCovered.Count, 8, tilesCovered.ToArray());
-            c.SetSRV(tilesPos, 0);
-            c.SetCBV(brushDataBuffer, 0);
-            c.SetUAV(PaintingTexture, 0);
-
-            c.Dispatch(1, 1, tilesCovered.Count);
-            tilesPos.Dispose();
-        }
-
-        int _width;
-        int _height;
-
         public bool UseSelection = false;
-        public struct InputPointerData
-        {
-            public PointerData PointerData;
-            public PenInputFlag penInputFlag;
-        }
+    }
+    public struct InputPointerData
+    {
+        public PointerData PointerData;
+        public PenInputFlag penInputFlag;
+    }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        public struct PointerData
-        {
-            public uint FrameId;
-            public uint PointerId;
-            public ulong Timestamp;
-            public Vector2 Position;
-            public Vector2 PositionEx;
-            public Vector2 XYTilt;
-            public float Twist;
-            public float Pressure;
-            public float Orientation;
-            public float ZDistance;
-            public Vector2 Preserved;
-        }
+    public struct PointerData
+    {
+        public uint FrameId;
+        public uint PointerId;
+        public ulong Timestamp;
+        public Vector2 Position;
+        public Vector2 PositionEx;
+        public Vector2 XYTilt;
+        public float Twist;
+        public float Pressure;
+        public float Orientation;
+        public float ZDistance;
+        public Vector2 Preserved;
     }
 }

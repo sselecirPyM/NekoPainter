@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using NekoPainter.Core;
 
-namespace NekoPainter.Undo
+namespace NekoPainter.Core.UndoCommand
 {
     public class CMD_BlendModeChange : IUndoCommand
     {

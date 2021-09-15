@@ -13,12 +13,12 @@ namespace NekoPainter.Core
 {
     public class Brush : IDisposable, IComparable<Brush>
     {
-        public static Brush[] LoadFromFileAsync(FileInfo file)
+        public static Brush LoadFromFileAsync(FileInfo file)
         {
             Stream stream = file.OpenRead();
 
 
-            var brush1 = (BrushCode)xmlSerializer.Deserialize(stream);
+            var brush1 = (BrushSerialized)xmlSerializer.Deserialize(stream);
 
             StringBuilder fCode = new StringBuilder();
             fCode.Append(@"
@@ -31,7 +31,7 @@ cbuffer BrushData: register(b0)
                 float BrushSize;
                 int UseSelection;
                 float2 BrushDataPreserved;
-                InputInfo InputDatas[8];
+                InputInfo InputDatas[4];
 ");
             if (brush1.Parameters != null)
             {
@@ -50,11 +50,10 @@ cbuffer BrushData: register(b0)
             brush.Description = brush1.Description;
             brush.Size = brush1.BrushSize;
             brush.Parameters = brush1.Parameters;
-            Brush[] brushes = new Brush[1] { brush };
-            return brushes;
+            return brush;
         }
 
-        static XmlSerializer xmlSerializer = new XmlSerializer(typeof(BrushCode));
+        static XmlSerializer xmlSerializer = new XmlSerializer(typeof(BrushSerialized));
         static string componentCode1;
         static string appUsedCultureName;
 
@@ -71,19 +70,15 @@ cbuffer BrushData: register(b0)
 
         public void CheckBrush(DeviceResources device)
         {
-            if (cBegin == null)
+            if (shader == null)
             {
-                cBegin = ComputeShader.CompileAndCreate(device, Encoding.UTF8.GetBytes(componentCode1.Replace("#define codehere", generatedCode)));
-                cDoing = cBegin;
-                cEnd = cBegin;
+                shader = ComputeShader.CompileAndCreate(device, Encoding.UTF8.GetBytes(componentCode1.Replace("#define codehere", generatedCode)));
             }
         }
 
         public void Dispose()
         {
-            cBegin.Dispose();
-            cDoing.Dispose();
-            cEnd.Dispose();
+            shader.Dispose();
         }
 
         public int CompareTo(Brush other)
@@ -93,9 +88,7 @@ cbuffer BrushData: register(b0)
 
         public string generatedCode;
 
-        public ComputeShader cBegin;
-        public ComputeShader cDoing;
-        public ComputeShader cEnd;
+        public ComputeShader shader;
 
         public string Image;
 
@@ -105,9 +98,11 @@ cbuffer BrushData: register(b0)
 
         public string Name { get; set; }
         public string Description { get; set; }
+        [XmlIgnore]
+        public string path;
     }
     [XmlType("Brush")]
-    public class BrushCode
+    public class BrushSerialized
     {
         public string Name;
         public string Description;

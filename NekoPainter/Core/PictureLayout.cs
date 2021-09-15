@@ -2,9 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using CanvasRendering;
-using NekoPainter.Core;
-using System.ComponentModel;
 using System.Numerics;
+using NekoPainter.Nodes;
 
 namespace NekoPainter.Core
 {
@@ -74,6 +73,8 @@ namespace NekoPainter.Core
         {
 
         }
+
+        public Graph graph;
 
         public LayoutDataSource DataSource;
 

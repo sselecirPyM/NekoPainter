@@ -105,7 +105,7 @@ namespace CanvasRendering
             tex2d.Dispose();
         }
 
-        public DeviceResources GetDeviceResources()
+        public DeviceResources GetDevice()
         {
             return DeviceResources;
         }

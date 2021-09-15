@@ -1,15 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using NekoPainter.Core;
 using System.IO;
 using System.IO.Compression;
 using CanvasRendering;
 using System.Collections.ObjectModel;
-using NekoPainter.Undo;
+using NekoPainter.Core.UndoCommand;
 using System.ComponentModel;
 using Vortice.DXGI;
 
-namespace NekoPainter
+namespace NekoPainter.Core
 {
     public class LivedNekoPainterDocument : System.IDisposable
     {
@@ -145,7 +144,7 @@ namespace NekoPainter
         /// </summary>
         public void SetBlendMode(PictureLayout layout, BlendMode blendMode)
         {
-            UndoManager.AddUndoData(new Undo.CMD_BlendModeChange(layout, layout.BlendMode));
+            UndoManager.AddUndoData(new Core.UndoCommand.CMD_BlendModeChange(layout, layout.BlendMode));
             layout.BlendMode = blendMode.Guid;
         }
 
@@ -207,7 +206,8 @@ namespace NekoPainter
         public string Path = "";
 
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
-        public Dictionary<System.Guid, Core.BlendMode> blendmodesMap = new Dictionary<System.Guid, Core.BlendMode>();
+        public Dictionary<System.Guid, BlendMode> blendmodesMap = new Dictionary<System.Guid, BlendMode>();
+        public Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
         public List<Stroke> Strokes = new List<Stroke>();
 
         public float logicScale = 1.0f;

@@ -9,6 +9,7 @@ using CanvasRendering;
 using System.ComponentModel;
 using System.Numerics;
 using Newtonsoft.Json;
+using NekoPainter.Core.UndoCommand;
 
 namespace NekoPainter.FileFormat
 {
@@ -110,16 +111,16 @@ namespace NekoPainter.FileFormat
             }
             foreach (var cmd in livedDocument.UndoManager.undoStack)
             {
-                if (cmd is Undo.CMD_DeleteLayout delLCmd)
+                if (cmd is CMD_DeleteLayout delLCmd)
                     existLayoutGuids.Add(delLCmd.layout.guid);
-                else if (cmd is Undo.CMD_RecoverLayout recLCmd)
+                else if (cmd is CMD_RecoverLayout recLCmd)
                     existLayoutGuids.Add(recLCmd.layout.guid);
             }
             foreach (var cmd in livedDocument.UndoManager.redoStack)
             {
-                if (cmd is Undo.CMD_DeleteLayout delLCmd)
+                if (cmd is CMD_DeleteLayout delLCmd)
                     existLayoutGuids.Add(delLCmd.layout.guid);
-                else if (cmd is Undo.CMD_RecoverLayout recLCmd)
+                else if (cmd is CMD_RecoverLayout recLCmd)
                     existLayoutGuids.Add(recLCmd.layout.guid);
             }
             List<Guid> delFileGuids = new List<Guid>();
@@ -204,14 +205,17 @@ namespace NekoPainter.FileFormat
             foreach (var brushFile in brushFiles)
             {
                 if (!".dcbf".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var brushes = Core.Brush.LoadFromFileAsync(brushFile);
-                lock (brushesList)
-                {
-                    brushesList.AddRange(brushes);
-                }
+                var brush = Core.Brush.LoadFromFileAsync(brushFile);
+                brush.path = Path.GetRelativePath(Folder.FullName, brushFile.FullName);
+                brushesList.Add(brush);
             }
             brushesList.Sort();
             livedDocument.PaintAgent.brushes = new List<Core.Brush>(brushesList);
+            foreach (var brush in brushesList)
+            {
+                livedDocument.brushes.Add(brush.path, brush);
+            }
+
         }
 
         private void LoadDocInfo()

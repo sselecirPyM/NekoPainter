@@ -10,6 +10,7 @@ using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using NekoPainter.Util;
+using NekoPainter.Core;
 
 namespace NekoPainter.UI
 {
@@ -182,7 +183,7 @@ namespace NekoPainter.UI
                                 layouts[i] = layouts[n_next];
                                 layouts[n_next] = layout;
                                 ImGui.ResetMouseDragDelta();
-                                document.UndoManager.AddUndoData(new Undo.CMD_MoveLayout(document, i, n_next));
+                                document.UndoManager.AddUndoData(new Core.UndoCommand.CMD_MoveLayout(document, i, n_next));
                             }
                         }
                     }

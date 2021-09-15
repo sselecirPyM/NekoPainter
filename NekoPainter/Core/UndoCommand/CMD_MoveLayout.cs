@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NekoPainter.Util;
 
-namespace NekoPainter.Undo
+namespace NekoPainter.Core.UndoCommand
 {
     public class CMD_MoveLayout : IUndoCommand
     {

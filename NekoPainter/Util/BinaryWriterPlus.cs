@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -72,6 +73,27 @@ namespace NekoPainter.Util
             Write(mat4.M42);
             Write(mat4.M43);
             Write(mat4.M44);
+        }
+
+        byte[] temp = new byte[512];
+
+        public void Write<T>(T data) where T : unmanaged
+        {
+            MemoryMarshal.Write(temp, ref data);
+            int length = Marshal.SizeOf(typeof(T));
+            base.Write(new Span<byte>(temp, 0, length));
+        }
+
+        public void Write<T>(T[] data) where T : unmanaged
+        {
+            Span<byte> castData = MemoryMarshal.Cast<T, byte>(data);
+            base.Write(castData);
+        }
+
+        public void Write<T>(T[] data, int start, int length) where T : unmanaged
+        {
+            Span<byte> castData = MemoryMarshal.Cast<T, byte>(new Span<T>(data, start, length));
+            base.Write(castData);
         }
     }
 }

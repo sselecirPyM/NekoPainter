@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Numerics;
 using Newtonsoft.Json;
 using NekoPainter.Core.UndoCommand;
+using NekoPainter.Nodes;
 
 namespace NekoPainter.FileFormat
 {
@@ -29,6 +30,13 @@ namespace NekoPainter.FileFormat
         public DirectoryInfo layoutsFolder;
 
         Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
+
+        public static JsonConverter[] jsonConverters = new JsonConverter[]
+        {
+            new Newtonsoft.Json.Converters.StringEnumConverter(),
+            new VectorConverter(),
+
+        };
 
         public void Create(int width, int height, string name)
         {
@@ -74,22 +82,15 @@ namespace NekoPainter.FileFormat
                     BlendMode = layout.BlendMode,
                     Color = layout.Color,
                     DataSource = layout.DataSource,
+                    graph = layout.graph,
                     Guid = layout.guid,
                     Hidden = layout.Hidden,
                     Name = layout.Name,
                     Parameters = layout.parameters.Count > 0 ? new List<Core.ParameterN>(layout.parameters.Values) : null,
                 });
             }
-            JsonSerializer jsonSerializer = new JsonSerializer();
-            jsonSerializer.NullValueHandling = NullValueHandling.Ignore;
-            jsonSerializer.Converters.Add(new VectorConverter());
-            jsonSerializer.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
 
-            using (StreamWriter writer1 = new StreamWriter(layoutsInfoStream))
-            using (JsonTextWriter jsonWriter = new JsonTextWriter(writer1))
-            {
-                jsonSerializer.Serialize(jsonWriter, layoutInfos);
-            }
+            WriteJsonStream(layoutsInfoStream, layoutInfos);
             layoutsInfoStream.Dispose();
 
             foreach (var layout in livedDocument.Layouts)
@@ -152,10 +153,9 @@ namespace NekoPainter.FileFormat
             FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
+            List<_PictureLayoutSave> layouts = ReadJsonStream<List<_PictureLayoutSave>>(settingsStream);
 
-            var reader = new StreamReader(settingsStream);
-
-            List<_PictureLayoutSave> layouts = JsonConvert.DeserializeObject<List<_PictureLayoutSave>>(reader.ReadToEnd(), new VectorConverter(), new Newtonsoft.Json.Converters.StringEnumConverter());
+            settingsStream.Dispose();
 
             if (layouts != null)
             {
@@ -167,6 +167,7 @@ namespace NekoPainter.FileFormat
                         BlendMode = layout.BlendMode,
                         Color = layout.Color,
                         DataSource = layout.DataSource,
+                        graph = layout.graph,
                         guid = layout.Guid,
                         Hidden = layout.Hidden,
                         Name = layout.Name,
@@ -180,8 +181,6 @@ namespace NekoPainter.FileFormat
                     livedDocument.Layouts.Add(pictureLayout);
                 }
             }
-
-            settingsStream.Dispose();
         }
 
         private void LoadBlendmodes()
@@ -220,16 +219,10 @@ namespace NekoPainter.FileFormat
 
         private void LoadDocInfo()
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-            jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            jsonSerializerSettings.Converters.Add(new VectorConverter());
-            jsonSerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-
             FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
-            StreamReader reader = new StreamReader(settingsStream);
 
-            _DCDocument document = JsonConvert.DeserializeObject<_DCDocument>(reader.ReadToEnd(), jsonSerializerSettings);
+            _DCDocument document = ReadJsonStream<_DCDocument>(settingsStream);
             livedDocument = new LivedNekoPainterDocument(DeviceResources, document.Width, document.Height, Folder.FullName);
             livedDocument.Name = document.Name;
             livedDocument.Description = document.Description;
@@ -240,23 +233,17 @@ namespace NekoPainter.FileFormat
 
         private void SaveDocInfo()
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-            jsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            jsonSerializerSettings.Converters.Add(new VectorConverter());
-            jsonSerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-
             FileInfo SettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = SettingsFile.OpenWrite();
-            StreamWriter streamWriter = new StreamWriter(settingsStream);
-            streamWriter.Write(JsonConvert.SerializeObject(new _DCDocument()
+
+            WriteJsonStream(settingsStream, new _DCDocument()
             {
                 Name = livedDocument.Name,
                 Description = livedDocument.Description,
                 DefaultBlendMode = livedDocument.DefaultBlendMode,
                 Width = livedDocument.Width,
                 Height = livedDocument.Height,
-            }, jsonSerializerSettings));
-            streamWriter.Dispose();
+            });
             settingsStream.Dispose();
         }
 
@@ -272,6 +259,33 @@ namespace NekoPainter.FileFormat
             foreach (var file in dcBlendModes.GetFiles())
             {
                 file.CopyTo(blendModesFolder.FullName + "/" + file.Name);
+            }
+        }
+
+        T ReadJsonStream<T>(Stream stream)
+        {
+            JsonSerializer jsonSerializer = new JsonSerializer();
+            jsonSerializer.NullValueHandling = NullValueHandling.Ignore;
+            foreach (var converter in jsonConverters)
+                jsonSerializer.Converters.Add(converter);
+            using (StreamReader reader1 = new StreamReader(stream))
+            {
+                return jsonSerializer.Deserialize<T>(new JsonTextReader(reader1));
+            }
+        }
+
+        void WriteJsonStream(Stream stream, object serializingObject)
+        {
+            JsonSerializer jsonSerializer = new JsonSerializer();
+            jsonSerializer.NullValueHandling = NullValueHandling.Ignore;
+            jsonSerializer.DefaultValueHandling = DefaultValueHandling.Ignore;
+            foreach (var converter in jsonConverters)
+                jsonSerializer.Converters.Add(converter);
+
+            using (StreamWriter writer1 = new StreamWriter(stream))
+            using (JsonTextWriter jsonWriter = new JsonTextWriter(writer1))
+            {
+                jsonSerializer.Serialize(jsonWriter, serializingObject);
             }
         }
     }
@@ -300,6 +314,8 @@ namespace NekoPainter.FileFormat
         public LayoutDataSource DataSource;
 
         public Vector4 Color;
+
+        public Graph graph;
 
         public List<Core.ParameterN> Parameters;
     }

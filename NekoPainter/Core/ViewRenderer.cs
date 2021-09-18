@@ -46,6 +46,24 @@ namespace NekoPainter
                     {
                         blendMode?.BlendPure(RenderTarget[0], buffer, ofs, 256);
                     }
+                    else if (selectedLayout.generatePicture.SetFalse())
+                    {
+                        List<int> executeOrder;
+                        if (selectedLayout.graph != null)
+                        {
+                            PaintingTexture.Clear();
+                            if (selectedLayout.graph.Nodes.Count > 0)
+                            {
+                                executeOrder = ExecuteAll(selectedLayout.graph);
+                                ExecuteNodes(selectedLayout.graph, executeOrder);
+                            }
+                        }
+                        if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
+                        var tiledTexture2 = new TiledTexture(PaintingTexture);
+                        livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
+
+                        blendMode?.Blend(PaintingTexture, RenderTarget[0], buffer, ofs, 256);
+                    }
                     else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout)
                     {
                         List<int> executeOrder;
@@ -57,6 +75,13 @@ namespace NekoPainter
                                 executeOrder = ExecuteAll(selectedLayout.graph);
                                 ExecuteNodes(selectedLayout.graph, executeOrder);
                             }
+                        }
+
+                        if (selectedLayout.generatePicture.SetFalse())
+                        {
+                            if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
+                            var tiledTexture2 = new TiledTexture(PaintingTexture);
+                            livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
                         }
 
                         blendMode?.Blend(PaintingTexture, RenderTarget[0], buffer, ofs, 256);
@@ -184,7 +209,8 @@ namespace NekoPainter
                     allNode.Remove(executeOrder[c]);
                 }
             }
-            executeOrder.Add(graph.outputNode);
+            if (graph.Nodes.ContainsKey(graph.outputNode))
+                executeOrder.Add(graph.outputNode);
             return executeOrder;
         }
 
@@ -192,9 +218,11 @@ namespace NekoPainter
         {
             foreach (int nodeId in executeOrder)
             {
-                if (graph.Nodes[nodeId] is Paint2DNode paint2DNode)
+                var node = graph.Nodes[nodeId];
+                if (node.paint2DNode != null)
                 {
-                    StrokeNode strokeNode = (StrokeNode)graph.Nodes[paint2DNode.Inputs["stroke"].targetUid];
+                    var paint2DNode = graph.Nodes[nodeId].paint2DNode;
+                    StrokeNode strokeNode = graph.Nodes[node.Inputs["stroke"].targetUid].strokeNode;
                     PaintToTexture(PaintingTexture, paint2DNode, strokeNode);
                 }
             }
@@ -208,6 +236,7 @@ namespace NekoPainter
             int _height = PaintingTexture.height;
             for (int i = 1; i < positions.Count; i++)
             {
+                brush.CheckBrush(DeviceResources);
                 UpdateBrushData2(paint2DNode, strokeNode, i);
                 ComputeBrush(brush.shader, texture, GetPaintingTiles(positions[(i == 0) ? 0 : (i - 1)], positions[i], paint2DNode.size, _width, _height));
             }
@@ -276,6 +305,7 @@ namespace NekoPainter
 
         void ComputeBrush(ComputeShader c, RenderTexture texture, List<Int2> tilesCovered)
         {
+            if (tilesCovered.Count <= 0) return;
             ComputeBuffer tilesPos = new ComputeBuffer(texture.GetDevice(), tilesCovered.Count, 8, tilesCovered.ToArray());
             c.SetSRV(tilesPos, 0);
             c.SetCBV(brushDataBuffer.GetBuffer(DeviceResources), 0);

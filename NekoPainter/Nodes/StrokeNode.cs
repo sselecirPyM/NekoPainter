@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NekoPainter.Nodes
 {
-    public class StrokeNode : Node
+    public class StrokeNode
     {
         public Stroke stroke;
     }

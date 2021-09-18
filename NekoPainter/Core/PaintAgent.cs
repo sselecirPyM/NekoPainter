@@ -25,10 +25,9 @@ namespace NekoPainter
             this.document = document;
         }
 
-        public void SetPaintTarget(RenderTexture target, RenderTexture targetBackup)
+        public void SetPaintTarget(RenderTexture target)
         {
             PaintingTexture = target;
-            PaintingTextureBackup = targetBackup;
         }
         /// <summary>
         /// 设置当前使用的笔刷。
@@ -49,6 +48,8 @@ namespace NekoPainter
             return true;
         }
         Stroke stroke;
+        System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        double previousStopWatchValue;
         public void Process()
         {
             while (inputPointerDatas.TryDequeue(out var inputPointerData))
@@ -77,23 +78,34 @@ namespace NekoPainter
                     paint2dNode.color4 = _color4;
                     paint2dNode.size = BrushSize;
                     paint2dNode.brushPath = currentBrush.path;
+                    var paint2dNode1 = new Node { paint2DNode = paint2dNode };
                     StrokeNode strokeNode = new StrokeNode();
                     strokeNode.stroke = stroke;
-                    graph.AddNode(paint2dNode);
-                    graph.AddNode(strokeNode);
-                    graph.Link(strokeNode, "context", paint2dNode, "stroke");
+                    var strokeNode1 = new Node { strokeNode = strokeNode };
+                    graph.AddNode(paint2dNode1);
+                    graph.AddNode(strokeNode1);
+                    graph.Link(strokeNode1, "context", paint2dNode1, "stroke");
                     if (graph.Nodes.ContainsKey(graph.outputNode))
-                        graph.Link(graph.Nodes[graph.outputNode], "context", paint2dNode, "context");
+                        graph.Link(graph.Nodes[graph.outputNode], "context", paint2dNode1, "context");
 
                     var removeNode = new CMD_Remove_RecoverNodes();
                     removeNode.graph = CurrentLayout.graph;
-                    removeNode.removeNodes = new List<int>() { paint2dNode.Luid, strokeNode.Luid };
+                    removeNode.removeNodes = new List<int>() { paint2dNode1.Luid, strokeNode1.Luid };
                     removeNode.setOutputNode = graph.outputNode;
+                    removeNode.layoutGuid = CurrentLayout.guid;
+                    removeNode.document = document;
                     UndoManager.AddUndoData(removeNode);
 
-                    graph.outputNode = paint2dNode.Luid;
+                    graph.outputNode = paint2dNode1.Luid;
+                    stroke.deltaTime.Add(0);
+                    previousStopWatchValue = stopwatch.ElapsedTicks / 1e7;
                 }
-                stroke.deltaTime.Add(0);
+                else
+                {
+                    double current = stopwatch.ElapsedTicks / 1e7;
+                    stroke.deltaTime.Add((float)(current - previousStopWatchValue));
+                    previousStopWatchValue = current;//not correct
+                }
                 stroke.position.Add(position);
                 stroke.presure.Add(0.5f);
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
@@ -110,11 +122,7 @@ namespace NekoPainter
 
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
-                    PaintingTexture.CopyTo(PaintingTextureBackup);
-
-                    if (document.LayoutTex.TryGetValue(CurrentLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
-                    var tiledTexture = new TiledTexture(PaintingTexture);
-                    document.LayoutTex[CurrentLayout.guid] = tiledTexture;
+                    CurrentLayout.generatePicture = true;
                 }
 
                 //drawPrevPos = Vector2.Zero;
@@ -131,10 +139,6 @@ namespace NekoPainter
         /// 正在绘制的纹理。
         /// </summary>
         public RenderTexture PaintingTexture;
-        /// <summary>
-        /// 绘制的纹理的备份，用于支持撤销重做。
-        /// </summary>
-        public RenderTexture PaintingTextureBackup;
 
         public LivedNekoPainterDocument document;
         /// <summary>

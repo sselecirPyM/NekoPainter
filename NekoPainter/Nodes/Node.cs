@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NekoPainter.Nodes
 {
-    public abstract class Node
+    public class Node
     {
         public int Luid;
         public Vector2 Position;
@@ -16,6 +16,9 @@ namespace NekoPainter.Nodes
         public Dictionary<string, HashSet<NodeSocket>> Outputs;
 
         public bool canCache;
+
+        public StrokeNode strokeNode;
+        public Paint2DNode paint2DNode;
 
         public virtual Node Clone()
         {

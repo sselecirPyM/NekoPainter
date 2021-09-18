@@ -25,7 +25,7 @@ namespace NekoPainter.Core
 
             UndoManager = new UndoManager();
             PaintAgent = new PaintAgent(this);
-            PaintAgent.SetPaintTarget(PaintingTexture, PaintingTextureBackup);
+            PaintAgent.SetPaintTarget(PaintingTexture);
             PaintAgent.UndoManager = UndoManager;
 
             Layouts = new List<PictureLayout>();
@@ -39,7 +39,6 @@ namespace NekoPainter.Core
                 RenderTarget[i] = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
             }
             PaintingTexture = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-            PaintingTextureBackup = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
             PaintingTextureTemp = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
             Controller.AppController.Instance.AddTexture(string.Format("{0}/Canvas", Path), RenderTarget[0]);
         }
@@ -57,7 +56,6 @@ namespace NekoPainter.Core
             PaintingTexture.Clear();
             tiledTexture?.UnzipToTexture(PaintingTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
-            PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
         }
 
@@ -69,7 +67,6 @@ namespace NekoPainter.Core
             PaintingTexture.Clear();
             tiledTexture?.UnzipToTexture(PaintingTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
-            PaintingTexture.CopyTo(PaintingTextureBackup);
             ActivatedLayoutChanged?.Invoke();
         }
 
@@ -159,14 +156,13 @@ namespace NekoPainter.Core
             for (int i = 0; i < RenderTarget.Length; i++)
                 RenderTarget[i]?.Dispose();
             PaintingTexture?.Dispose();
-            PaintingTextureBackup?.Dispose();
             PaintingTextureTemp?.Dispose();
         }
         #region Members
         public int Width { get; private set; }
         public int Height { get; private set; }
         public readonly List<PictureLayout> Layouts;
-        public readonly Dictionary<System.Guid, PictureLayout> LayoutsMap = new Dictionary<System.Guid, PictureLayout>();
+        //public readonly Dictionary<System.Guid, PictureLayout> LayoutsMap = new Dictionary<System.Guid, PictureLayout>();
         public readonly Dictionary<System.Guid, TiledTexture> LayoutTex = new Dictionary<System.Guid, TiledTexture>();
         /// <summary>
         /// 图像渲染在此进行，并代表图像最终渲染结果。
@@ -176,10 +172,6 @@ namespace NekoPainter.Core
         /// 正在绘制的图像
         /// </summary>
         public RenderTexture PaintingTexture;
-        /// <summary>
-        /// 用来暂存备份的图层
-        /// </summary>
-        public RenderTexture PaintingTextureBackup;
         public RenderTexture PaintingTextureTemp;
 
         /// <summary>

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NekoPainter.Nodes
 {
-    public class Paint2DNode : Node
+    public class Paint2DNode
     {
         public string brushPath;
         public Vector4 color;
@@ -17,10 +17,9 @@ namespace NekoPainter.Nodes
         public float size;
         public Dictionary<string, float[]> parameters;
 
-        public override Node Clone()
+        public Paint2DNode Clone()
         {
-            Paint2DNode node = (Paint2DNode)base.Clone();
-
+            Paint2DNode node = (Paint2DNode)MemberwiseClone();
             return node;
         }
     }

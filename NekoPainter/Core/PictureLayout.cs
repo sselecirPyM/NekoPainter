@@ -79,6 +79,8 @@ namespace NekoPainter.Core
         public LayoutDataSource DataSource;
 
         public bool saved = false;
+
+        public bool generatePicture = false;
     }
 
     public enum LayoutDataSource

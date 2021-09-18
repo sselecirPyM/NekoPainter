@@ -12,10 +12,10 @@ namespace NekoPainter.Core.UndoCommand
     {
         public List<int> removeNodes;
         public List<Node> recoverNodes;
-        //public List<NodeSocket> recoverLinksInput;
-        //public List<NodeSocket> recoverLinksOutput;
         public int setOutputNode;
         public Graph graph;
+        public Guid layoutGuid;
+        public LivedNekoPainterDocument document;
 
         public void Dispose()
         {
@@ -27,16 +27,10 @@ namespace NekoPainter.Core.UndoCommand
             CMD_Remove_RecoverNodes newCmd = new CMD_Remove_RecoverNodes();
             newCmd.graph = graph;
             newCmd.setOutputNode = graph.outputNode;
+            newCmd.layoutGuid = layoutGuid;
+            newCmd.document = document;
             if (removeNodes != null)
             {
-                //foreach (var nodeId in removeNodes)
-                //{
-                //    var selectedNode = graph.Nodes[nodeId];
-
-                //    var targetNode = Nodes[link.Value.targetUid];
-                //    var targetOutput = targetNode.Outputs[link.Value.targetSocket];
-
-                //}
                 newCmd.recoverNodes = new List<Node>();
                 for (int i = 0; i < removeNodes.Count; i++)
                 {
@@ -72,13 +66,12 @@ namespace NekoPainter.Core.UndoCommand
                         }
                 }
             }
-            //if (recoverLinksInput != null)
-            //{
-            //    for (int i = 0; i < recoverLinksInput.Count; i++)
-            //    {
-            //        graph.Link(recoverLinksInput[i].targetUid, recoverLinksInput[i].targetSocket, recoverLinksInput[i].targetUid, recoverLinksInput[i].targetSocket);
-            //    }
-            //}
+            if (layoutGuid != Guid.Empty)
+            {
+                var layout = document.Layouts.Find(u => u.guid == layoutGuid);
+                layout.generatePicture = true;
+                //document.SetActivatedLayout(layout);
+            }
             graph.outputNode = setOutputNode;
             return newCmd;
         }

@@ -40,6 +40,7 @@ namespace NekoPainter.Core
             Alpha = pictureLayout.Alpha;
             Color = pictureLayout.Color;
             DataSource = pictureLayout.DataSource;
+            graph = pictureLayout.graph.Clone();
 
             guid = Guid.NewGuid();
         }
@@ -87,6 +88,5 @@ namespace NekoPainter.Core
     {
         Default,
         Color,
-        Image,
     }
 }

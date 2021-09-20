@@ -14,18 +14,14 @@ namespace NekoPainter.Core
     {
         public LivedNekoPainterDocument(DeviceResources device, int width, int height, string path)
         {
-            Width = width;
-            Height = height;
 
             DeviceResources = device;
-            RenderTarget = new RenderTexture[1];
 
             this.Path = path;
             SizeChange(width, height);
 
             UndoManager = new UndoManager();
             PaintAgent = new PaintAgent(this);
-            PaintAgent.SetPaintTarget(PaintingTexture);
             PaintAgent.UndoManager = UndoManager;
 
             Layouts = new List<PictureLayout>();
@@ -34,13 +30,11 @@ namespace NekoPainter.Core
 
         public void SizeChange(int width, int height)
         {
-            for (int i = 0; i < 1; i++)
-            {
-                RenderTarget[i] = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-            }
+            Width = width;
+            Height = height;
+            Output = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
             PaintingTexture = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-            PaintingTextureTemp = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-            Controller.AppController.Instance.AddTexture(string.Format("{0}/Canvas", Path), RenderTarget[0]);
+            Controller.AppController.Instance.AddTexture(string.Format("{0}/Canvas", Path), Output);
         }
 
         public void SetActivatedLayout(int layoutIndex)
@@ -51,12 +45,7 @@ namespace NekoPainter.Core
                 PaintAgent.CurrentLayout = null;
                 return;
             }
-            ActivatedLayout = (PictureLayout)Layouts[layoutIndex];
-            LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
-            PaintingTexture.Clear();
-            tiledTexture?.UnzipToTexture(PaintingTexture);
-            PaintAgent.CurrentLayout = ActivatedLayout;
-            ActivatedLayoutChanged?.Invoke();
+            SetActivatedLayout(Layouts[layoutIndex]);
         }
 
         public void SetActivatedLayout(PictureLayout layout)
@@ -147,16 +136,13 @@ namespace NekoPainter.Core
 
         public void Dispose()
         {
-            PaintAgent?.Dispose();
             for (int i = 0; i < Layouts.Count; i++)
             {
                 Layouts[i]?.Dispose();
             }
             UndoManager?.Dispose();
-            for (int i = 0; i < RenderTarget.Length; i++)
-                RenderTarget[i]?.Dispose();
+            Output?.Dispose();
             PaintingTexture?.Dispose();
-            PaintingTextureTemp?.Dispose();
         }
         #region Members
         public int Width { get; private set; }
@@ -167,12 +153,11 @@ namespace NekoPainter.Core
         /// <summary>
         /// 图像渲染在此进行，并代表图像最终渲染结果。
         /// </summary>
-        public RenderTexture[] RenderTarget;
+        public RenderTexture Output;
         /// <summary>
         /// 正在绘制的图像
         /// </summary>
         public RenderTexture PaintingTexture;
-        public RenderTexture PaintingTextureTemp;
 
         /// <summary>
         /// 此案例中的撤销/重做管理器
@@ -200,7 +185,6 @@ namespace NekoPainter.Core
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
         public Dictionary<System.Guid, BlendMode> blendmodesMap = new Dictionary<System.Guid, BlendMode>();
         public Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
-        public List<Stroke> Strokes = new List<Stroke>();
 
         public float logicScale = 1.0f;
         public float rotation = 0.0f;

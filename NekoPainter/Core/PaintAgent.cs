@@ -15,19 +15,14 @@ using NekoPainter.Core.UndoCommand;
 
 namespace NekoPainter
 {
-    public class PaintAgent : IDisposable
+    public class PaintAgent
     {
         /// <summary>
-        /// 创建一个新的绘画代理。
+        /// 对接UI
         /// </summary>
         public PaintAgent(LivedNekoPainterDocument document)
         {
             this.document = document;
-        }
-
-        public void SetPaintTarget(RenderTexture target)
-        {
-            PaintingTexture = target;
         }
         /// <summary>
         /// 设置当前使用的笔刷。
@@ -57,7 +52,6 @@ namespace NekoPainter
                 Vector2 position = inputPointerData.PointerData.Position;
                 if (inputPointerData.penInputFlag == PenInputFlag.Begin)
                 {
-                    drawPrevPos = position;
                     stroke = new Stroke()
                     {
                         position = new List<Vector2>(),
@@ -107,11 +101,9 @@ namespace NekoPainter
                     previousStopWatchValue = current;//not correct
                 }
                 stroke.position.Add(position);
-                stroke.presure.Add(0.5f);
+                stroke.presure.Add(inputPointerData.PointerData.Pressure);
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
-                    document.Strokes.Add(stroke);
-
                     stroke = null;
                 }
 
@@ -124,21 +116,8 @@ namespace NekoPainter
                 {
                     CurrentLayout.generatePicture = true;
                 }
-
-                //drawPrevPos = Vector2.Zero;
-                drawPrevPos = position;
             }
         }
-
-        public void Dispose()
-        {
-
-        }
-
-        /// <summary>
-        /// 正在绘制的纹理。
-        /// </summary>
-        public RenderTexture PaintingTexture;
 
         public LivedNekoPainterDocument document;
         /// <summary>
@@ -161,8 +140,6 @@ namespace NekoPainter
         public Color _color4 = new Color(1, 1, 1, 1);
 
         public ConcurrentQueue<InputPointerData> inputPointerDatas = new ConcurrentQueue<InputPointerData>();
-
-        private Vector2 drawPrevPos;
 
         public UndoManager UndoManager;
 

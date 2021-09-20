@@ -25,8 +25,7 @@ namespace NekoPainter
         {
             if (ManagedLayout.Count == 0) return;
             PrepareRenderData();
-            for (int i = 0; i < RenderTarget.Count; i++)
-                RenderTarget[i].Clear();
+            RenderTarget.Clear();
             int ofs = 0;
             var buffer = constantBuffer1.GetBuffer(DeviceResources);
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
@@ -44,7 +43,7 @@ namespace NekoPainter
                 {
                     if (selectedLayout.DataSource == LayoutDataSource.Color)
                     {
-                        blendMode?.BlendPure(RenderTarget[0], buffer, ofs, 256);
+                        blendMode?.BlendPure(RenderTarget, buffer, ofs, 256);
                     }
                     else if (selectedLayout.generatePicture.SetFalse())
                     {
@@ -62,7 +61,7 @@ namespace NekoPainter
                         var tiledTexture2 = new TiledTexture(PaintingTexture);
                         livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
 
-                        blendMode?.Blend(PaintingTexture, RenderTarget[0], buffer, ofs, 256);
+                        blendMode?.Blend(PaintingTexture, RenderTarget, buffer, ofs, 256);
                     }
                     else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout)
                     {
@@ -84,11 +83,11 @@ namespace NekoPainter
                             livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
                         }
 
-                        blendMode?.Blend(PaintingTexture, RenderTarget[0], buffer, ofs, 256);
+                        blendMode?.Blend(PaintingTexture, RenderTarget, buffer, ofs, 256);
                     }
                     else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                     {
-                        blendMode?.Blend(tiledTexture, RenderTarget[0], buffer, ofs, 256);
+                        blendMode?.Blend(tiledTexture, RenderTarget, buffer, ofs, 256);
                     }
                 }
                 ofs += 256;
@@ -173,7 +172,7 @@ namespace NekoPainter
             }
         }
 
-        IReadOnlyList<RenderTexture> RenderTarget { get { return livedDocument.RenderTarget; } }
+        RenderTexture RenderTarget { get { return livedDocument.Output; } }
         RenderTexture PaintingTexture { get { return livedDocument.PaintingTexture; } }
         DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
@@ -303,15 +302,15 @@ namespace NekoPainter
             return inRangeTiles;
         }
 
-        void ComputeBrush(ComputeShader c, RenderTexture texture, List<Int2> tilesCovered)
+        void ComputeBrush(ComputeShader computeShader, RenderTexture texture, List<Int2> tilesCovered)
         {
             if (tilesCovered.Count <= 0) return;
             ComputeBuffer tilesPos = new ComputeBuffer(texture.GetDevice(), tilesCovered.Count, 8, tilesCovered.ToArray());
-            c.SetSRV(tilesPos, 0);
-            c.SetCBV(brushDataBuffer.GetBuffer(DeviceResources), 0);
-            c.SetUAV(texture, 0);
+            computeShader.SetSRV(tilesPos, 0);
+            computeShader.SetCBV(brushDataBuffer.GetBuffer(DeviceResources), 0);
+            computeShader.SetUAV(texture, 0);
 
-            c.Dispatch(1, 1, tilesCovered.Count);
+            computeShader.Dispatch(1, 1, tilesCovered.Count);
             tilesPos.Dispose();
         }
     }

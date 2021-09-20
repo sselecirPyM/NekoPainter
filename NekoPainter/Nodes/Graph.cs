@@ -103,7 +103,7 @@ namespace NekoPainter.Nodes
         {
             Graph clone = (Graph)MemberwiseClone();
             clone.Nodes = new Dictionary<int, Node>();
-            foreach (var pair in clone.Nodes)
+            foreach (var pair in Nodes)
             {
                 clone.Nodes.Add(pair.Key, pair.Value.Clone());
             }

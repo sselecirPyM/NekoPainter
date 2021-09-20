@@ -27,7 +27,7 @@ namespace NekoPainter.FileFormat
         public DirectoryInfo Folder;
         public DirectoryInfo blendModesFolder;
         public DirectoryInfo brushesFolder;
-        public DirectoryInfo layoutsFolder;
+        public DirectoryInfo cacheFoilder;
 
         Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
 
@@ -35,22 +35,21 @@ namespace NekoPainter.FileFormat
         {
             new Newtonsoft.Json.Converters.StringEnumConverter(),
             new VectorConverter(),
-
         };
 
         public void Create(int width, int height, string name)
         {
             blendModesFolder = Folder.CreateSubdirectory("BlendModes");
             brushesFolder = Folder.CreateSubdirectory("Brushes");
-            layoutsFolder = Folder.CreateSubdirectory("Layouts");
+            cacheFoilder = Folder.CreateSubdirectory("Caches");
 
             livedDocument = new LivedNekoPainterDocument(DeviceResources, width, height, Folder.FullName);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
+            livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
+            livedDocument.Name = name;
             UpdateDCResource();
             LoadBlendmodes();
             LoadBrushes();
-            livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
-            livedDocument.Name = name;
             Save();
         }
 
@@ -58,7 +57,7 @@ namespace NekoPainter.FileFormat
         {
             blendModesFolder = Folder.CreateSubdirectory("BlendModes");
             brushesFolder = Folder.CreateSubdirectory("Brushes");
-            layoutsFolder = Folder.CreateSubdirectory("Layouts");
+            cacheFoilder = Folder.CreateSubdirectory("Caches");
 
             LoadDocInfo();
 
@@ -99,7 +98,7 @@ namespace NekoPainter.FileFormat
                 {
                     if (!layoutFileMap.TryGetValue(layout.guid, out var storageFile))
                     {
-                        storageFile = new FileInfo(Path.Combine(layoutsFolder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
+                        storageFile = new FileInfo(Path.Combine(cacheFoilder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
                         layoutFileMap[layout.guid] = storageFile;
                     }
                     layout.SaveToFile(livedDocument, storageFile);
@@ -141,7 +140,7 @@ namespace NekoPainter.FileFormat
 
         private void LoadLayouts()
         {
-            var layoutFiles = layoutsFolder.GetFiles();
+            var layoutFiles = cacheFoilder.GetFiles();
 
             foreach (var layoutFile in layoutFiles)
             {
@@ -179,6 +178,14 @@ namespace NekoPainter.FileFormat
                             pictureLayout.parameters[parameter.Name] = parameter;
                         }
                     livedDocument.Layouts.Add(pictureLayout);
+                }
+            }
+            foreach(var layout in livedDocument.Layouts)
+            {
+                if(!livedDocument.LayoutTex.ContainsKey(layout.guid))
+                {
+                    layout.generatePicture = true;
+                    layout.saved = false;
                 }
             }
         }
@@ -249,14 +256,14 @@ namespace NekoPainter.FileFormat
 
         private void UpdateDCResource()
         {
-            var dcBrushes = new DirectoryInfo("DCResources\\Base\\Brushes");
-            var dcBlendModes = new DirectoryInfo("DCResources\\Base\\BlendModes");
+            var brushes = new DirectoryInfo("DCResources\\Base\\Brushes");
+            var blendModes = new DirectoryInfo("DCResources\\Base\\BlendModes");
 
-            foreach (var file in dcBrushes.GetFiles())
+            foreach (var file in brushes.GetFiles())
             {
                 file.CopyTo(brushesFolder.FullName + "/" + file.Name);
             }
-            foreach (var file in dcBlendModes.GetFiles())
+            foreach (var file in blendModes.GetFiles())
             {
                 file.CopyTo(blendModesFolder.FullName + "/" + file.Name);
             }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CanvasRendering;
 using ImGuiNET;
+using imnodesNET;
 using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -59,7 +60,8 @@ namespace NekoPainter.UI
         }
         public static void Draw()
         {
-            var context = AppController.Instance.graphicsContext;
+            AppController appController = AppController.Instance;
+            var context = appController.graphicsContext;
             var device = context.DeviceResources;
             if (!Initialized)
             {
@@ -107,9 +109,10 @@ namespace NekoPainter.UI
                 ImGui.End();
 
                 LayoutInfoPanel();
-                BrushPanel();
-                BrushParametersPanel();
+                BrushPanel(appController);
+                BrushParametersPanel(appController);
                 ThumbnailPanel();
+                NodesPanel();
                 foreach (var livedDocument in AppController.Instance.livedDocuments)
                 {
                     Canvas(livedDocument.Value, livedDocument.Key);
@@ -320,10 +323,137 @@ namespace NekoPainter.UI
             }
             ImGui.End();
         }
-
-        static void BrushParametersPanel()
+        static Dictionary<int, int> nodeSocketStart = new Dictionary<int, int>();
+        static List<int> socket2Node = new List<int>();
+        static Guid prevLayout;
+        static HashSet<int> existNodes = new HashSet<int>();
+        //static bool viewNodeTitleBar = false;
+        static void NodesPanel()
         {
-            var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
+            var currentLayout = AppController.Instance.CurrentLivedDocument?.ActivatedLayout;
+            var document = AppController.Instance.CurrentLivedDocument;
+            var graph = currentLayout?.graph;
+            if (currentLayout == null)
+            {
+                existNodes.Clear();
+                prevLayout = Guid.Empty;
+            }
+            else if (prevLayout != currentLayout.guid)
+            {
+                prevLayout = currentLayout.guid;
+                existNodes.Clear();
+            }
+            else if (graph != null)
+            {
+                existNodes.RemoveWhere(u => !graph.Nodes.ContainsKey(u));
+            }
+
+            ImGui.SetNextWindowSize(new Vector2(400, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
+            ImGui.Begin("节点图");
+            bool jumpToOutput = ImGui.Button("转到输出节点");
+            //ImGui.SameLine();
+            //ImGui.Checkbox("节点标题栏",ref viewNodeTitleBar);
+            imnodes.BeginNodeEditor();
+            nodeSocketStart.Clear();
+            socket2Node.Clear();
+            if (graph != null)
+            {
+                foreach (var node in graph.Nodes)
+                {
+                    if (node.Key == graph.outputNode)
+                    {
+                        imnodes.PushColorStyle(ColorStyle.NodeBackground, 0x994444ff);
+                    }
+                    imnodes.BeginNode(node.Value.Luid);
+                    if (existNodes.Add(node.Value.Luid))
+                    {
+                        imnodes.SetNodeGridSpacePos(node.Value.Luid, node.Value.Position);
+                    }
+                    nodeSocketStart[node.Value.Luid] = socket2Node.Count;
+                    List<Nodes.SocketDef> socketDefs = document.nodeDef.socketDefs[node.Value.GetNodeTypeName()];
+
+                    //if(viewNodeTitleBar)
+                    //{
+                    //    imnodes.BeginNodeTitleBar();
+                    //    ImGui.TextUnformatted(node.Value.GetNodeTypeName());
+                    //    imnodes.EndNodeTitleBar();
+                    //}
+                    if (socketDefs != null)
+                        foreach (var socket in socketDefs)
+                        {
+                            if (socket.socketType == "input")
+                            {
+                                imnodes.BeginInputAttribute(socket2Node.Count);
+                                ImGuiExt.Text(socket.displayName);
+                                imnodes.EndInputAttribute();
+                                socket2Node.Add(node.Key);
+                            }
+                            else if (socket.socketType == "output")
+                            {
+                                imnodes.BeginOutputAttribute(socket2Node.Count);
+                                ImGuiExt.Text(socket.displayName);
+                                imnodes.EndOutputAttribute();
+                                socket2Node.Add(node.Key);
+                            }
+                        }
+                    imnodes.EndNode();
+                    if (node.Key == graph.outputNode)
+                    {
+                        imnodes.PopColorStyle();
+                    }
+                }
+                int linkCount = 0;
+                foreach (var node in graph.Nodes)
+                {
+                    if (node.Value.paint2DNode != null && node.Value.Inputs != null)
+                    {
+                        foreach (var pair in node.Value.Inputs)
+                        {
+                            var targetNode = graph.Nodes[pair.Value.targetUid];
+                            List<Nodes.SocketDef> socketDefs = document.nodeDef.socketDefs[node.Value.GetNodeTypeName()];
+                            List<Nodes.SocketDef> targetNodesocketDefs = document.nodeDef.socketDefs[targetNode.GetNodeTypeName()];
+
+                            int inputSocketId = nodeSocketStart[node.Value.Luid] + socketDefs.FindIndex(u => u.name == pair.Key && u.socketType == "input");
+                            int outputSocketId = nodeSocketStart[targetNode.Luid] + targetNodesocketDefs.FindIndex(u => u.name == pair.Value.targetSocket && u.socketType == "output");
+
+                            imnodes.Link(linkCount, inputSocketId, outputSocketId);
+                            linkCount++;
+                        }
+                    }
+                    node.Value.Position = imnodes.GetNodeGridSpacePos(node.Value.Luid);
+                }
+            }
+            if (jumpToOutput && graph != null && graph.Nodes.TryGetValue(graph.outputNode, out var outputNode1))
+            {
+                imnodes.EditorContextMoveToNode(graph.outputNode);
+            }
+            imnodes.EndNodeEditor();
+            int linkA = 0;
+            int linkB = 0;
+            if (imnodes.IsLinkCreated(ref linkA, ref linkB))
+            {
+                int nodeA = socket2Node[linkA];
+                int nodeB = socket2Node[linkB];
+                List<Nodes.SocketDef> socketDefsA = document.nodeDef.socketDefs[graph.Nodes[nodeA].GetNodeTypeName()];
+                List<Nodes.SocketDef> socketDefsB = document.nodeDef.socketDefs[graph.Nodes[nodeB].GetNodeTypeName()];
+                int nodeStartA = nodeSocketStart[nodeA];
+                int nodeStartB = nodeSocketStart[nodeB];
+
+                graph.DisconnectLink(nodeB, socketDefsB[linkB - nodeStartB].name);
+                graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
+            }
+            int linkId = 0;
+            if (imnodes.IsLinkDestroyed(ref linkId))
+            {
+
+            }
+            ImGui.End();
+        }
+
+        static void BrushParametersPanel(AppController appController)
+        {
+            var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("笔刷参数"))
@@ -348,9 +478,9 @@ namespace NekoPainter.UI
             ImGui.End();
         }
 
-        static void BrushPanel()
+        static void BrushPanel(AppController appController)
         {
-            var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
+            var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
@@ -620,6 +750,8 @@ namespace NekoPainter.UI
             var appcontroller = AppController.Instance;
             var imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(imguiContext);
+            imnodes.SetImGuiContext(imguiContext);
+            imnodes.Initialize();
             var io = ImGui.GetIO();
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             var device = AppController.Instance.graphicsContext.DeviceResources;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using NekoPainter.Util;
@@ -36,16 +37,40 @@ namespace NekoPainter.Nodes
 
         public int AddNode(Node node)
         {
+            return AddNode(node, new Vector2(80, 0));
+        }
+
+        public int AddNode(Node node, Vector2 offset)
+        {
             node.Luid = idAllocated;
             idAllocated++;
             Nodes[node.Luid] = node;
+
+            if (Nodes.TryGetValue(outputNode, out var outputNode1))
+                node.Position = outputNode1.Position;
+            node.Position += offset;
             return idAllocated - 1;
+        }
+
+        public void DisconnectLink(int inputNode,string inputSocketName)
+        {
+            var inputNode1 = Nodes[inputNode];
+            var outputNode1 = Nodes[inputNode1.Inputs[inputSocketName].targetUid];
+            DisconnectLink(inputNode, inputSocketName, outputNode1.Luid, inputNode1.Inputs[inputSocketName].targetSocket);
+        }
+
+        public void DisconnectLink(int inputNode, string inputSocketName, int outputNode, string outputSocketName)
+        {
+            var inputNode1= Nodes[inputNode];
+            var outputNode1 = Nodes[outputNode];
+            inputNode1.Inputs.Remove(inputSocketName);
+            outputNode1.Outputs[outputSocketName].RemoveWhere(u => u.targetSocket == inputSocketName && u.targetSocket == inputSocketName);
         }
 
         public void RemoveNodes(List<int> nodes)
         {
             List<Node> nodes1 = new List<Node>();
-            foreach(var nodeId in nodes)
+            foreach (var nodeId in nodes)
             {
                 nodes1.Add(Nodes[nodeId]);
             }
@@ -69,11 +94,15 @@ namespace NekoPainter.Nodes
                     {
                         foreach (var link in links.Value)
                         {
-                            var targetNode = Nodes[link.targetUid];
-                            if (!nodes.Any(u => u.Luid == targetNode.Luid))
+                            ;
+                            if (Nodes.TryGetValue(link.targetUid, out var targetNode) && !nodes.Any(u => u.Luid == targetNode.Luid))
                                 targetNode.Inputs.Remove(link.targetSocket);
                         }
                     }
+            }
+            foreach (var node in nodes)
+            {
+                this.Nodes.Remove(node.Luid);
             }
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace NekoPainter.Nodes
 {
@@ -15,10 +16,20 @@ namespace NekoPainter.Nodes
         public Dictionary<string, NodeSocket> Inputs;
         public Dictionary<string, HashSet<NodeSocket>> Outputs;
 
+        public DateTime creationTime;
+        public DateTime modificationTime;
+
         public bool canCache;
 
         public StrokeNode strokeNode;
         public Paint2DNode paint2DNode;
+
+        public string GetNodeTypeName()
+        {
+            if (strokeNode != null) return "strokeNode";
+            if (paint2DNode != null) return "paint2DNode";
+            return string.Empty;
+        }
 
         public virtual Node Clone()
         {

@@ -195,6 +195,8 @@ namespace NekoPainter.Core
         public System.Guid DefaultBlendMode;
 
         public readonly DeviceResources DeviceResources;
+
+        public Nodes.NodeDef nodeDef;
     }
 }
 

@@ -60,8 +60,8 @@ namespace NekoPainter.Core.UndoCommand
                         {
                             foreach (var output1 in output.Value)
                             {
-                                var targetNode = graph.Nodes[output1.targetUid];
-                                targetNode.Inputs[output1.targetSocket] = new NodeSocket { targetSocket = output.Key, targetUid = node.Luid };
+                                if (graph.Nodes.TryGetValue(output1.targetUid, out var targetNode))
+                                    targetNode.Inputs[output1.targetSocket] = new NodeSocket { targetSocket = output.Key, targetUid = node.Luid };
                             }
                         }
                 }

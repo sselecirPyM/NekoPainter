@@ -1,0 +1,28 @@
+{
+  "socketDefs": {
+    "paint2DNode": [
+      {
+        "name": "stroke",
+        "socketType": "input",
+        "displayName": "Stroke"
+      },
+      {
+        "name": "context",
+        "socketType": "input",
+        "displayName": "Context"
+      },
+      {
+        "name": "context",
+        "socketType": "output",
+        "displayName": "Context"
+      }
+    ],
+    "strokeNode": [
+      {
+        "name": "stroke",
+        "socketType": "output",
+        "displayName": "Stroke"
+      }
+    ]
+  }
+}

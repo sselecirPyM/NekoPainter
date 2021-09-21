@@ -73,12 +73,14 @@ namespace NekoPainter
                     paint2dNode.size = BrushSize;
                     paint2dNode.brushPath = currentBrush.path;
                     var paint2dNode1 = new Node { paint2DNode = paint2dNode };
+                    paint2dNode1.creationTime = DateTime.Now;
                     StrokeNode strokeNode = new StrokeNode();
                     strokeNode.stroke = stroke;
                     var strokeNode1 = new Node { strokeNode = strokeNode };
-                    graph.AddNode(paint2dNode1);
-                    graph.AddNode(strokeNode1);
-                    graph.Link(strokeNode1, "context", paint2dNode1, "stroke");
+                    strokeNode1.creationTime = DateTime.Now;
+                    graph.AddNode(strokeNode1, new Vector2(60, -40));
+                    graph.AddNode(paint2dNode1, new Vector2(80, 0));
+                    graph.Link(strokeNode1, "stroke", paint2dNode1, "stroke");
                     if (graph.Nodes.ContainsKey(graph.outputNode))
                         graph.Link(graph.Nodes[graph.outputNode], "context", paint2dNode1, "context");
 

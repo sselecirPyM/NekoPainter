@@ -51,6 +51,7 @@ namespace NekoPainter.FileFormat
             LoadBlendmodes();
             LoadBrushes();
             Save();
+            livedDocument.nodeDef = ReadJsonStream<NodeDef>(new FileStream("Nodes/NodeDef.json", FileMode.Open, FileAccess.Read));
         }
 
         public void Load()
@@ -64,6 +65,7 @@ namespace NekoPainter.FileFormat
             LoadBlendmodes();
             LoadLayouts();
             LoadBrushes();
+            livedDocument.nodeDef = ReadJsonStream<NodeDef>(new FileStream("Nodes/NodeDef.json", FileMode.Open, FileAccess.Read));
         }
 
         public void Save()
@@ -180,9 +182,9 @@ namespace NekoPainter.FileFormat
                     livedDocument.Layouts.Add(pictureLayout);
                 }
             }
-            foreach(var layout in livedDocument.Layouts)
+            foreach (var layout in livedDocument.Layouts)
             {
-                if(!livedDocument.LayoutTex.ContainsKey(layout.guid))
+                if (!livedDocument.LayoutTex.ContainsKey(layout.guid))
                 {
                     layout.generatePicture = true;
                     layout.saved = false;

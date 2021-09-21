@@ -40,6 +40,11 @@ namespace NekoPainter.UI
             bool hasTranslation = StringTranslations.UITranslations.TryGetValue(label, out string translation);
             return ImGui.Begin(string.Format("{1}###{0}", label, hasTranslation ? translation : label));
         }
+        public static bool Begin(string label, ref bool p_open)
+        {
+            bool hasTranslation = StringTranslations.UITranslations.TryGetValue(label, out string translation);
+            return ImGui.Begin(string.Format("{1}###{0}", label, hasTranslation ? translation : label), ref p_open);
+        }
 
         public static bool BeginMenu(string label)
         {
@@ -89,6 +94,12 @@ namespace NekoPainter.UI
         {
             bool hasTranslation = StringTranslations.UITranslations.TryGetValue(label, out string translation);
             return ImGui.MenuItem(string.Format("{1}###{0}", label, hasTranslation ? translation : label), shoutcut, selected, enabled);
+        }
+
+        public static void Text(string fmt)
+        {
+            bool hasTranslation = StringTranslations.UITranslations.TryGetValue(fmt, out string translation);
+            ImGui.Text(hasTranslation ? translation : fmt);
         }
 
         public static string[] GetEnumTranslations(string typeName, string[] enums)

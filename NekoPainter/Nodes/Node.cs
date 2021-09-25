@@ -23,11 +23,13 @@ namespace NekoPainter.Nodes
 
         public StrokeNode strokeNode;
         public Paint2DNode paint2DNode;
+        public ScriptNode scriptNode;
 
         public string GetNodeTypeName()
         {
             if (strokeNode != null) return "strokeNode";
             if (paint2DNode != null) return "paint2DNode";
+            if (scriptNode != null) return scriptNode.nodeName;
             return string.Empty;
         }
 

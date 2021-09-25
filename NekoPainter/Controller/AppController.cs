@@ -31,7 +31,7 @@ namespace NekoPainter.Controller
             //RenderTask = Task.Factory.StartNew(GameLoop, TaskCreationOptions.LongRunning);
         }
 
-        public void CreateDocument(Util.CreateDocumentParameters parameters)
+        public void CreateDocument(CreateDocumentParameters parameters)
         {
             ApplyAllResources();
             var folder = parameters.Folder;
@@ -57,21 +57,16 @@ namespace NekoPainter.Controller
             documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
         }
 
-        //public async Task CMDImportDocument()
+        //public void ImportDocument(FileInfo file)
         //{
-        //    StorageFile openFile = await fileOpenPicker.PickSingleFileAsync();
-        //    if (openFile == null)
-        //        return;
-        //    var stream = await openFile.OpenStreamForReadAsync();
+        //    var stream = file.OpenRead();
 
-        //    if (CurrentCanvasCase.ActivatedLayout != null)
+        //    if (CurrentLivedDocument.ActivatedLayout != null)
         //    {
         //        byte[] imgData = GetImageData(stream, out int width, out int height);
-        //        CurrentCanvasCase.PaintingTexture.ReadImageData1(imgData, width, height, computeShaders["CImport"]);
-        //        CurrentCanvasCase.ActivatedLayout.saved = false;
+        //        CurrentLivedDocument.PaintingTexture.ReadImageData1(imgData, width, height, computeShaders["CImport"]);
+        //        CurrentLivedDocument.ActivatedLayout.saved = false;
         //    }
-        //    CanvasRender();
-        //    CurrentCanvasCase.PaintingTexture.CopyTo(CurrentCanvasCase.PaintingTextureBackup);
         //}
 
         public static byte[] GetImageData(Stream input, out int width, out int height)

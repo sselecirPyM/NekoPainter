@@ -8,6 +8,7 @@ using System.IO;
 using CanvasRendering;
 using NekoPainter.Util;
 using System.Xml.Serialization;
+using NekoPainter.Data;
 
 namespace NekoPainter.Core
 {
@@ -132,7 +133,7 @@ namespace NekoPainter.Core
         {
             if (part == null || part.Count == 0) return;
             int z = (part.Count + 15) / 16;
-            ComputeBuffer buf_Part = new ComputeBuffer(source.GetDevice(), part.Count, 8, part.ToArray());
+            ComputeBuffer buf_Part = ComputeBuffer.New<Int2>(source.GetDevice(), part.Count, 8, part.ToArray());
             csBlend[2].SetSRV(source, 0);
             csBlend[2].SetSRV(buf_Part, 1);
             csBlend[2].SetUAV(target, 0);
@@ -159,7 +160,7 @@ namespace NekoPainter.Core
             }
             if (hParts.Count == 0) return;
             int z = (hParts.Count + 15) / 16;
-            ComputeBuffer buf_Index = new ComputeBuffer(source.deviceResources, hParts.Count, 4, hParts.ToArray());
+            ComputeBuffer buf_Index = ComputeBuffer.New<int>(source.deviceResources, hParts.Count, 4, hParts.ToArray());
             csBlend[3].SetSRV(source.BlocksData, 0);
             csBlend[3].SetSRV(buf_Index, 1);
             csBlend[3].SetSRV(source.BlocksOffsetsData, 2);
@@ -173,7 +174,7 @@ namespace NekoPainter.Core
         {
             if (indicate == null || indicate.Count == 0 || source.tilesCount == 0) return;
             int z = (indicate.Count + 15) / 16;
-            ComputeBuffer buf_Index = new ComputeBuffer(source.deviceResources, indicate.Count, 4, indicate.ToArray());
+            ComputeBuffer buf_Index = ComputeBuffer.New<int>(source.deviceResources, indicate.Count, 4, indicate.ToArray());
             csBlend[3].SetSRV(source.BlocksData, 0);
             csBlend[3].SetSRV(buf_Index, 1);
             csBlend[3].SetSRV(source.BlocksOffsetsData, 2);
@@ -200,7 +201,7 @@ namespace NekoPainter.Core
         {
             if (part == null || part.Count == 0) return;
             int z = (part.Count + 15) / 16;
-            ComputeBuffer buf_Part = new ComputeBuffer(target.GetDevice(), part.Count, 8, part.ToArray());
+            ComputeBuffer buf_Part = ComputeBuffer.New<Int2>(target.GetDevice(), part.Count, 8, part.ToArray());
             csBlend[5].SetSRV(buf_Part, 0);
             csBlend[5].SetUAV(target, 0);
             csBlend[5].SetCBV(parametersData, 0, ofs, size);

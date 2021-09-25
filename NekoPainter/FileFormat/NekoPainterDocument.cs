@@ -11,6 +11,7 @@ using System.Numerics;
 using Newtonsoft.Json;
 using NekoPainter.Core.UndoCommand;
 using NekoPainter.Nodes;
+using NekoPainter.Data;
 
 namespace NekoPainter.FileFormat
 {
@@ -27,7 +28,8 @@ namespace NekoPainter.FileFormat
         public DirectoryInfo Folder;
         public DirectoryInfo blendModesFolder;
         public DirectoryInfo brushesFolder;
-        public DirectoryInfo cacheFoilder;
+        public DirectoryInfo cacheFolder;
+        public DirectoryInfo nodeFolder;
 
         Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
 
@@ -39,33 +41,42 @@ namespace NekoPainter.FileFormat
 
         public void Create(int width, int height, string name)
         {
-            blendModesFolder = Folder.CreateSubdirectory("BlendModes");
-            brushesFolder = Folder.CreateSubdirectory("Brushes");
-            cacheFoilder = Folder.CreateSubdirectory("Caches");
+            FolderDefs();
+            InitializeResource();
 
             livedDocument = new LivedNekoPainterDocument(DeviceResources, width, height, Folder.FullName);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
             livedDocument.Name = name;
-            UpdateDCResource();
-            LoadBlendmodes();
-            LoadBrushes();
             Save();
-            livedDocument.nodeDef = ReadJsonStream<NodeDef>(new FileStream("Nodes/NodeDef.json", FileMode.Open, FileAccess.Read));
+            LoadDocRes();
         }
 
         public void Load()
         {
+            FolderDefs();
+            LoadDocInfo();
+            LoadLayouts();
+            LoadDocRes();
+        }
+        private void FolderDefs()
+        {
             blendModesFolder = Folder.CreateSubdirectory("BlendModes");
             brushesFolder = Folder.CreateSubdirectory("Brushes");
-            cacheFoilder = Folder.CreateSubdirectory("Caches");
+            cacheFolder = Folder.CreateSubdirectory("Caches");
+            nodeFolder = Folder.CreateSubdirectory("Nodes");
 
-            LoadDocInfo();
+        }
 
+        private void LoadDocRes()
+        {
             LoadBlendmodes();
-            LoadLayouts();
             LoadBrushes();
-            livedDocument.nodeDef = ReadJsonStream<NodeDef>(new FileStream("Nodes/NodeDef.json", FileMode.Open, FileAccess.Read));
+            LoadNodeDefs();
+            foreach (var pair in ReadJsonStream<Dictionary<string, ScriptNodeDef>>(new FileStream("Nodes/NodeDef.json", FileMode.Open, FileAccess.Read)))
+            {
+                livedDocument.scriptNodeDefs.Add(pair.Key, pair.Value);
+            }
         }
 
         public void Save()
@@ -100,7 +111,7 @@ namespace NekoPainter.FileFormat
                 {
                     if (!layoutFileMap.TryGetValue(layout.guid, out var storageFile))
                     {
-                        storageFile = new FileInfo(Path.Combine(cacheFoilder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
+                        storageFile = new FileInfo(Path.Combine(cacheFolder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
                         layoutFileMap[layout.guid] = storageFile;
                     }
                     layout.SaveToFile(livedDocument, storageFile);
@@ -142,7 +153,7 @@ namespace NekoPainter.FileFormat
 
         private void LoadLayouts()
         {
-            var layoutFiles = cacheFoilder.GetFiles();
+            var layoutFiles = cacheFolder.GetFiles();
 
             foreach (var layoutFile in layoutFiles)
             {
@@ -226,6 +237,30 @@ namespace NekoPainter.FileFormat
 
         }
 
+        private void LoadNodeDefs()
+        {
+            var nodeFiles = nodeFolder.GetFiles();
+            livedDocument.scripts = new Dictionary<string, string>();
+            livedDocument.scriptNodeDefs = new Dictionary<string, ScriptNodeDef>();
+
+            foreach (var nodeFile in nodeFiles)
+            {
+                string relatePath = Path.GetRelativePath(nodeFolder.FullName, nodeFile.FullName);
+                if (".cs".Equals(nodeFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    livedDocument.scripts[relatePath] = File.ReadAllText(nodeFile.FullName);
+                }
+                if (".json".Equals(nodeFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    using (var filestream = nodeFile.OpenRead())
+                    {
+                        livedDocument.scriptNodeDefs[relatePath] = ReadJsonStream<ScriptNodeDef>(filestream);
+                    }
+                }
+
+            }
+        }
+
         private void LoadDocInfo()
         {
             FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
@@ -256,19 +291,18 @@ namespace NekoPainter.FileFormat
             settingsStream.Dispose();
         }
 
-        private void UpdateDCResource()
+        private void InitializeResource()
         {
             var brushes = new DirectoryInfo("DCResources\\Base\\Brushes");
             var blendModes = new DirectoryInfo("DCResources\\Base\\BlendModes");
+            var nodes = new DirectoryInfo("DCResources\\Base\\Nodes");
 
             foreach (var file in brushes.GetFiles())
-            {
                 file.CopyTo(brushesFolder.FullName + "/" + file.Name);
-            }
             foreach (var file in blendModes.GetFiles())
-            {
                 file.CopyTo(blendModesFolder.FullName + "/" + file.Name);
-            }
+            foreach (var file in nodes.GetFiles())
+                file.CopyTo(nodeFolder.FullName + "/" + file.Name);
         }
 
         T ReadJsonStream<T>(Stream stream)

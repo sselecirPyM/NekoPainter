@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DCResources\Base\Nodes\BaseBrush.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Assets\DC chan square.png" />
     <None Remove="Assets\LargeTile.scale-100.png" />
     <None Remove="Assets\LargeTile.scale-125.png" />
@@ -300,6 +304,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.11.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     <PackageReference Include="Vortice.Mathematics" Version="1.3.21" />
@@ -315,10 +320,17 @@
     <ProjectReference Include="..\ImGuizmo.NET\ImGuizmo.NET.csproj" />
     <ProjectReference Include="..\ImNodes.NET\ImNodes.NET.csproj" />
     <ProjectReference Include="..\ImPlot.NET\ImPlot.NET.csproj" />
+    <ProjectReference Include="..\NekoPainter.Data\NekoPainter.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="DCResources\Plugin\Brushes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DCResources\Base\Nodes\BaseBrush.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -332,6 +344,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="cimplot.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Nodes\BaseBrush.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Nodes\NodeDef.json">

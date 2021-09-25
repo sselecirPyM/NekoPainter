@@ -7,6 +7,8 @@ using System.Collections.ObjectModel;
 using NekoPainter.Core.UndoCommand;
 using System.ComponentModel;
 using Vortice.DXGI;
+using NekoPainter.Data;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace NekoPainter.Core
 {
@@ -14,7 +16,6 @@ namespace NekoPainter.Core
     {
         public LivedNekoPainterDocument(DeviceResources device, int width, int height, string path)
         {
-
             DeviceResources = device;
 
             this.Path = path;
@@ -196,7 +197,11 @@ namespace NekoPainter.Core
 
         public readonly DeviceResources DeviceResources;
 
-        public Nodes.NodeDef nodeDef;
+        public Dictionary<string, string> scripts;
+
+        public Dictionary<string, ScriptNodeDef> scriptNodeDefs;
+
+        public Dictionary<string, Script<object>> scriptCache = new Dictionary<string, Script<object>>();
     }
 }
 

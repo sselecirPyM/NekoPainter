@@ -1,0 +1,26 @@
+{
+  "language": "CSharpScript",
+  "path": "BaseBrush.cs",
+  "name": "BaseBrush",
+  "displayName": "Base Brush",
+  "ioDefs": [
+    {
+      "name": "strokes",
+      "displayName": "Strokes",
+      "ioType": "input",
+      "type": "strokes"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "ioType": "input",
+      "type": "texture2D"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "ioType": "output",
+      "type": "texture2D"
+    }
+  ]
+}

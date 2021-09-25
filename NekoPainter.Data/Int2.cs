@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CanvasRendering
+namespace NekoPainter.Data
 {
     public struct Int2
     {

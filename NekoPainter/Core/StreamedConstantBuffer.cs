@@ -13,6 +13,8 @@ namespace NekoPainter.Core
     {
         public ConstantBuffer buffer;
 
+        public ComputeBuffer buffer1;
+
         public DeviceResources deviceResources;
 
         public MemoryStream memoryStream;
@@ -40,8 +42,20 @@ namespace NekoPainter.Core
             buffer.UpdateResource<byte>(memoryStream.GetBuffer());
             return buffer;
         }
+
+        public ComputeBuffer GetComputeBuffer(DeviceResources device, int stride)
+        {
+            if (buffer1 == null || buffer1.size != memoryStream.GetBuffer().Length)
+            {
+                buffer1?.Dispose();
+                buffer1 = new ComputeBuffer(device, memoryStream.GetBuffer().Length, stride);
+            }
+            buffer1.SetData<byte>(memoryStream.GetBuffer());
+            return buffer1;
+        }
         public void Dispose()
         {
+            buffer1?.Dispose();
             buffer?.Dispose();
         }
     }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace NekoPainter.Util
+namespace NekoPainter.FileFormat
 {
     public class CreateDocumentParameters
     {

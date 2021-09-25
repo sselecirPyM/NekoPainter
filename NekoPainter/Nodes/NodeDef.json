@@ -1,27 +1,37 @@
 {
-  "socketDefs": {
-    "paint2DNode": [
+  "paint2DNode": {
+    "name": "paint2DNode",
+    "displayName": "paint2DNode",
+    "ioDefs": [
       {
-        "name": "stroke",
-        "socketType": "input",
-        "displayName": "Stroke"
+        "name": "strokes",
+        "displayName": "Stroke",
+        "ioType": "input",
+        "type": "texture2D"
       },
       {
-        "name": "context",
-        "socketType": "input",
-        "displayName": "Context"
+        "name": "texture2D",
+        "displayName": "Texture2D",
+        "ioType": "input",
+        "type": "texture2D"
       },
       {
-        "name": "context",
-        "socketType": "output",
-        "displayName": "Context"
+        "name": "texture2D",
+        "displayName": "Texture2D",
+        "ioType": "output",
+        "type": "texture2D"
       }
-    ],
-    "strokeNode": [
+    ]
+  },
+  "strokeNode": {
+    "name": "strokeNode",
+    "displayName": "strokeNode",
+    "ioDefs": [
       {
-        "name": "stroke",
-        "socketType": "output",
-        "displayName": "Stroke"
+        "name": "strokes",
+        "displayName": "Stroke",
+        "ioType": "output",
+        "type": "texture2D"
       }
     ]
   }

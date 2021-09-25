@@ -12,6 +12,8 @@ namespace NekoPainter.Core.UndoCommand
     {
         public List<int> removeNodes;
         public List<Node> recoverNodes;
+        public List<LinkDesc> disconnectLinks;
+        public List<LinkDesc> connectLinks;
         public int setOutputNode;
         public Graph graph;
         public Guid layoutGuid;
@@ -66,11 +68,28 @@ namespace NekoPainter.Core.UndoCommand
                         }
                 }
             }
+            if (disconnectLinks != null)
+            {
+                newCmd.connectLinks = new List<LinkDesc>();
+                foreach (var connection in disconnectLinks)
+                {
+                    graph.DisconnectLink(connection.outputNode, connection.outputSocket, connection.inputNode, connection.inputSocket);
+                    newCmd.connectLinks.Add(connection);
+                }
+            }
+            if (connectLinks != null)
+            {
+                newCmd.disconnectLinks = new List<LinkDesc>();
+                foreach (var connection in connectLinks)
+                {
+                    graph.Link(connection.outputNode, connection.outputSocket, connection.inputNode, connection.inputSocket);
+                    newCmd.disconnectLinks.Add(connection);
+                }
+            }
             if (layoutGuid != Guid.Empty)
             {
                 var layout = document.Layouts.Find(u => u.guid == layoutGuid);
                 layout.generatePicture = true;
-                //document.SetActivatedLayout(layout);
             }
             graph.outputNode = setOutputNode;
             return newCmd;

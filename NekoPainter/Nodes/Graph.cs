@@ -11,6 +11,11 @@ namespace NekoPainter.Nodes
     public class Graph
     {
         public Dictionary<int, Node> Nodes;
+        [NonSerialized]
+        public Dictionary<int, NodeParamCache> NodeParamCaches;
+        //[NonSerialized]
+        //public Dictionary<LinkDesc, object> LinkParamCache;
+
         public int outputNode;
         public int idAllocated;
 
@@ -20,12 +25,12 @@ namespace NekoPainter.Nodes
             idAllocated = 1;
         }
 
-        public void Link(int output, string outputName, int input, string inputName)
+        public LinkDesc Link(int output, string outputName, int input, string inputName)
         {
-            Link(Nodes[output], outputName, Nodes[input], inputName);
+            return Link(Nodes[output], outputName, Nodes[input], inputName);
         }
 
-        public void Link(Node output, string outputName, Node input, string inputName)
+        public LinkDesc Link(Node output, string outputName, Node input, string inputName)
         {
             if (output.Outputs == null)
                 output.Outputs = new Dictionary<string, HashSet<NodeSocket>>();
@@ -33,14 +38,18 @@ namespace NekoPainter.Nodes
                 input.Inputs = new Dictionary<string, NodeSocket>();
             output.Outputs.GetOrCreate(outputName).Add(new NodeSocket { targetUid = input.Luid, targetSocket = inputName });
             input.Inputs[inputName] = new NodeSocket { targetUid = output.Luid, targetSocket = outputName };
+            return new LinkDesc { outputNode = output.Luid, outputSocket = outputName, inputNode = input.Luid, inputSocket = inputName };
         }
 
         public int AddNode(Node node)
         {
-            return AddNode(node, new Vector2(80, 0));
+            node.Luid = idAllocated;
+            idAllocated++;
+            Nodes[node.Luid] = node;
+            return idAllocated - 1;
         }
 
-        public int AddNode(Node node, Vector2 offset)
+        public int AddNodeToEnd(Node node, Vector2 offset)
         {
             node.Luid = idAllocated;
             idAllocated++;
@@ -52,19 +61,20 @@ namespace NekoPainter.Nodes
             return idAllocated - 1;
         }
 
-        public void DisconnectLink(int inputNode,string inputSocketName)
+        public LinkDesc DisconnectLink(int inputNode, string inputSocketName)
         {
             var inputNode1 = Nodes[inputNode];
             var outputNode1 = Nodes[inputNode1.Inputs[inputSocketName].targetUid];
-            DisconnectLink(inputNode, inputSocketName, outputNode1.Luid, inputNode1.Inputs[inputSocketName].targetSocket);
+            return DisconnectLink(outputNode1.Luid, inputNode1.Inputs[inputSocketName].targetSocket, inputNode, inputSocketName);
         }
 
-        public void DisconnectLink(int inputNode, string inputSocketName, int outputNode, string outputSocketName)
+        public LinkDesc DisconnectLink(int outputNode, string outputSocketName, int inputNode, string inputSocketName)
         {
-            var inputNode1= Nodes[inputNode];
+            var inputNode1 = Nodes[inputNode];
             var outputNode1 = Nodes[outputNode];
             inputNode1.Inputs.Remove(inputSocketName);
             outputNode1.Outputs[outputSocketName].RemoveWhere(u => u.targetSocket == inputSocketName && u.targetSocket == inputSocketName);
+            return new LinkDesc { inputNode = inputNode, inputSocket = inputSocketName, outputNode = outputNode, outputSocket = outputSocketName };
         }
 
         public void RemoveNodes(List<int> nodes)

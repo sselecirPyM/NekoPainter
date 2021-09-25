@@ -19,20 +19,13 @@ namespace CanvasRendering
             Create(another.DeviceResources, another.count, another.stride);
             DeviceResources.d3dContext.CopyResource(buffer, another.buffer);
         }
-        public ComputeBuffer(DeviceResources deviceResources, int count, int stride, Span<byte> data)
+
+        public static ComputeBuffer New<T>(DeviceResources deviceResources, int count, int stride, Span<T> data) where T : unmanaged
         {
-            Create(deviceResources, count, stride);
-            SetData(data);
-        }
-        public ComputeBuffer(DeviceResources deviceResources, int count, int stride, Span<Int2> data)
-        {
-            Create(deviceResources, count, stride);
-            SetData(data);
-        }
-        public ComputeBuffer(DeviceResources deviceResources, int count, int stride, Span<int> data)
-        {
-            Create(deviceResources, count, stride);
-            SetData(data);
+            ComputeBuffer buffer = new ComputeBuffer(deviceResources, count, stride);
+            buffer.Create(deviceResources, count, stride);
+            buffer.SetData(data);
+            return buffer;
         }
 
         void Create(DeviceResources deviceResources, int count, int stride)
@@ -41,7 +34,8 @@ namespace CanvasRendering
             this.count = count;
             size = count * stride;
             DeviceResources = deviceResources;
-            buffer = deviceResources.device.CreateBuffer(new BufferDescription(size, ResourceUsage.Default, BindFlags.ShaderResource | BindFlags.UnorderedAccess, CpuAccessFlags.None, ResourceOptionFlags.BufferStructured, stride));
+            var desc = new BufferDescription(size, ResourceUsage.Default, BindFlags.ShaderResource | BindFlags.UnorderedAccess, CpuAccessFlags.None, ResourceOptionFlags.BufferStructured, stride);
+            buffer = deviceResources.device.CreateBuffer(desc);
             srv = deviceResources.device.CreateShaderResourceView(buffer);
             uav = deviceResources.device.CreateUnorderedAccessView(buffer);
         }
@@ -83,18 +77,18 @@ namespace CanvasRendering
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: 释放托管状态(托管对象)
-                }
                 srv?.Dispose();
                 uav?.Dispose();
                 buffer?.Dispose();
                 srv = null;
                 uav = null;
                 buffer = null;
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: 释放托管状态(托管对象)
+                }
                 // TODO: 释放未托管的资源(未托管的对象)并重写终结器
                 // TODO: 将大型字段设置为 null
                 disposedValue = true;

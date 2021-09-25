@@ -21,11 +21,13 @@ namespace NekoPainter.UI
 
         public static bool createDocument;
         public static bool loadDocument;
-        public static Util.CreateDocumentParameters createDocumentParameters;
+        public static FileFormat.CreateDocumentParameters createDocumentParameters;
         public static bool saveDocument;
 
         public static bool openDocument;
         public static string openDocumentPath = "";
+
+        public static string importImagePath = "";
 
         public static bool quit;
 
@@ -101,6 +103,22 @@ namespace NekoPainter.UI
         //    StorageFolder folder = await folderPicker.PickSingleFolderAsync();
         //    return folder;
         //}
+
+        public static string OpenResourceFile(string filter)
+        {
+            FileOpenDialog dialog = new FileOpenDialog();
+            dialog.structSize = Marshal.SizeOf(typeof(FileOpenDialog));
+            dialog.filter = filter;
+            dialog.file = new string(new char[2000]);
+            dialog.maxFile = dialog.file.Length;
+
+            dialog.initialDir = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer);
+            dialog.flags = 0x00000008;
+            GetOpenFileName(dialog);
+            var chars = dialog.file.ToCharArray();
+
+            return new string(chars, 0, Array.IndexOf(chars, '\0'));
+        }
 
         public static string OpenResourceFolder()
         {

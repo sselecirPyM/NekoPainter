@@ -5,13 +5,12 @@ using System.Collections;
 using System.Collections.Generic;
 using CanvasRendering;
 using Color = System.Numerics.Vector4;
-using System.Runtime.InteropServices;
 using System.Collections.Concurrent;
 using NekoPainter.UI;
-using NekoPainter.Util;
 using System.IO;
 using NekoPainter.Nodes;
 using NekoPainter.Core.UndoCommand;
+using NekoPainter.Data;
 
 namespace NekoPainter
 {
@@ -78,11 +77,11 @@ namespace NekoPainter
                     strokeNode.stroke = stroke;
                     var strokeNode1 = new Node { strokeNode = strokeNode };
                     strokeNode1.creationTime = DateTime.Now;
-                    graph.AddNode(strokeNode1, new Vector2(60, -40));
-                    graph.AddNode(paint2dNode1, new Vector2(80, 0));
-                    graph.Link(strokeNode1, "stroke", paint2dNode1, "stroke");
+                    graph.AddNodeToEnd(strokeNode1, new Vector2(60, -40));
+                    graph.AddNodeToEnd(paint2dNode1, new Vector2(80, 0));
+                    graph.Link(strokeNode1, "strokes", paint2dNode1, "strokes");
                     if (graph.Nodes.ContainsKey(graph.outputNode))
-                        graph.Link(graph.Nodes[graph.outputNode], "context", paint2dNode1, "context");
+                        graph.Link(graph.Nodes[graph.outputNode], "texture2D", paint2dNode1, "texture2D");
 
                     var removeNode = new CMD_Remove_RecoverNodes();
                     removeNode.graph = CurrentLayout.graph;

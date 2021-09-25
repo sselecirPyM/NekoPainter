@@ -12,6 +12,7 @@ using Vortice.Direct3D11;
 using Vortice.DXGI;
 using NekoPainter.Util;
 using NekoPainter.Core;
+using NekoPainter.Nodes;
 
 namespace NekoPainter.UI
 {
@@ -73,8 +74,7 @@ namespace NekoPainter.UI
 
             ImGui.NewFrame();
             ImGui.ShowDemoWindow();
-            CreateDocument();
-            OpenDocument();
+            Popups();
             MainMenuBar();
 
             while (Input.penInputData.TryDequeue(out var result))
@@ -350,8 +350,22 @@ namespace NekoPainter.UI
 
             ImGui.SetNextWindowSize(new Vector2(400, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
-            ImGui.Begin("节点图");
+            ImGui.Begin("节点编辑器");
             bool jumpToOutput = ImGui.Button("转到输出节点");
+            if (ImGui.Button("Test Button"))
+            {
+                ScriptNode scriptNode = new ScriptNode();
+                scriptNode.nodeName = "BaseBrush.json";
+                Node node = new Node();
+                node.scriptNode = scriptNode;
+                if (graph == null)
+                {
+                    graph = new Graph();
+                    currentLayout.graph = graph;
+                    graph.Initialize();
+                }
+                graph.AddNode(node);
+            }
             //ImGui.SameLine();
             //ImGui.Checkbox("节点标题栏",ref viewNodeTitleBar);
             imnodes.BeginNodeEditor();
@@ -371,7 +385,6 @@ namespace NekoPainter.UI
                         imnodes.SetNodeGridSpacePos(node.Value.Luid, node.Value.Position);
                     }
                     nodeSocketStart[node.Value.Luid] = socket2Node.Count;
-                    List<Nodes.SocketDef> socketDefs = document.nodeDef.socketDefs[node.Value.GetNodeTypeName()];
 
                     //if(viewNodeTitleBar)
                     //{
@@ -379,17 +392,18 @@ namespace NekoPainter.UI
                     //    ImGui.TextUnformatted(node.Value.GetNodeTypeName());
                     //    imnodes.EndNodeTitleBar();
                     //}
-                    if (socketDefs != null)
-                        foreach (var socket in socketDefs)
+                    if (document.scriptNodeDefs.TryGetValue(node.Value.GetNodeTypeName(), out var nodeDef))
+                    {
+                        foreach (var socket in nodeDef.ioDefs)
                         {
-                            if (socket.socketType == "input")
+                            if (socket.ioType == "input")
                             {
                                 imnodes.BeginInputAttribute(socket2Node.Count);
                                 ImGuiExt.Text(socket.displayName);
                                 imnodes.EndInputAttribute();
                                 socket2Node.Add(node.Key);
                             }
-                            else if (socket.socketType == "output")
+                            else if (socket.ioType == "output")
                             {
                                 imnodes.BeginOutputAttribute(socket2Node.Count);
                                 ImGuiExt.Text(socket.displayName);
@@ -397,6 +411,11 @@ namespace NekoPainter.UI
                                 socket2Node.Add(node.Key);
                             }
                         }
+                    }
+                    else
+                    {
+
+                    }
                     imnodes.EndNode();
                     if (node.Key == graph.outputNode)
                     {
@@ -406,16 +425,16 @@ namespace NekoPainter.UI
                 int linkCount = 0;
                 foreach (var node in graph.Nodes)
                 {
-                    if (node.Value.paint2DNode != null && node.Value.Inputs != null)
+                    if (node.Value.Inputs != null)
                     {
                         foreach (var pair in node.Value.Inputs)
                         {
                             var targetNode = graph.Nodes[pair.Value.targetUid];
-                            List<Nodes.SocketDef> socketDefs = document.nodeDef.socketDefs[node.Value.GetNodeTypeName()];
-                            List<Nodes.SocketDef> targetNodesocketDefs = document.nodeDef.socketDefs[targetNode.GetNodeTypeName()];
+                            var socketDefs = document.scriptNodeDefs[node.Value.GetNodeTypeName()].ioDefs;
+                            var targetNodesocketDefs = document.scriptNodeDefs[targetNode.GetNodeTypeName()].ioDefs;
 
-                            int inputSocketId = nodeSocketStart[node.Value.Luid] + socketDefs.FindIndex(u => u.name == pair.Key && u.socketType == "input");
-                            int outputSocketId = nodeSocketStart[targetNode.Luid] + targetNodesocketDefs.FindIndex(u => u.name == pair.Value.targetSocket && u.socketType == "output");
+                            int inputSocketId = nodeSocketStart[node.Value.Luid] + socketDefs.FindIndex(u => u.name == pair.Key && u.ioType == "input");
+                            int outputSocketId = nodeSocketStart[targetNode.Luid] + targetNodesocketDefs.FindIndex(u => u.name == pair.Value.targetSocket && u.ioType == "output");
 
                             imnodes.Link(linkCount, inputSocketId, outputSocketId);
                             linkCount++;
@@ -435,13 +454,26 @@ namespace NekoPainter.UI
             {
                 int nodeA = socket2Node[linkA];
                 int nodeB = socket2Node[linkB];
-                List<Nodes.SocketDef> socketDefsA = document.nodeDef.socketDefs[graph.Nodes[nodeA].GetNodeTypeName()];
-                List<Nodes.SocketDef> socketDefsB = document.nodeDef.socketDefs[graph.Nodes[nodeB].GetNodeTypeName()];
+                var socketDefsA = document.scriptNodeDefs[graph.Nodes[nodeA].GetNodeTypeName()].ioDefs;
+                var socketDefsB = document.scriptNodeDefs[graph.Nodes[nodeB].GetNodeTypeName()].ioDefs;
                 int nodeStartA = nodeSocketStart[nodeA];
                 int nodeStartB = nodeSocketStart[nodeB];
 
-                graph.DisconnectLink(nodeB, socketDefsB[linkB - nodeStartB].name);
-                graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
+                var removeNode = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                if (graph.Nodes[nodeB].Inputs?.ContainsKey(socketDefsB[linkB - nodeStartB].name) == true)
+                {
+                    var desc1 = graph.DisconnectLink(nodeB, socketDefsB[linkB - nodeStartB].name);
+                    removeNode.connectLinks = new List<LinkDesc>() { desc1 };
+                }
+                var desc2 = graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
+
+
+                removeNode.graph = currentLayout.graph;
+                removeNode.disconnectLinks = new List<LinkDesc>() { desc2 };
+                removeNode.setOutputNode = graph.outputNode;
+                removeNode.layoutGuid = currentLayout.guid;
+                removeNode.document = document;
+                document.UndoManager.AddUndoData(removeNode);
             }
             int linkId = 0;
             if (imnodes.IsLinkDestroyed(ref linkId))
@@ -543,6 +575,7 @@ namespace NekoPainter.UI
                 ImGui.Separator();
                 if (ImGuiExt.MenuItem("Import"))
                 {
+                    importImage = true;
                     UIHelper.selectOpenFile = true;
                 }
                 ImGuiExt.MenuItem("Export");
@@ -618,13 +651,10 @@ namespace NekoPainter.UI
                 {
                     UIHelper.selectFolder = true;
                 }
-                if (ImGuiExt.Button("Open"))
+                if (ImGuiExt.Button("Open") && !string.IsNullOrEmpty(UIHelper.openDocumentPath))
                 {
-                    if (!string.IsNullOrEmpty(UIHelper.openDocumentPath))
-                    {
-                        ImGui.CloseCurrentPopup();
-                        UIHelper.openDocument = true;
-                    }
+                    ImGui.CloseCurrentPopup();
+                    UIHelper.openDocument = true;
                 }
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Cancel"))
@@ -633,6 +663,13 @@ namespace NekoPainter.UI
                 }
                 ImGui.EndPopup();
             }
+        }
+
+        static void Popups()
+        {
+            CreateDocument();
+            OpenDocument();
+            //ImportImage();
         }
 
         static void CreateDocument()
@@ -666,6 +703,42 @@ namespace NekoPainter.UI
                     ImGui.CloseCurrentPopup();
                     UIHelper.createDocumentParameters = CreateDocumentParameters;
                     UIHelper.createDocument = true;
+                }
+                ImGui.SameLine();
+                if (ImGuiExt.Button("Cancel"))
+                {
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
+            }
+        }
+
+        static void ImportImage()
+        {
+            if (importImage.SetFalse())
+            {
+                ImGui.OpenPopup("ImportImage");
+            }
+
+            ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
+            if (ImGui.BeginPopupModal("ImportImage"))
+            {
+                if (UIHelper.folder != null)
+                {
+                    UIHelper.importImagePath = UIHelper.openFile.FullName;
+                    UIHelper.folder = null;
+                }
+                ImGui.SetNextItemWidth(200);
+                ImGui.InputText("path", ref UIHelper.importImagePath, 260);
+                ImGui.SameLine();
+                if (ImGuiExt.Button("Browse"))
+                {
+                    UIHelper.selectOpenFile = true;
+                }
+                if (ImGuiExt.Button("Import") && !string.IsNullOrEmpty(UIHelper.importImagePath))
+                {
+                    ImGui.CloseCurrentPopup();
+
                 }
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Cancel"))
@@ -773,10 +846,11 @@ namespace NekoPainter.UI
             appcontroller.AddTexture("ImguiFont", FontAtlas);
         }
 
-        public static CreateDocumentParameters CreateDocumentParameters = new CreateDocumentParameters();
+        public static FileFormat.CreateDocumentParameters CreateDocumentParameters = new FileFormat.CreateDocumentParameters();
 
         static bool newDocument;
         static bool openDocument;
+        static bool importImage;
         public static UnnamedInputLayout unnamedInputLayout = new UnnamedInputLayout
         {
             inputElementDescriptions = new InputElementDescription[]

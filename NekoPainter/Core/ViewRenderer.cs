@@ -11,6 +11,11 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.IO;
 using System;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
+using NekoPainter.Data;
 
 namespace NekoPainter
 {
@@ -181,8 +186,8 @@ namespace NekoPainter
 
         StreamedConstantBuffer constantBuffer1 = new StreamedConstantBuffer();
 
-
         StreamedConstantBuffer brushDataBuffer = new StreamedConstantBuffer();
+        StreamedConstantBuffer tilePosDataBuffer = new StreamedConstantBuffer();
 
         List<int> ExecuteAll(Graph graph)
         {
@@ -220,9 +225,118 @@ namespace NekoPainter
                 var node = graph.Nodes[nodeId];
                 if (node.paint2DNode != null)
                 {
+                    //测试
                     var paint2DNode = graph.Nodes[nodeId].paint2DNode;
-                    StrokeNode strokeNode = graph.Nodes[node.Inputs["stroke"].targetUid].strokeNode;
-                    PaintToTexture(PaintingTexture, paint2DNode, strokeNode);
+                    StrokeNode strokeNode = graph.Nodes[node.Inputs["strokes"].targetUid].strokeNode;
+
+
+
+                    var nodeDef = livedDocument.scriptNodeDefs[node.GetNodeTypeName()];
+
+                    ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>() };
+                    if (graph.NodeParamCaches == null)
+                        graph.NodeParamCaches = new Dictionary<int, NodeParamCache>();
+                    var cache = graph.NodeParamCaches.GetOrCreate(nodeId);
+
+                    //获取输入
+                    if (node.Inputs != null)
+                        foreach (var input in node.Inputs)
+                        {
+                            var inputNode = graph.Nodes[input.Value.targetUid];
+                            if (inputNode.strokeNode != null)
+                            {
+                                global.parameters[input.Key] = new[] { inputNode.strokeNode.stroke };
+                            }
+                            var fromInput = graph.NodeParamCaches.GetOrCreate(inputNode.Luid);
+                            if (fromInput.outputCache.TryGetValue(input.Value.targetSocket, out object obj1))
+                            {
+                                global.parameters[input.Key] = obj1;
+                            }
+                        }
+                    //检查null输入
+                    foreach (var ioDef in nodeDef.ioDefs)
+                    {
+                        if (ioDef.type == "texture2D" && ioDef.ioType == "input")
+                        {
+                            if (!global.parameters.ContainsKey(ioDef.name))
+                                global.parameters[ioDef.name] = new Texture2D { _texture = RenderTarget, width = RenderTarget.width, height = RenderTarget.height };
+                            else
+                            {
+
+                            }
+                        }
+                    }
+
+
+                    PaintToTexture(((Texture2D)global.parameters["texture2D"])._texture, paint2DNode, strokeNode);
+
+                    //缓存输出
+                    foreach (var ioDef in nodeDef.ioDefs)
+                    {
+                        if (ioDef.type == "texture2D" && ioDef.ioType == "output" && global.parameters.ContainsKey(ioDef.name))
+                        {
+                            cache.outputCache[ioDef.name] = global.parameters[ioDef.name];
+                        }
+                    }
+                }
+                else if (node.scriptNode != null)
+                {
+                    var nodeDef = livedDocument.scriptNodeDefs[node.scriptNode.nodeName];
+                    string path = nodeDef.path;
+
+                    ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>() };
+                    if (graph.NodeParamCaches == null)
+                        graph.NodeParamCaches = new Dictionary<int, NodeParamCache>();
+                    var cache = graph.NodeParamCaches.GetOrCreate(nodeId);
+
+                    //获取输入
+                    if (node.Inputs != null)
+                        foreach (var input in node.Inputs)
+                        {
+                            var inputNode = graph.Nodes[input.Value.targetUid];
+                            if (inputNode.strokeNode != null)
+                            {
+                                global.parameters[input.Key] = new[] { inputNode.strokeNode.stroke };
+                            }
+                            var fromInput = graph.NodeParamCaches.GetOrCreate(inputNode.Luid);
+                            if (fromInput.outputCache.TryGetValue(input.Value.targetSocket, out object obj1))
+                            {
+                                global.parameters[input.Key] = obj1;
+                            }
+                        }
+                    //检查null输入
+                    foreach (var ioDef in nodeDef.ioDefs)
+                    {
+                        if (ioDef.type == "texture2D" && ioDef.ioType == "input")
+                        {
+                            if (!global.parameters.ContainsKey(ioDef.name))
+                                global.parameters[ioDef.name] = new Texture2D { _texture = RenderTarget, width = RenderTarget.width, height = RenderTarget.height };
+                            else
+                            {
+
+                            }
+                        }
+                    }
+                    var script = livedDocument.scriptCache.GetOrCreate(path, () =>
+                    {
+                        ScriptOptions options = ScriptOptions.Default.WithReferences(typeof(Texture2D).Assembly).WithImports("NekoPainter.Data");
+
+                        return CSharpScript.Create(livedDocument.scripts[path], options, typeof(ScriptGlobal));
+                    });
+                    var state = script.RunAsync(global).Result;
+
+                    foreach (var variable1 in state.Variables)
+                    {
+                        System.Diagnostics.Debug.WriteLine(variable1.Value);
+                    }
+                    //缓存输出
+                    foreach (var ioDef in nodeDef.ioDefs)
+                    {
+                        if (ioDef.type == "texture2D" && ioDef.ioType == "output" && global.parameters.ContainsKey(ioDef.name))
+                        {
+                            cache.outputCache[ioDef.name] = global.parameters[ioDef.name];
+                        }
+                    }
                 }
             }
         }
@@ -238,6 +352,7 @@ namespace NekoPainter
                 brush.CheckBrush(DeviceResources);
                 UpdateBrushData2(paint2DNode, strokeNode, i);
                 ComputeBrush(brush.shader, texture, GetPaintingTiles(positions[(i == 0) ? 0 : (i - 1)], positions[i], paint2DNode.size, _width, _height));
+                brushDataBuffer.writer.Seek(0, SeekOrigin.Begin);
             }
         }
 
@@ -276,9 +391,11 @@ namespace NekoPainter
 
             }
         }
+
+        List<Int2> inRangeTiles = new List<Int2>();
         List<Int2> GetPaintingTiles(Vector2 start, Vector2 end, float BrushSize, int width, int height)
         {
-            List<Int2> inRangeTiles = new List<Int2>();
+            inRangeTiles.Clear();
             int minx = Math.Max((int)MathF.Min(start.X - BrushSize, end.X - BrushSize), 0);
             int miny = Math.Max((int)MathF.Min(start.Y - BrushSize, end.Y - BrushSize), 0);
             minx &= -32;
@@ -305,14 +422,20 @@ namespace NekoPainter
         void ComputeBrush(ComputeShader computeShader, RenderTexture texture, List<Int2> tilesCovered)
         {
             if (tilesCovered.Count <= 0) return;
-            ComputeBuffer tilesPos = new ComputeBuffer(texture.GetDevice(), tilesCovered.Count, 8, tilesCovered.ToArray());
-            computeShader.SetSRV(tilesPos, 0);
+            var writer = tilePosDataBuffer.Begin();
+            writer.Write(tilesCovered.ToArray());
+            computeShader.SetSRV(tilePosDataBuffer.GetComputeBuffer(DeviceResources, 8), 0);
             computeShader.SetCBV(brushDataBuffer.GetBuffer(DeviceResources), 0);
             computeShader.SetUAV(texture, 0);
 
             computeShader.Dispatch(1, 1, tilesCovered.Count);
-            tilesPos.Dispose();
         }
+    }
+
+    public class ScriptGlobal
+    {
+        public Dictionary<string, object> parameters;
+        public NodeContext context;
     }
 }
 

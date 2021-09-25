@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using CanvasRendering;
+using NekoPainter.Data;
 
 namespace NekoPainter
 {
@@ -63,7 +64,7 @@ namespace NekoPainter
 
             BlocksData = new ComputeBuffer(tex.GetDevice(), tilesCount, 1024);
 
-            BlocksOffsetsData = new ComputeBuffer(tex.GetDevice(), tilesCount, 8, TilePositionList.ToArray());
+            BlocksOffsetsData = ComputeBuffer.New<Int2>(tex.GetDevice(), tilesCount, 8, TilePositionList.ToArray());
 
             Texture2TT.SetSRV(tex, 0);
             Texture2TT.SetSRV(BlocksOffsetsData, 1);
@@ -77,7 +78,7 @@ namespace NekoPainter
             deviceResources = tex.GetDevice();
             tilesCount = tiles.Count;
             BlocksData = new ComputeBuffer(deviceResources, tilesCount, 1024);
-            BlocksOffsetsData = new ComputeBuffer(deviceResources, tilesCount, 8, tiles.ToArray());
+            BlocksOffsetsData = ComputeBuffer.New<Int2>(deviceResources, tilesCount, 8, tiles.ToArray());
             Texture2TT.SetSRV(tex, 0);
             Texture2TT.SetSRV(BlocksOffsetsData, 1);
             Texture2TT.SetUAV(BlocksData, 0);
@@ -143,11 +144,11 @@ namespace NekoPainter
                     indexs.Add(magicNumber);
                 }
             }
-            BlocksOffsetsData = new ComputeBuffer(deviceResources, tilesCount, 8, tiles.ToArray());
+            BlocksOffsetsData = ComputeBuffer.New<Int2>(deviceResources, tilesCount, 8, tiles.ToArray());
             BlocksData = new ComputeBuffer(deviceResources, tilesCount, 1024);
             if (tiledTexture.BlocksData != null)
             {
-                ComputeBuffer indicates = new ComputeBuffer(deviceResources, tilesCount, 4, indexs.ToArray());
+                ComputeBuffer indicates = ComputeBuffer.New<int>(deviceResources, tilesCount, 4, indexs.ToArray());
                 TTPartCopy.SetSRV(tiledTexture.BlocksData, 0);
                 TTPartCopy.SetSRV(indicates, 1);
                 TTPartCopy.SetUAV(BlocksData, 0);
@@ -176,8 +177,8 @@ namespace NekoPainter
                 Int2 vector2 = new Int2(System.BitConverter.ToInt32(offsetsData, i * 8), System.BitConverter.ToInt32(offsetsData, i * 8 + 4));
                 TilePositionList.Add(vector2);
             }
-            BlocksData = new ComputeBuffer(deviceResources, tilesCount, 1024, data);
-            BlocksOffsetsData = new ComputeBuffer(deviceResources, tilesCount, 8, offsetsData);
+            BlocksData = ComputeBuffer.New<byte>(deviceResources, tilesCount, 1024, data);
+            BlocksOffsetsData = ComputeBuffer.New<byte>(deviceResources, tilesCount, 8, offsetsData);
             tileRect = new TileRect(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }

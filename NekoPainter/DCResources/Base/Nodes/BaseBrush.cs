@@ -10,8 +10,8 @@ static class Modified
     {
         var rawTex = tex.GetRawTexture();
         int f1 = rawTex.Length / 4;
-        int width = tex._texture.width;
-        int height = tex._texture.height;
+        int width = tex.width;
+        int height = tex.height;
         if (strokes != null)
         {
             foreach (var stroke in strokes)
@@ -20,12 +20,12 @@ static class Modified
                 {
                     int x1 = (int)point.X;
                     int y1 = (int)point.Y;
-                    for (int x = x1 - 10; x < x1; x++)
-                        for (int y = y1 - 10; y < y1; y++)
+                    for (int x = x1 - 4; x < x1 + 5; x++)
+                        for (int y = y1 - 4; y < y1 + 5; y++)
                             if (x >= 0 && x < width && y >= 0 && y < height)
                             {
                                 int i = x + y * width;
-                                rawTex[i] = new Vector4(0.1f,1.0f,0.1f,1.0f);
+                                rawTex[i] = new Vector4(0.1f, 1.0f, 0.1f, 1.0f);
                             }
                 }
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NekoPainter.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace NekoPainter.Nodes
     public class NodeParamCache
     {
         public Dictionary<string, object> outputCache = new Dictionary<string, object>();
-        public Dictionary<string, DateTime> outputModification = new Dictionary<string, DateTime>();
-        public DateTime modification;
+        public Dictionary<string, Int2> inputNodeModification = new Dictionary<string, Int2>();
+        public int modification;
     }
 }

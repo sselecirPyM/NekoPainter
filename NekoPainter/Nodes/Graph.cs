@@ -13,8 +13,6 @@ namespace NekoPainter.Nodes
         public Dictionary<int, Node> Nodes;
         [NonSerialized]
         public Dictionary<int, NodeParamCache> NodeParamCaches;
-        //[NonSerialized]
-        //public Dictionary<LinkDesc, object> LinkParamCache;
 
         public int outputNode;
         public int idAllocated;
@@ -73,7 +71,7 @@ namespace NekoPainter.Nodes
             var inputNode1 = Nodes[inputNode];
             var outputNode1 = Nodes[outputNode];
             inputNode1.Inputs.Remove(inputSocketName);
-            outputNode1.Outputs[outputSocketName].RemoveWhere(u => u.targetSocket == inputSocketName && u.targetSocket == inputSocketName);
+            outputNode1.Outputs[outputSocketName].RemoveWhere(u => u.targetSocket == inputSocketName && u.targetUid == inputNode);
             return new LinkDesc { inputNode = inputNode, inputSocket = inputSocketName, outputNode = outputNode, outputSocket = outputSocketName };
         }
 
@@ -97,15 +95,14 @@ namespace NekoPainter.Nodes
                         var targetNode = Nodes[link.Value.targetUid];
                         var targetOutput = targetNode.Outputs[link.Value.targetSocket];
 
-                        targetOutput.RemoveWhere(v => v.targetUid == targetNode.Luid && !nodes.Any(u => u.Luid == targetNode.Luid));
+                        targetOutput.RemoveWhere(v => v.targetUid == node.Luid && !nodes.Any(u => u.Luid == targetNode.Luid));
                     }
                 if (node.Outputs != null)
                     foreach (var links in node.Outputs)
                     {
                         foreach (var link in links.Value)
                         {
-                            ;
-                            if (Nodes.TryGetValue(link.targetUid, out var targetNode) && !nodes.Any(u => u.Luid == targetNode.Luid))
+                            if (this.Nodes.TryGetValue(link.targetUid, out var targetNode) && !nodes.Any(u => u.Luid == targetNode.Luid))
                                 targetNode.Inputs.Remove(link.targetSocket);
                         }
                     }
@@ -114,6 +111,101 @@ namespace NekoPainter.Nodes
             {
                 this.Nodes.Remove(node.Luid);
             }
+        }
+
+        public bool DependCheck()
+        {
+            //var inputChain = GetInputChainSet(nodeId);
+            //HashSet<int> executed = new HashSet<int>();
+            //List<int> executeOrder = new List<int>();
+            //executeOrder.Capacity = inputChain.Count + 1;
+            //int c = 0;
+            //while (inputChain.Count > 0)
+            //{
+            //    foreach (int nodeId2 in inputChain)
+            //    {
+            //        var node = Nodes[nodeId2];
+            //        if (node.Inputs == null || node.Inputs.All(u => executed.Contains(u.Value.targetUid)))
+            //        {
+            //            executed.Add(nodeId2);
+            //            executeOrder.Add(nodeId2);
+            //            continue;
+            //        }
+            //    }
+            //    if (c == executeOrder.Count && inputChain.Count > 0) return false;
+            //    for (; c < executeOrder.Count; c++)
+            //    {
+            //        inputChain.Remove(executeOrder[c]);
+            //    }
+            //}
+            //return true;
+
+            Dictionary<int, int> inDegrees = new Dictionary<int, int>();
+            Stack<int> executeStack = new Stack<int>();
+            foreach (var node in Nodes)
+            {
+                int inDegree = node.Value.Inputs == null ? 0 : node.Value.Inputs.Count;
+                inDegrees[node.Value.Luid] = inDegree;
+                if (inDegree == 0)
+                {
+                    executeStack.Push(node.Value.Luid);
+                }
+            }
+            int num = 0;
+            while (executeStack.Count > 0)
+            {
+                int nodeId1 = executeStack.Pop();
+                var node = Nodes[nodeId1];
+                if (node.Outputs != null)
+                {
+                    foreach (var output in node.Outputs)
+                    {
+                        foreach (var output1 in output.Value)
+                        {
+                            var linkedNodeId = output1.targetUid;
+                            inDegrees[linkedNodeId]--;
+                            if (inDegrees[linkedNodeId] == 0)
+                            {
+                                executeStack.Push(linkedNodeId);
+                            }
+                        }
+                    }
+                }
+                num++;
+            }
+            if (num == Nodes.Count)
+                return true;
+            else
+                return false;
+        }
+
+        public List<int> GetExecuteList(int nodeId)
+        {
+            var inputChain = GetInputChainSet(nodeId);
+            HashSet<int> executed = new HashSet<int>();
+            List<int> executeOrder = new List<int>();
+            executeOrder.Capacity = inputChain.Count + 1;
+            int c = 0;
+            while (inputChain.Count > 0)
+            {
+                foreach (int nodeId2 in inputChain)
+                {
+                    var node = Nodes[nodeId2];
+                    if (node.Inputs == null || node.Inputs.All(u => executed.Contains(u.Value.targetUid)))
+                    {
+                        executed.Add(nodeId2);
+                        executeOrder.Add(nodeId2);
+                        continue;
+                    }
+                }
+                for (; c < executeOrder.Count; c++)
+                {
+                    inputChain.Remove(executeOrder[c]);
+                }
+            }
+            if (Nodes.ContainsKey(nodeId))
+                executeOrder.Add(nodeId);
+            return executeOrder;
         }
 
         public HashSet<int> GetInputChainSet(int nodeId)

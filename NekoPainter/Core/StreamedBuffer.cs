@@ -9,7 +9,7 @@ using System.IO;
 
 namespace NekoPainter.Core
 {
-    public class StreamedConstantBuffer : IDisposable
+    public class StreamedBuffer : IDisposable
     {
         public ConstantBuffer buffer;
 

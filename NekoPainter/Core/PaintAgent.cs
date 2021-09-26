@@ -84,11 +84,7 @@ namespace NekoPainter
                         graph.Link(graph.Nodes[graph.outputNode], "texture2D", paint2dNode1, "texture2D");
 
                     var removeNode = new CMD_Remove_RecoverNodes();
-                    removeNode.graph = CurrentLayout.graph;
-                    removeNode.removeNodes = new List<int>() { paint2dNode1.Luid, strokeNode1.Luid };
-                    removeNode.setOutputNode = graph.outputNode;
-                    removeNode.layoutGuid = CurrentLayout.guid;
-                    removeNode.document = document;
+                    removeNode.BuildRemoveNodes(document, CurrentLayout.graph, new List<int>() { paint2dNode1.Luid, strokeNode1.Luid }, CurrentLayout.guid);
                     UndoManager.AddUndoData(removeNode);
 
                     graph.outputNode = paint2dNode1.Luid;
@@ -103,6 +99,7 @@ namespace NekoPainter
                 }
                 stroke.position.Add(position);
                 stroke.presure.Add(inputPointerData.PointerData.Pressure);
+                stroke.modification++;
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     stroke = null;
@@ -112,7 +109,6 @@ namespace NekoPainter
 
 
                 currentBrush.CheckBrush(document.DeviceResources);
-
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     CurrentLayout.generatePicture = true;

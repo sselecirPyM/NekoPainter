@@ -25,5 +25,15 @@ namespace NekoPainter.Data
         {
             return HashCode.Combine(X, Y);
         }
+
+        public static bool operator ==(Int2 left, Int2 right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Int2 left, Int2 right)
+        {
+            return !(left == right);
+        }
     }
 }

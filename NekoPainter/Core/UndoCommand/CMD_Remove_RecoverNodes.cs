@@ -19,6 +19,15 @@ namespace NekoPainter.Core.UndoCommand
         public Guid layoutGuid;
         public LivedNekoPainterDocument document;
 
+        public void BuildRemoveNodes(LivedNekoPainterDocument document, Graph graph, List<int> removeNodes, Guid layoutGuid)
+        {
+            setOutputNode = graph.outputNode;
+            this.document = document;
+            this.removeNodes = removeNodes;
+            this.layoutGuid = layoutGuid;
+            this.graph = graph;
+        }
+
         public void Dispose()
         {
 

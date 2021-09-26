@@ -352,6 +352,8 @@ namespace NekoPainter.UI
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             ImGui.Begin("节点编辑器");
             bool jumpToOutput = ImGui.Button("转到输出节点");
+            ImGui.SameLine();
+            bool deleteNodes = ImGuiExt.Button("Delete");
             if (ImGui.Button("Test Button"))
             {
                 ScriptNode scriptNode = new ScriptNode();
@@ -447,6 +449,20 @@ namespace NekoPainter.UI
             {
                 imnodes.EditorContextMoveToNode(graph.outputNode);
             }
+            int numSelectedNodes = imnodes.NumSelectedNodes();
+            if (numSelectedNodes > 0)
+            {
+                if (deleteNodes)
+                {
+                    int[] nodes = new int[numSelectedNodes];
+                    imnodes.GetSelectedNodes(ref nodes[0]);
+
+                    var removeNode = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                    removeNode.BuildRemoveNodes(document, currentLayout.graph, new List<int>(nodes), currentLayout.guid);
+                    var undoRemoveNode = removeNode.Execute();
+                    document.UndoManager.AddUndoData(undoRemoveNode);
+                }
+            }
             imnodes.EndNodeEditor();
             int linkA = 0;
             int linkB = 0;
@@ -459,27 +475,31 @@ namespace NekoPainter.UI
                 int nodeStartA = nodeSocketStart[nodeA];
                 int nodeStartB = nodeSocketStart[nodeB];
 
-                var removeNode = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                var undoCmd = new Core.UndoCommand.CMD_Remove_RecoverNodes();
                 if (graph.Nodes[nodeB].Inputs?.ContainsKey(socketDefsB[linkB - nodeStartB].name) == true)
                 {
                     var desc1 = graph.DisconnectLink(nodeB, socketDefsB[linkB - nodeStartB].name);
-                    removeNode.connectLinks = new List<LinkDesc>() { desc1 };
+                    undoCmd.connectLinks = new List<LinkDesc>() { desc1 };
                 }
                 var desc2 = graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
 
-
-                removeNode.graph = currentLayout.graph;
-                removeNode.disconnectLinks = new List<LinkDesc>() { desc2 };
-                removeNode.setOutputNode = graph.outputNode;
-                removeNode.layoutGuid = currentLayout.guid;
-                removeNode.document = document;
-                document.UndoManager.AddUndoData(removeNode);
+                currentLayout.generatePicture = true;
+                undoCmd.graph = currentLayout.graph;
+                undoCmd.disconnectLinks = new List<LinkDesc>() { desc2 };
+                undoCmd.setOutputNode = graph.outputNode;
+                undoCmd.layoutGuid = currentLayout.guid;
+                undoCmd.document = document;
+                if (graph.DependCheck())
+                    document.UndoManager.AddUndoData(undoCmd);
+                else
+                    undoCmd.Execute();
             }
             int linkId = 0;
             if (imnodes.IsLinkDestroyed(ref linkId))
             {
 
             }
+
             ImGui.End();
         }
 

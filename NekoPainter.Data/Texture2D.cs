@@ -13,6 +13,7 @@ namespace NekoPainter.Data
         public int width;
         public int height;
         public string name;
+        public float scale = 1.0f;
         [NonSerialized]
         public byte[] data;
 

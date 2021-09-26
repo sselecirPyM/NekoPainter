@@ -19,10 +19,15 @@ namespace CanvasRendering
             Create(another.DeviceResources, another.count, another.stride);
             DeviceResources.d3dContext.CopyResource(buffer, another.buffer);
         }
+        ComputeBuffer()
+        {
+
+        }
+
 
         public static ComputeBuffer New<T>(DeviceResources deviceResources, int count, int stride, Span<T> data) where T : unmanaged
         {
-            ComputeBuffer buffer = new ComputeBuffer(deviceResources, count, stride);
+            ComputeBuffer buffer = new ComputeBuffer();
             buffer.Create(deviceResources, count, stride);
             buffer.SetData(data);
             return buffer;
@@ -77,18 +82,18 @@ namespace CanvasRendering
 
         protected virtual void Dispose(bool disposing)
         {
-                srv?.Dispose();
-                uav?.Dispose();
-                buffer?.Dispose();
-                srv = null;
-                uav = null;
-                buffer = null;
             if (!disposedValue)
             {
                 if (disposing)
                 {
                     // TODO: 释放托管状态(托管对象)
                 }
+                srv?.Dispose();
+                uav?.Dispose();
+                buffer?.Dispose();
+                srv = null;
+                uav = null;
+                buffer = null;
                 // TODO: 释放未托管的资源(未托管的对象)并重写终结器
                 // TODO: 将大型字段设置为 null
                 disposedValue = true;

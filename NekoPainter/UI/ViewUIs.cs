@@ -325,9 +325,12 @@ namespace NekoPainter.UI
         }
         static Dictionary<int, int> nodeSocketStart = new Dictionary<int, int>();
         static List<int> socket2Node = new List<int>();
+        static List<int> link2InputSocket = new List<int>();
         static Guid prevLayout;
         static HashSet<int> existNodes = new HashSet<int>();
         //static bool viewNodeTitleBar = false;
+        static int[] selectednodes = null;
+        static int[] selectedlinks = null;
         static void NodesPanel()
         {
             var currentLayout = AppController.Instance.CurrentLivedDocument?.ActivatedLayout;
@@ -347,159 +350,244 @@ namespace NekoPainter.UI
             {
                 existNodes.RemoveWhere(u => !graph.Nodes.ContainsKey(u));
             }
+            int numSelectedNodes = 0;
+            int numSelectedLinks = 0;
 
             ImGui.SetNextWindowSize(new Vector2(400, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
-            ImGui.Begin("节点编辑器");
-            bool jumpToOutput = ImGui.Button("转到输出节点");
-            ImGui.SameLine();
-            bool deleteNodes = ImGuiExt.Button("Delete");
-            if (ImGui.Button("Test Button"))
+            bool deleteNodes = false;
+            bool setOutputNode = false;
+            if (ImGui.Begin("节点编辑器"))
             {
-                ScriptNode scriptNode = new ScriptNode();
-                scriptNode.nodeName = "BaseBrush.json";
-                Node node = new Node();
-                node.scriptNode = scriptNode;
-                if (graph == null)
+                bool jumpToOutput = ImGui.Button("转到输出节点");
+                ImGui.SameLine();
+                setOutputNode = ImGui.Button("设为输出节点");
+                ImGui.SameLine();
+                deleteNodes = ImGuiExt.Button("Delete");
+                //ImGui.SameLine();
+                //ImGui.Checkbox("节点标题栏",ref viewNodeTitleBar);
+                imnodes.BeginNodeEditor();
+                nodeSocketStart.Clear();
+                socket2Node.Clear();
+                link2InputSocket.Clear();
+                if (graph != null)
                 {
-                    graph = new Graph();
-                    currentLayout.graph = graph;
-                    graph.Initialize();
-                }
-                graph.AddNode(node);
-            }
-            //ImGui.SameLine();
-            //ImGui.Checkbox("节点标题栏",ref viewNodeTitleBar);
-            imnodes.BeginNodeEditor();
-            nodeSocketStart.Clear();
-            socket2Node.Clear();
-            if (graph != null)
-            {
-                foreach (var node in graph.Nodes)
-                {
-                    if (node.Key == graph.outputNode)
+                    foreach (var node in graph.Nodes)
                     {
-                        imnodes.PushColorStyle(ColorStyle.NodeBackground, 0x994444ff);
-                    }
-                    imnodes.BeginNode(node.Value.Luid);
-                    if (existNodes.Add(node.Value.Luid))
-                    {
-                        imnodes.SetNodeGridSpacePos(node.Value.Luid, node.Value.Position);
-                    }
-                    nodeSocketStart[node.Value.Luid] = socket2Node.Count;
-
-                    //if(viewNodeTitleBar)
-                    //{
-                    //    imnodes.BeginNodeTitleBar();
-                    //    ImGui.TextUnformatted(node.Value.GetNodeTypeName());
-                    //    imnodes.EndNodeTitleBar();
-                    //}
-                    if (document.scriptNodeDefs.TryGetValue(node.Value.GetNodeTypeName(), out var nodeDef))
-                    {
-                        foreach (var socket in nodeDef.ioDefs)
+                        if (node.Key == graph.outputNode)
                         {
-                            if (socket.ioType == "input")
+                            imnodes.PushColorStyle(ColorStyle.NodeBackground, 0x994444ff);
+                            imnodes.PushColorStyle(ColorStyle.NodeBackgroundHovered, 0x996666ff);
+                            imnodes.PushColorStyle(ColorStyle.NodeBackgroundSelected, 0x997777ff);
+                        }
+                        imnodes.BeginNode(node.Value.Luid);
+                        if (existNodes.Add(node.Value.Luid))
+                        {
+                            if (node.Value.Position == Vector2.Zero)
+                                imnodes.SetNodeEditorSpacePos(node.Value.Luid, new Vector2(20, 30));
+                            else
+                                imnodes.SetNodeGridSpacePos(node.Value.Luid, node.Value.Position);
+                        }
+                        nodeSocketStart[node.Value.Luid] = socket2Node.Count;
+
+                        //if(viewNodeTitleBar)
+                        //{
+                        //    imnodes.BeginNodeTitleBar();
+                        //    ImGui.TextUnformatted(node.Value.GetNodeTypeName());
+                        //    imnodes.EndNodeTitleBar();
+                        //}
+                        if (document.scriptNodeDefs.TryGetValue(node.Value.GetNodeTypeName(), out var nodeDef))
+                        {
+                            foreach (var socket in nodeDef.ioDefs)
                             {
-                                imnodes.BeginInputAttribute(socket2Node.Count);
-                                ImGuiExt.Text(socket.displayName);
-                                imnodes.EndInputAttribute();
-                                socket2Node.Add(node.Key);
-                            }
-                            else if (socket.ioType == "output")
-                            {
-                                imnodes.BeginOutputAttribute(socket2Node.Count);
-                                ImGuiExt.Text(socket.displayName);
-                                imnodes.EndOutputAttribute();
-                                socket2Node.Add(node.Key);
+                                if (socket.ioType == "input")
+                                {
+                                    imnodes.BeginInputAttribute(socket2Node.Count);
+                                    ImGuiExt.Text(socket.displayName);
+                                    imnodes.EndInputAttribute();
+                                    socket2Node.Add(node.Key);
+                                }
+                                else if (socket.ioType == "output")
+                                {
+                                    imnodes.BeginOutputAttribute(socket2Node.Count);
+                                    ImGuiExt.Text(socket.displayName);
+                                    imnodes.EndOutputAttribute();
+                                    socket2Node.Add(node.Key);
+                                }
                             }
                         }
+                        else
+                        {
+
+                        }
+                        imnodes.EndNode();
+                        if (node.Key == graph.outputNode)
+                        {
+                            imnodes.PopColorStyle();
+                            imnodes.PopColorStyle();
+                            imnodes.PopColorStyle();
+                        }
                     }
+                    int linkCount = 0;
+                    foreach (var node in graph.Nodes)
+                    {
+                        if (node.Value.Inputs != null)
+                        {
+                            foreach (var pair in node.Value.Inputs)
+                            {
+                                var targetNode = graph.Nodes[pair.Value.targetUid];
+                                var socketDefs = document.scriptNodeDefs[node.Value.GetNodeTypeName()].ioDefs;
+                                var targetNodesocketDefs = document.scriptNodeDefs[targetNode.GetNodeTypeName()].ioDefs;
+
+                                int inputSocketId = nodeSocketStart[node.Value.Luid] + socketDefs.FindIndex(u => u.name == pair.Key && u.ioType == "input");
+                                int outputSocketId = nodeSocketStart[targetNode.Luid] + targetNodesocketDefs.FindIndex(u => u.name == pair.Value.targetSocket && u.ioType == "output");
+
+                                imnodes.Link(linkCount, inputSocketId, outputSocketId);
+                                link2InputSocket.Add(inputSocketId);
+                                linkCount++;
+                            }
+                        }
+                        node.Value.Position = imnodes.GetNodeGridSpacePos(node.Value.Luid);
+                    }
+                }
+                if (jumpToOutput && graph != null && graph.Nodes.TryGetValue(graph.outputNode, out var outputNode1))
+                {
+                    imnodes.EditorContextMoveToNode(graph.outputNode);
+                }
+                numSelectedNodes = imnodes.NumSelectedNodes();
+                numSelectedLinks = imnodes.NumSelectedLinks();
+                if (numSelectedNodes > 0)
+                {
+                    if (selectednodes == null || selectednodes.Length < numSelectedNodes)
+                        selectednodes = new int[numSelectedNodes];
+                    imnodes.GetSelectedNodes(ref selectednodes[0]);
+                    if (deleteNodes)
+                    {
+                        var removeNode = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                        removeNode.BuildRemoveNodes(document, currentLayout.graph, new List<int>(selectednodes), currentLayout.guid);
+                        var undoRemoveNode = removeNode.Execute();
+                        document.UndoManager.AddUndoData(undoRemoveNode);
+                    }
+                    if (setOutputNode)
+                    {
+                        graph.outputNode = selectednodes[0];
+                    }
+                }
+                if (numSelectedLinks > 0 && numSelectedNodes == 0)
+                {
+                    if (selectedlinks == null || selectedlinks.Length < numSelectedLinks)
+                        selectedlinks = new int[numSelectedLinks];
+                    imnodes.GetSelectedLinks(ref selectedlinks[0]);
+                    if (deleteNodes)
+                    {
+                        var removeLink = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                        removeLink.document = document;
+                        removeLink.layoutGuid = currentLayout.guid;
+                        removeLink.graph = graph;
+                        removeLink.connectLinks = new List<LinkDesc>();
+                        removeLink.setOutputNode = graph.outputNode;
+                        foreach (var linkId1 in selectedlinks)
+                        {
+                            int inputSocket = link2InputSocket[linkId1];
+                            int nodeId = socket2Node[inputSocket];
+
+                            int socketStart = nodeSocketStart[nodeId];
+                            int socketIndex = inputSocket - socketStart;
+                            var iodef = document.scriptNodeDefs[graph.Nodes[nodeId].GetNodeTypeName()].ioDefs[socketIndex];
+                            removeLink.connectLinks.Add(graph.DisconnectLink(nodeId, iodef.name));
+                        }
+                        document.UndoManager.AddUndoData(removeLink);
+                    }
+                }
+                imnodes.EndNodeEditor();
+                int linkA = 0;
+                int linkB = 0;
+                if (imnodes.IsLinkCreated(ref linkA, ref linkB))
+                {
+                    int nodeA = socket2Node[linkA];
+                    int nodeB = socket2Node[linkB];
+                    var socketDefsA = document.scriptNodeDefs[graph.Nodes[nodeA].GetNodeTypeName()].ioDefs;
+                    var socketDefsB = document.scriptNodeDefs[graph.Nodes[nodeB].GetNodeTypeName()].ioDefs;
+                    int nodeStartA = nodeSocketStart[nodeA];
+                    int nodeStartB = nodeSocketStart[nodeB];
+
+                    var undoCmd = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                    if (graph.Nodes[nodeB].Inputs?.ContainsKey(socketDefsB[linkB - nodeStartB].name) == true)
+                    {
+                        var desc1 = graph.DisconnectLink(nodeB, socketDefsB[linkB - nodeStartB].name);
+                        undoCmd.connectLinks = new List<LinkDesc>() { desc1 };
+                    }
+                    var desc2 = graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
+
+                    currentLayout.generatePicture = true;
+                    undoCmd.graph = currentLayout.graph;
+                    undoCmd.disconnectLinks = new List<LinkDesc>() { desc2 };
+                    undoCmd.setOutputNode = graph.outputNode;
+                    undoCmd.layoutGuid = currentLayout.guid;
+                    undoCmd.document = document;
+                    if (graph.DependCheck())
+                        document.UndoManager.AddUndoData(undoCmd);
                     else
-                    {
+                        undoCmd.Execute();
+                }
+                int linkId = 0;
+                if (imnodes.IsLinkDestroyed(ref linkId))
+                {
 
-                    }
-                    imnodes.EndNode();
-                    if (node.Key == graph.outputNode)
+                }
+                int nodeHovered = 0;
+                if (imnodes.IsNodeHovered(ref nodeHovered))
+                {
+                    if (ImGui.IsMouseDown(ImGuiMouseButton.Right))
                     {
-                        imnodes.PopColorStyle();
+                        graph.outputNode = nodeHovered;
                     }
                 }
-                int linkCount = 0;
-                foreach (var node in graph.Nodes)
+            }
+            ImGui.End();
+            if (ImGui.Begin("节点属性"))
+            {
+                if (numSelectedNodes > 0 && graph != null && graph.Nodes.TryGetValue(selectednodes[0], out var selectedNode))
                 {
-                    if (node.Value.Inputs != null)
+                    if (selectedNode.paint2DNode != null)
                     {
-                        foreach (var pair in node.Value.Inputs)
+                        bool colorChanged = false;
+                        colorChanged |= ImGui.ColorEdit4("颜色", ref selectedNode.paint2DNode.color);
+                        colorChanged |= ImGui.ColorEdit4("颜色2", ref selectedNode.paint2DNode.color2);
+                        colorChanged |= ImGui.ColorEdit4("颜色3", ref selectedNode.paint2DNode.color3);
+                        colorChanged |= ImGui.ColorEdit4("颜色4", ref selectedNode.paint2DNode.color4);
+                        if (colorChanged)
                         {
-                            var targetNode = graph.Nodes[pair.Value.targetUid];
-                            var socketDefs = document.scriptNodeDefs[node.Value.GetNodeTypeName()].ioDefs;
-                            var targetNodesocketDefs = document.scriptNodeDefs[targetNode.GetNodeTypeName()].ioDefs;
-
-                            int inputSocketId = nodeSocketStart[node.Value.Luid] + socketDefs.FindIndex(u => u.name == pair.Key && u.ioType == "input");
-                            int outputSocketId = nodeSocketStart[targetNode.Luid] + targetNodesocketDefs.FindIndex(u => u.name == pair.Value.targetSocket && u.ioType == "output");
-
-                            imnodes.Link(linkCount, inputSocketId, outputSocketId);
-                            linkCount++;
+                            graph.NodeParamCaches[selectednodes[0]].inputNodeModification.Clear();
+                            currentLayout.generatePicture |= colorChanged;
                         }
                     }
-                    node.Value.Position = imnodes.GetNodeGridSpacePos(node.Value.Luid);
                 }
             }
-            if (jumpToOutput && graph != null && graph.Nodes.TryGetValue(graph.outputNode, out var outputNode1))
+            ImGui.End();
+            if (ImGui.Begin("节点") && document != null)
             {
-                imnodes.EditorContextMoveToNode(graph.outputNode);
-            }
-            int numSelectedNodes = imnodes.NumSelectedNodes();
-            if (numSelectedNodes > 0)
-            {
-                if (deleteNodes)
+                foreach (var n in document.scriptNodeDefs)
                 {
-                    int[] nodes = new int[numSelectedNodes];
-                    imnodes.GetSelectedNodes(ref nodes[0]);
-
-                    var removeNode = new Core.UndoCommand.CMD_Remove_RecoverNodes();
-                    removeNode.BuildRemoveNodes(document, currentLayout.graph, new List<int>(nodes), currentLayout.guid);
-                    var undoRemoveNode = removeNode.Execute();
-                    document.UndoManager.AddUndoData(undoRemoveNode);
+                    if (!n.Value.hidden && ImGui.Selectable(n.Key))
+                    {
+                        ScriptNode scriptNode = new ScriptNode();
+                        scriptNode.nodeName = n.Key;
+                        Node node = new Node();
+                        node.scriptNode = scriptNode;
+                        if (graph == null)
+                        {
+                            graph = new Graph();
+                            currentLayout.graph = graph;
+                            graph.Initialize();
+                        }
+                        graph.AddNode(node);
+                        var undocmd = new Core.UndoCommand.CMD_Remove_RecoverNodes();
+                        undocmd.BuildRemoveNodes(document, graph, new List<int>() { node.Luid }, currentLayout.guid);
+                        document.UndoManager.AddUndoData(undocmd);
+                    }
                 }
             }
-            imnodes.EndNodeEditor();
-            int linkA = 0;
-            int linkB = 0;
-            if (imnodes.IsLinkCreated(ref linkA, ref linkB))
-            {
-                int nodeA = socket2Node[linkA];
-                int nodeB = socket2Node[linkB];
-                var socketDefsA = document.scriptNodeDefs[graph.Nodes[nodeA].GetNodeTypeName()].ioDefs;
-                var socketDefsB = document.scriptNodeDefs[graph.Nodes[nodeB].GetNodeTypeName()].ioDefs;
-                int nodeStartA = nodeSocketStart[nodeA];
-                int nodeStartB = nodeSocketStart[nodeB];
-
-                var undoCmd = new Core.UndoCommand.CMD_Remove_RecoverNodes();
-                if (graph.Nodes[nodeB].Inputs?.ContainsKey(socketDefsB[linkB - nodeStartB].name) == true)
-                {
-                    var desc1 = graph.DisconnectLink(nodeB, socketDefsB[linkB - nodeStartB].name);
-                    undoCmd.connectLinks = new List<LinkDesc>() { desc1 };
-                }
-                var desc2 = graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
-
-                currentLayout.generatePicture = true;
-                undoCmd.graph = currentLayout.graph;
-                undoCmd.disconnectLinks = new List<LinkDesc>() { desc2 };
-                undoCmd.setOutputNode = graph.outputNode;
-                undoCmd.layoutGuid = currentLayout.guid;
-                undoCmd.document = document;
-                if (graph.DependCheck())
-                    document.UndoManager.AddUndoData(undoCmd);
-                else
-                    undoCmd.Execute();
-            }
-            int linkId = 0;
-            if (imnodes.IsLinkDestroyed(ref linkId))
-            {
-
-            }
-
             ImGui.End();
         }
 

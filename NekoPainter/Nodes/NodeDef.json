@@ -2,12 +2,13 @@
   "paint2DNode": {
     "name": "paint2DNode",
     "displayName": "paint2DNode",
+    "hidden": "true",
     "ioDefs": [
       {
         "name": "strokes",
         "displayName": "Stroke",
         "ioType": "input",
-        "type": "texture2D"
+        "type": "strokes"
       },
       {
         "name": "texture2D",
@@ -26,12 +27,13 @@
   "strokeNode": {
     "name": "strokeNode",
     "displayName": "strokeNode",
+    "hidden": "true",
     "ioDefs": [
       {
         "name": "strokes",
         "displayName": "Stroke",
         "ioType": "output",
-        "type": "texture2D"
+        "type": "strokes"
       }
     ]
   }

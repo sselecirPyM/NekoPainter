@@ -255,6 +255,11 @@ namespace NekoPainter
                     else
                         generateCache = false;
 
+                    if (nodeDef.animated)
+                    {
+                        generateCache = true;
+                    }
+
                     if (generateCache)
                     {
                         //获取输入

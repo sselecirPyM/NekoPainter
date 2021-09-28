@@ -13,6 +13,8 @@ namespace NekoPainter.Data
         public string displayName;
         public string path;
         public string language;
+        public bool hidden;
+        public bool animated;
         public ScriptNodeIOFlag flags;
     }
     public class ScriptNodeIODef

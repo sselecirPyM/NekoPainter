@@ -82,7 +82,7 @@ namespace NekoPainter.Core.UndoCommand
                 newCmd.connectLinks = new List<LinkDesc>();
                 foreach (var connection in disconnectLinks)
                 {
-                    graph.DisconnectLink(connection.outputNode, connection.outputSocket, connection.inputNode, connection.inputSocket);
+                    graph.DisconnectLink(connection.outputNode, connection.outputName, connection.inputNode, connection.inputName);
                     newCmd.connectLinks.Add(connection);
                 }
             }
@@ -91,7 +91,7 @@ namespace NekoPainter.Core.UndoCommand
                 newCmd.disconnectLinks = new List<LinkDesc>();
                 foreach (var connection in connectLinks)
                 {
-                    graph.Link(connection.outputNode, connection.outputSocket, connection.inputNode, connection.inputSocket);
+                    graph.Link(connection.outputNode, connection.outputName, connection.inputNode, connection.inputName);
                     newCmd.disconnectLinks.Add(connection);
                 }
             }

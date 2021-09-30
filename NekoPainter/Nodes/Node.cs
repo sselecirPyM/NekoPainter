@@ -25,6 +25,12 @@ namespace NekoPainter.Nodes
         public Paint2DNode paint2DNode;
         public ScriptNode scriptNode;
 
+        public Dictionary<string, float> fParams;
+        public Dictionary<string, int> iParams;
+        public Dictionary<string, Vector2> f2Params;
+        public Dictionary<string, Vector3> f3Params;
+        public Dictionary<string, Vector4> f4Params;
+
         public string GetNodeTypeName()
         {
             if (strokeNode != null) return "strokeNode";

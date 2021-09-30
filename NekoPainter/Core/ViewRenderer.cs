@@ -208,9 +208,7 @@ namespace NekoPainter
                 var node = graph.Nodes[nodeId];
                 if (node.strokeNode != null)
                 {
-                    if (graph.NodeParamCaches == null)
-                        graph.NodeParamCaches = new Dictionary<int, NodeParamCache>();
-                    var cache = graph.NodeParamCaches.GetOrCreate(node.Luid);
+                    var cache = (graph.NodeParamCaches ??= new Dictionary<int, NodeParamCache>()).GetOrCreate(node.Luid);
                     cache.outputCache["strokes"] = new Stroke[] { node.strokeNode.stroke };
                     cache.modification = node.strokeNode.stroke.modification;
                 }
@@ -222,9 +220,8 @@ namespace NekoPainter
                     var nodeDef = livedDocument.scriptNodeDefs[node.GetNodeTypeName()];
 
                     ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>() };
-                    if (graph.NodeParamCaches == null)
-                        graph.NodeParamCaches = new Dictionary<int, NodeParamCache>();
-                    var cache = graph.NodeParamCaches.GetOrCreate(nodeId);
+
+                    var cache = (graph.NodeParamCaches ??= new Dictionary<int, NodeParamCache>()).GetOrCreate(nodeId);
 
                     bool generateCache = false;
                     if (node.Inputs != null)
@@ -296,6 +293,29 @@ namespace NekoPainter
                                 else
                                 {
 
+                                }
+                            }
+                        }
+                        //检查参数
+                        if (nodeDef.parameters != null)
+                        {
+                            foreach (var param in nodeDef.parameters)
+                            {
+                                if (param.type == "float")
+                                {
+                                    global.parameters[param.name] = (node.fParams ??= new Dictionary<string, float>()).GetOrDefault(param.name, (float)(param.defaultValue1));
+                                }
+                                if (param.type == "float2")
+                                {
+                                    global.parameters[param.name] = (node.f2Params ??= new Dictionary<string, Vector2>()).GetOrDefault(param.name, (Vector2)(param.defaultValue1));
+                                }
+                                if (param.type == "float3" || param.type == "color3")
+                                {
+                                    global.parameters[param.name] = (node.f3Params ??= new Dictionary<string, Vector3>()).GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                                }
+                                if (param.type == "float4" || param.type == "color4")
+                                {
+                                    global.parameters[param.name] = (node.f4Params ??= new Dictionary<string, Vector4>()).GetOrDefault(param.name, (Vector4)(param.defaultValue1));
                                 }
                             }
                         }

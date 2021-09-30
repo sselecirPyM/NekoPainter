@@ -36,7 +36,7 @@ namespace NekoPainter.Nodes
                 input.Inputs = new Dictionary<string, NodeSocket>();
             output.Outputs.GetOrCreate(outputName).Add(new NodeSocket { targetUid = input.Luid, targetSocket = inputName });
             input.Inputs[inputName] = new NodeSocket { targetUid = output.Luid, targetSocket = outputName };
-            return new LinkDesc { outputNode = output.Luid, outputSocket = outputName, inputNode = input.Luid, inputSocket = inputName };
+            return new LinkDesc { outputNode = output.Luid, outputName = outputName, inputNode = input.Luid, inputName = inputName };
         }
 
         public int AddNode(Node node)
@@ -72,7 +72,7 @@ namespace NekoPainter.Nodes
             var outputNode1 = Nodes[outputNode];
             inputNode1.Inputs.Remove(inputSocketName);
             outputNode1.Outputs[outputSocketName].RemoveWhere(u => u.targetSocket == inputSocketName && u.targetUid == inputNode);
-            return new LinkDesc { inputNode = inputNode, inputSocket = inputSocketName, outputNode = outputNode, outputSocket = outputSocketName };
+            return new LinkDesc { inputNode = inputNode, inputName = inputSocketName, outputNode = outputNode, outputName = outputSocketName };
         }
 
         public void RemoveNodes(List<int> nodes)

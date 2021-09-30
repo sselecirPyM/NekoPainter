@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using NekoPainter.Core.UndoCommand;
 using NekoPainter.Nodes;
 using NekoPainter.Data;
+using NekoPainter.Util;
 
 namespace NekoPainter.FileFormat
 {
@@ -223,16 +224,31 @@ namespace NekoPainter.FileFormat
             List<Core.Brush> brushesList = new List<Core.Brush>();
             foreach (var brushFile in brushFiles)
             {
-                if (!".dcbf".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var brush = Core.Brush.LoadFromFileAsync(brushFile);
-                brush.path = Path.GetRelativePath(Folder.FullName, brushFile.FullName);
-                brushesList.Add(brush);
+                if (".dcbf".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var brush = Core.Brush.LoadFromFileAsync(brushFile);
+                    brush.path = Path.GetRelativePath(Folder.FullName, brushFile.FullName);
+                    brushesList.Add(brush);
+                }
+                if (".json".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var brush1 = ReadJsonStream<Brush1>(brushFile.OpenRead());
+                    livedDocument.brushes1[brushFile.FullName] = brush1;
+                }
             }
             brushesList.Sort();
-            livedDocument.PaintAgent.brushes = new List<Core.Brush>(brushesList);
+            livedDocument.PaintAgent.brushes = new List<Core.Brush1>(livedDocument.brushes1.Values);
             foreach (var brush in brushesList)
             {
                 livedDocument.brushes.Add(brush.path, brush);
+            }
+            foreach (var nodeDef in livedDocument.PaintAgent.brushes)
+            {
+                if (nodeDef.parameters != null)
+                    foreach (var param in nodeDef.parameters)
+                    {
+                        GenerateDefaultVaue(param);
+                    }
             }
 
         }
@@ -240,8 +256,8 @@ namespace NekoPainter.FileFormat
         private void LoadNodeDefs()
         {
             var nodeFiles = nodeFolder.GetFiles();
-            livedDocument.scripts = new Dictionary<string, string>();
-            livedDocument.scriptNodeDefs = new Dictionary<string, ScriptNodeDef>();
+            livedDocument.scripts = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            livedDocument.scriptNodeDefs = new Dictionary<string, ScriptNodeDef>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (var nodeFile in nodeFiles)
             {
@@ -257,7 +273,35 @@ namespace NekoPainter.FileFormat
                         livedDocument.scriptNodeDefs[relatePath] = ReadJsonStream<ScriptNodeDef>(filestream);
                     }
                 }
+            }
 
+            foreach (var nodeDef in livedDocument.scriptNodeDefs)
+            {
+                if (nodeDef.Value.parameters != null)
+                    foreach (var param in nodeDef.Value.parameters)
+                    {
+                        GenerateDefaultVaue(param);
+                    }
+            }
+        }
+
+        static void GenerateDefaultVaue(ScriptNodeParamDef paramDef)
+        {
+            if (paramDef.type == "float")
+            {
+                paramDef.defaultValue1 ??= StringConvert.GetFloat(paramDef.defaultValue);
+            }
+            if (paramDef.type == "float2")
+            {
+                paramDef.defaultValue1 ??= StringConvert.GetFloat2(paramDef.defaultValue);
+            }
+            if (paramDef.type == "float3" || paramDef.type == "color3")
+            {
+                paramDef.defaultValue1 ??= StringConvert.GetFloat3(paramDef.defaultValue);
+            }
+            if (paramDef.type == "float4" || paramDef.type == "color4")
+            {
+                paramDef.defaultValue1 ??= StringConvert.GetFloat4(paramDef.defaultValue);
             }
         }
 

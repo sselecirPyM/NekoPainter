@@ -9,6 +9,7 @@ namespace NekoPainter.Data
     public class ScriptNodeDef
     {
         public List<ScriptNodeIODef> ioDefs;
+        public List<ScriptNodeParamDef> parameters;
         public string name;
         public string displayName;
         public string path;
@@ -29,6 +30,17 @@ namespace NekoPainter.Data
             ScriptNodeIODef scriptNodeIODef = (ScriptNodeIODef)MemberwiseClone();
             return scriptNodeIODef;
         }
+    }
+    public class ScriptNodeParamDef
+    {
+        public string name;
+        public string displayName;
+        public string description;
+        public string type;
+        public string defaultValue;
+        public float step = 1.0f;
+        [NonSerialized]
+        public object defaultValue1;
     }
     [Flags]
     public enum ScriptNodeIOFlag

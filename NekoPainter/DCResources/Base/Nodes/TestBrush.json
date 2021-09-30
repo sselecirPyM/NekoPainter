@@ -23,5 +23,34 @@
       "ioType": "output",
       "type": "texture2D"
     }
+  ],
+  "parameters": [
+    {
+      "name": "color",
+      "displayName": "color",
+      "type": "color4",
+      "defaultValue": "[1,1,1,1]"
+    },
+    {
+      "name": "countByDistance",
+      "displayName": "countByDistance",
+      "type": "float",
+      "defaultValue": "0.5",
+      "step": 0.01
+    },
+    {
+      "name": "countByDistanceSquare",
+      "displayName": "countByDistanceSquare",
+      "type": "float",
+      "defaultValue": "0.0",
+      "step": 0.001
+    },
+    {
+      "name": "rangeByDistance",
+      "displayName": "rangeByDistance",
+      "type": "float",
+      "defaultValue": "0.25",
+      "step": 0.01
+    }
   ]
 }

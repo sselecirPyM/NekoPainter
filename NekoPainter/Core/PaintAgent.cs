@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Collections;
 using System.Collections.Generic;
 using CanvasRendering;
-using Color = System.Numerics.Vector4;
 using System.Collections.Concurrent;
 using NekoPainter.UI;
 using System.IO;
@@ -26,13 +25,13 @@ namespace NekoPainter
         /// <summary>
         /// 设置当前使用的笔刷。
         /// </summary>
-        public void SetBrush(Brush brush)
+        public void SetBrush(Brush1 brush)
         {
-            if (currentBrush != null)
-                currentBrush.Size = BrushSize;
+            //if (currentBrush != null)
+            //    currentBrush.Size = BrushSize;
             currentBrush = brush;
-            currentBrush.CheckBrush(document.DeviceResources);
-            BrushSize = currentBrush.Size;
+            //currentBrush.CheckBrush(document.DeviceResources);
+            //BrushSize = currentBrush.Size;
         }
 
         public bool Draw(PenInputData penInputData)
@@ -64,30 +63,68 @@ namespace NekoPainter
                         CurrentLayout.graph.Initialize();
                     }
                     var graph = CurrentLayout.graph;
-                    Paint2DNode paint2dNode = new Paint2DNode();
-                    paint2dNode.color = _color;
-                    paint2dNode.color2 = _color2;
-                    paint2dNode.color3 = _color3;
-                    paint2dNode.color4 = _color4;
-                    paint2dNode.size = BrushSize;
-                    paint2dNode.brushPath = currentBrush.path;
-                    var paint2dNode1 = new Node { paint2DNode = paint2dNode };
-                    paint2dNode1.creationTime = DateTime.Now;
-                    StrokeNode strokeNode = new StrokeNode();
-                    strokeNode.stroke = stroke;
-                    var strokeNode1 = new Node { strokeNode = strokeNode };
-                    strokeNode1.creationTime = DateTime.Now;
-                    graph.AddNodeToEnd(strokeNode1, new Vector2(60, -40));
-                    graph.AddNodeToEnd(paint2dNode1, new Vector2(80, 0));
-                    graph.Link(strokeNode1, "strokes", paint2dNode1, "strokes");
-                    if (graph.Nodes.ContainsKey(graph.outputNode))
-                        graph.Link(graph.Nodes[graph.outputNode], "texture2D", paint2dNode1, "texture2D");
 
+                    int startOutput = graph.outputNode;
+                    int startIndex = graph.idAllocated;
+                    foreach (var node in currentBrush.nodes)
+                    {
+                        if (node.name == "stroke")
+                        {
+                            StrokeNode strokeNode = new StrokeNode();
+                            strokeNode.stroke = stroke;
+                            var strokeNode1 = new Node { strokeNode = strokeNode };
+                            strokeNode1.creationTime = DateTime.Now;
+                            graph.AddNodeToEnd(strokeNode1, node.offset);
+                        }
+                        else
+                        {
+                            ScriptNode scriptNode = new ScriptNode();
+                            scriptNode.nodeName = node.name;
+                            var strokeNode1 = new Node { scriptNode = scriptNode };
+                            strokeNode1.creationTime = DateTime.Now;
+                            if (node.parameters != null)
+                                foreach (var param in node.parameters)
+                                {
+                                    var param1 = currentBrush.parameters.Find(u => u.name == param.from);
+                                    if (param1.type == "float")
+                                    {
+                                        (strokeNode1.fParams ??= new Dictionary<string, float>())[param.name] = (float)(param1.defaultValue1 ?? 0.0f);
+                                    }
+                                    if (param1.type == "float2")
+                                    {
+                                        (strokeNode1.f2Params ??= new Dictionary<string, Vector2>())[param.name] = (Vector2)(param1.defaultValue1 ?? new Vector2());
+                                    }
+                                    if (param1.type == "float3" || param1.type == "color3")
+                                    {
+                                        (strokeNode1.f3Params ??= new Dictionary<string, Vector3>())[param.name] = (Vector3)(param1.defaultValue1 ?? new Vector3());
+                                    }
+                                    if (param1.type == "float4" || param1.type == "color4")
+                                    {
+                                        (strokeNode1.f4Params ??= new Dictionary<string, Vector4>())[param.name] = (Vector4)(param1.defaultValue1 ?? new Vector4());
+                                    }
+                                }
+                            graph.AddNodeToEnd(strokeNode1, node.offset);
+                        }
+                    }
+                    foreach (var link in currentBrush.links)
+                    {
+                        graph.Link(link.outputNode + startIndex, link.outputName, link.inputNode + startIndex, link.inputName);
+                    }
+                    foreach (var link in currentBrush.attachLinks)
+                    {
+                        if (graph.Nodes.ContainsKey(graph.outputNode))
+                            graph.Link(startOutput, link.outputName, link.inputNode + startIndex, link.inputName);
+                    }
+                    List<int> removeNodeList = new List<int>();
+                    for (int i = 0; i < currentBrush.nodes.Count; i++)
+                    {
+                        removeNodeList.Add(startIndex + i);
+                    }
                     var removeNode = new CMD_Remove_RecoverNodes();
-                    removeNode.BuildRemoveNodes(document, CurrentLayout.graph, new List<int>() { paint2dNode1.Luid, strokeNode1.Luid }, CurrentLayout.guid);
+                    removeNode.BuildRemoveNodes(document, CurrentLayout.graph, removeNodeList, CurrentLayout.guid);
                     UndoManager.AddUndoData(removeNode);
 
-                    graph.outputNode = paint2dNode1.Luid;
+                    graph.outputNode = currentBrush.outputNode + startIndex;
                     stroke.deltaTime.Add(0);
                     previousStopWatchValue = stopwatch.ElapsedTicks / 1e7;
                 }
@@ -108,7 +145,7 @@ namespace NekoPainter
                 CurrentLayout.saved = false;
 
 
-                currentBrush.CheckBrush(document.DeviceResources);
+                //currentBrush.CheckBrush(document.DeviceResources);
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     CurrentLayout.generatePicture = true;
@@ -125,22 +162,22 @@ namespace NekoPainter
         /// <summary>
         /// 当前使用的笔刷
         /// </summary>
-        public Brush currentBrush { get; set; }
+        public Brush1 currentBrush { get; set; }
         /// <summary>
         /// 笔刷尺寸
         /// </summary>
         public float BrushSize;
 
-        public Color _color = new Color(1, 1, 1, 1);
-        public Color _color2 = new Color(1, 0.5f, 0.5f, 1);
-        public Color _color3 = new Color(1, 1, 1, 1);
-        public Color _color4 = new Color(1, 1, 1, 1);
+        //public Color _color = new Color(1, 1, 1, 1);
+        //public Color _color2 = new Color(1, 0.5f, 0.5f, 1);
+        //public Color _color3 = new Color(1, 1, 1, 1);
+        //public Color _color4 = new Color(1, 1, 1, 1);
 
         public ConcurrentQueue<InputPointerData> inputPointerDatas = new ConcurrentQueue<InputPointerData>();
 
         public UndoManager UndoManager;
 
-        public List<Brush> brushes;
+        public List<Brush1> brushes;
 
         public static PointerData GetBrushData(Vector2 position, NekoPainter.Core.PointerPoint pointerPoint)
         {

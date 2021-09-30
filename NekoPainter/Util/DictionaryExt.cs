@@ -38,5 +38,13 @@ namespace NekoPainter.Util
             dict[key] = v;
             return v;
         }
+        public static T GetOrDefault<T1, T>(this Dictionary<T1, T> dict, T1 key, T defaultValue) where T : new()
+        {
+            if (dict.TryGetValue(key, out T v))
+            {
+                return v;
+            }
+            return defaultValue;
+        }
     }
 }

@@ -6,8 +6,17 @@ using System.Collections.Generic;
 
 static class Modified
 {
-    public static void Invoke(Texture2D tex, IList<Stroke> strokes)
+    public static void Invoke(Dictionary<string, object> parameters)
     {
+        parameters.TryGetValue("texture2D", out object ptexture2D);
+        parameters.TryGetValue("strokes", out object pstrokes);
+
+        IList<Stroke> strokes = (IList<Stroke>)pstrokes;
+        Texture2D tex = (Texture2D)ptexture2D;
+        Vector4 color = (Vector4)parameters["color"];
+        float countByDistance = (float)parameters["countByDistance"];
+        float countByDistanceSquare = (float)parameters["countByDistanceSquare"];
+        float rangeByDistance = (float)parameters["rangeByDistance"];
         var rawTex = tex.GetRawTexture();
         int f1 = rawTex.Length / 4;
         int width = tex.width;
@@ -21,16 +30,20 @@ static class Modified
             foreach (var stroke in strokes)
             {
                 float pathLength = 0;
+                float distanceRemain = 0.0f;
                 for (int i = stroke.position.Count - 1; i >= 0; i--)
                 {
                     var point = stroke.position[i];
                     if (i > 0)
                     {
-                        pathLength += Vector2.Distance(stroke.position[i], stroke.position[i - 1]);
+                        float distance = Vector2.Distance(stroke.position[i], stroke.position[i - 1]);
+                        pathLength += distance;
+                        distanceRemain += distance * countByDistance + (pathLength * distance * 2 - distance * distance) * countByDistanceSquare;
                     }
-                    for (int k = 0; k < 5; k++)
+                    while (distanceRemain > 1.0f)
                     {
-                        positions.Add(new Vector2((float)(random.NextDouble() - 0.5), (float)(random.NextDouble() - 0.5)) * pathLength * 0.3f + point);
+                        positions.Add(new Vector2((float)(random.NextDouble() - 0.5), (float)(random.NextDouble() - 0.5)) * pathLength * rangeByDistance + point);
+                        distanceRemain -= 1;
                     }
                 }
             }
@@ -45,7 +58,7 @@ static class Modified
                         if (x >= 0 && x < width && y >= 0 && y < height)
                         {
                             int i = x + y * width;
-                            rawTex[i] = new Vector4(0.1f * p1, 1.0f * p1, 0.1f * p1, 1.0f);
+                            rawTex[i] += color * new Vector4(p1, p1, p1, 1.0f);
                         }
 
             }
@@ -53,8 +66,5 @@ static class Modified
         tex.EndModification();
     }
 }
-if (parameters.TryGetValue("strokes", out object strokes))
-    Modified.Invoke((Texture2D)parameters["texture2D"], (IList<Stroke>)strokes);
-else
-    Modified.Invoke((Texture2D)parameters["texture2D"], null);
+Modified.Invoke(parameters);
 

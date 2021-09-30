@@ -458,7 +458,7 @@ namespace NekoPainter.UI
                 numSelectedLinks = imnodes.NumSelectedLinks();
                 if (numSelectedNodes > 0)
                 {
-                    if (selectednodes == null || selectednodes.Length < numSelectedNodes)
+                    if (selectednodes == null || selectednodes.Length != numSelectedNodes)
                         selectednodes = new int[numSelectedNodes];
                     imnodes.GetSelectedNodes(ref selectednodes[0]);
                     if (deleteNodes)
@@ -562,6 +562,11 @@ namespace NekoPainter.UI
                             currentLayout.generatePicture |= colorChanged;
                         }
                     }
+                    if (selectedNode.scriptNode != null)
+                    {
+                        var nodeDef = document.scriptNodeDefs[selectedNode.GetNodeTypeName()];
+                        ShowNodeParams(nodeDef, selectedNode);
+                    }
                 }
             }
             ImGui.End();
@@ -569,7 +574,7 @@ namespace NekoPainter.UI
             {
                 foreach (var n in document.scriptNodeDefs)
                 {
-                    if (!n.Value.hidden && ImGui.Selectable(n.Key))
+                    if (!n.Value.hidden && ImGui.Selectable(n.Key) && currentLayout != null)
                     {
                         ScriptNode scriptNode = new ScriptNode();
                         scriptNode.nodeName = n.Key;
@@ -591,6 +596,64 @@ namespace NekoPainter.UI
             ImGui.End();
         }
 
+        static void ShowNodeParams(Data.ScriptNodeDef nodeDef, Node selectedNode)
+        {
+            if (nodeDef.parameters != null)
+            {
+                foreach (var param in nodeDef.parameters)
+                {
+                    if (param.type == "float")
+                    {
+                        float v = (selectedNode.fParams ??= new Dictionary<string, float>()).GetOrDefault(param.name, (float)(param.defaultValue1));
+                        if (ImGui.DragFloat(param.displayName ?? param.name, ref v, param.step, param.step))
+                        {
+                            selectedNode.fParams[param.name] = v;
+                        }
+                    }
+                    else if (param.type == "float2")
+                    {
+                        Vector2 v = (selectedNode.f2Params ??= new Dictionary<string, Vector2>()).GetOrDefault(param.name, (Vector2)(param.defaultValue1));
+                        if (ImGui.DragFloat2(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            selectedNode.f2Params[param.name] = v;
+                        }
+                    }
+                    else if (param.type == "float3")
+                    {
+                        Vector3 v = (selectedNode.f3Params ??= new Dictionary<string, Vector3>()).GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                        if (ImGui.DragFloat3(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            selectedNode.f3Params[param.name] = v;
+                        }
+                    }
+                    else if (param.type == "float4")
+                    {
+                        Vector4 v = (selectedNode.f4Params ??= new Dictionary<string, Vector4>()).GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                        if (ImGui.DragFloat4(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            selectedNode.f4Params[param.name] = v;
+                        }
+                    }
+                    else if (param.type == "color3")
+                    {
+                        Vector3 v = (selectedNode.f3Params ??= new Dictionary<string, Vector3>()).GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                        if (ImGui.ColorEdit3(param.displayName ?? param.name, ref v))
+                        {
+                            selectedNode.f3Params[param.name] = v;
+                        }
+                    }
+                    else if (param.type == "color4")
+                    {
+                        Vector4 v = (selectedNode.f4Params ??= new Dictionary<string, Vector4>()).GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                        if (ImGui.ColorEdit4(param.displayName ?? param.name, ref v))
+                        {
+                            selectedNode.f4Params[param.name] = v;
+                        }
+                    }
+                }
+            }
+        }
+
         static void BrushParametersPanel(AppController appController)
         {
             var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
@@ -600,20 +663,72 @@ namespace NekoPainter.UI
             {
                 //ImGui.Text(TimeCost.ToString());
                 ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
-                ImGui.ColorEdit4("颜色", ref paintAgent._color);
-                ImGui.ColorEdit4("颜色2", ref paintAgent._color2);
-                ImGui.ColorEdit4("颜色3", ref paintAgent._color3);
-                ImGui.ColorEdit4("颜色4", ref paintAgent._color4);
-                if (paintAgent.currentBrush != null && paintAgent.currentBrush.Parameters != null)
-                {
-                    var brushParams = paintAgent.currentBrush.Parameters;
-                    for (int i = 0; i < brushParams.Length; i++)
+                //ImGui.ColorEdit4("颜色", ref paintAgent._color);
+                //ImGui.ColorEdit4("颜色2", ref paintAgent._color2);
+                //ImGui.ColorEdit4("颜色3", ref paintAgent._color3);
+                //ImGui.ColorEdit4("颜色4", ref paintAgent._color4);
+                //if (paintAgent.currentBrush != null && paintAgent.currentBrush.parameters != null)
+                //{
+                //    var brushParams = paintAgent.currentBrush.parameters;
+                //    for (int i = 0; i < brushParams.Count; i++)
+                //    {
+                //        float a1 = (float)brushParams[i].Value;
+                //        ImGui.DragFloat(string.Format("{0}###{1}", brushParams[i].Name, i), ref a1);
+                //        brushParams[i].Value = a1;
+                //    }
+                //}
+                if (paintAgent.currentBrush?.parameters != null)
+                    foreach (var param in paintAgent.currentBrush.parameters)
                     {
-                        float a1 = (float)brushParams[i].Value;
-                        ImGui.DragFloat(string.Format("{0}###{1}", brushParams[i].Name, i), ref a1);
-                        brushParams[i].Value = a1;
+                        if (param.type == "float")
+                        {
+                            float v = (float)(param.defaultValue1 ?? 0.0f);
+                            if (ImGui.DragFloat(param.displayName ?? param.name, ref v, param.step, param.step))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
+                        else if (param.type == "float2")
+                        {
+                            Vector2 v = (Vector2)(param.defaultValue1 ?? new Vector2());
+                            if (ImGui.DragFloat2(param.displayName ?? param.name, ref v, param.step))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
+                        else if (param.type == "float3")
+                        {
+                            Vector3 v = (Vector3)(param.defaultValue1 ?? new Vector3());
+                            if (ImGui.DragFloat3(param.displayName ?? param.name, ref v, param.step))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
+                        else if (param.type == "float4")
+                        {
+                            Vector4 v = (Vector4)(param.defaultValue1 ?? new Vector4());
+                            if (ImGui.DragFloat4(param.displayName ?? param.name, ref v, param.step))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
+                        else if (param.type == "color3")
+                        {
+                            Vector3 v = (Vector3)(param.defaultValue1 ?? new Vector3());
+                            if (ImGui.ColorEdit3(param.displayName ?? param.name, ref v))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
+                        else if (param.type == "color4")
+                        {
+                            Vector4 v = (Vector4)(param.defaultValue1 ?? new Vector4());
+                            if (ImGui.ColorEdit4(param.displayName ?? param.name, ref v))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
                     }
-                }
             }
             ImGui.End();
         }
@@ -629,11 +744,11 @@ namespace NekoPainter.UI
                 var brushes = paintAgent.brushes;
                 for (int i = 0; i < brushes.Count; i++)
                 {
-                    Core.Brush brush = brushes[i];
+                    Core.Brush1 brush = brushes[i];
                     bool selected = brush == paintAgent.currentBrush;
-                    ImGui.Selectable(brush.Name, ref selected);
+                    ImGui.Selectable(brush.displayName ?? brush.name, ref selected);
                     if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip(brush.Description);
+                        ImGui.SetTooltip(brush.description);
                     if (selected)
                     {
                         paintAgent.SetBrush(brush);

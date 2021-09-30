@@ -9,22 +9,22 @@ namespace NekoPainter.Nodes
     public struct LinkDesc
     {
         public int outputNode;
-        public string outputSocket;
+        public string outputName;
         public int inputNode;
-        public string inputSocket;
+        public string inputName;
 
         public override bool Equals(object obj)
         {
             return obj is LinkDesc desc &&
                    outputNode == desc.outputNode &&
-                   outputSocket == desc.outputSocket &&
+                   outputName == desc.outputName &&
                    inputNode == desc.inputNode &&
-                   inputSocket == desc.inputSocket;
+                   inputName == desc.inputName;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(outputNode, outputSocket, inputNode, inputSocket);
+            return HashCode.Combine(outputNode, outputName, inputNode, inputName);
         }
 
         public static bool operator ==(LinkDesc left, LinkDesc right)

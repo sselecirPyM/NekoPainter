@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using CanvasRendering;
-using System.Collections.ObjectModel;
 using NekoPainter.Core.UndoCommand;
 using System.ComponentModel;
 using Vortice.DXGI;
@@ -187,6 +186,8 @@ namespace NekoPainter.Core
         public Dictionary<System.Guid, BlendMode> blendmodesMap = new Dictionary<System.Guid, BlendMode>();
         public Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
 
+        public Dictionary<string, Brush1> brushes1 = new Dictionary<string, Brush1>();
+
         public float logicScale = 1.0f;
         public float rotation = 0.0f;
         public System.Numerics.Vector2 position;
@@ -201,7 +202,7 @@ namespace NekoPainter.Core
 
         public Dictionary<string, ScriptNodeDef> scriptNodeDefs;
 
-        public Dictionary<string, Script<object>> scriptCache = new Dictionary<string, Script<object>>();
+        public Dictionary<string, Script<object>> scriptCache = new Dictionary<string, Script<object>>(System.StringComparer.InvariantCultureIgnoreCase);
     }
 }
 

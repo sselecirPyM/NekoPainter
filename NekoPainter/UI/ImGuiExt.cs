@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Numerics;
 using ImGuiNET;
 
 namespace NekoPainter.UI
@@ -16,6 +17,11 @@ namespace NekoPainter.UI
                 currentLanguage = StringTranslations.current;
                 enumNamesDictionary.Clear();
             }
+        }
+        public static bool ColorEdit4(string label, ref Vector4 col)
+        {
+            bool hasTranslation = StringTranslations.UITranslations.TryGetValue(label, out string translation);
+            return ImGui.ColorEdit4(string.Format("{1}###{0}", label, hasTranslation ? translation : label), ref col);
         }
         public static bool ComboBox<T>(string label, ref T val) where T : struct, Enum
         {

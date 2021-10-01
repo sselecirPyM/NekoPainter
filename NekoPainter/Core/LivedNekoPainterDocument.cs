@@ -53,8 +53,8 @@ namespace NekoPainter.Core
             ActivatedLayout = layout;
 
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
-            PaintingTexture.Clear();
-            tiledTexture?.UnzipToTexture(PaintingTexture);
+            //PaintingTexture.Clear();
+            //tiledTexture?.UnzipToTexture(PaintingTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
             ActivatedLayoutChanged?.Invoke();
         }
@@ -89,15 +89,15 @@ namespace NekoPainter.Core
             PictureLayout pictureLayout = Layouts[index];
             PictureLayout newPictureLayout = null;
             TiledTexture tiledTexture = null;
-            LayoutTex.TryGetValue(pictureLayout.guid, out var standardLayouttiledTexture);
+            LayoutTex.TryGetValue(pictureLayout.guid, out var standardLayoutTiledTexture);
 
             if (PaintAgent.CurrentLayout == pictureLayout)
             {
                 tiledTexture = new TiledTexture(PaintingTexture);
             }
-            else if (standardLayouttiledTexture != null)
+            else if (standardLayoutTiledTexture != null)
             {
-                tiledTexture = new TiledTexture(standardLayouttiledTexture);
+                tiledTexture = new TiledTexture(standardLayoutTiledTexture);
             }
 
             newPictureLayout = new PictureLayout(pictureLayout)

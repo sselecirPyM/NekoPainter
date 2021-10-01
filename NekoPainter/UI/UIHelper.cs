@@ -28,6 +28,7 @@ namespace NekoPainter.UI
         public static string openDocumentPath = "";
 
         public static string importImagePath = "";
+        public static string exportImagePath = "";
 
         public static bool quit;
 
@@ -39,30 +40,46 @@ namespace NekoPainter.UI
                 if (!string.IsNullOrEmpty(path))
                     folder = new DirectoryInfo(path);
             }
-            //if (selectSaveFile.SetFalse())
-            //{
-            //    var picker = new FileSavePicker()
-            //    {
-            //        SuggestedStartLocation = PickerLocationId.ComputerFolder,
-            //    };
-            //    picker.FileTypeChoices.Add("jpg", new[] { ".jpg" });
-            //    picker.FileTypeChoices.Add("png", new[] { ".png" });
-
-            //    saveFile = await picker.PickSaveFileAsync();
-            //}
-            //if (selectOpenFile.SetFalse())
-            //{
-            //    var picker = new FileOpenPicker()
-            //    {
-            //        SuggestedStartLocation = PickerLocationId.ComputerFolder,
-            //    };
-            //    picker.FileTypeFilter.Add(".jpg");
-            //    picker.FileTypeFilter.Add(".png");
-            //    picker.FileTypeFilter.Add(".tif");
-            //    picker.FileTypeFilter.Add(".tga");
-
-            //    openFile = await picker.PickSingleFileAsync();
-            //}
+            if (selectSaveFile.SetFalse())
+            {
+                FileOpenDialog fileDialog = new FileOpenDialog()
+                {
+                    //title = "select save file",
+                    file = new string(new char[256]),
+                    fileTitle = new string(new char[256]),
+                    initialDir = AppController.Instance.CurrentDCDocument.Folder.FullName,
+                    filter = ".jpg\0*.jpg\0.png\0*.png\0.tga\0*.tga\0All Files\0*.*\0\0",
+                    defExt = "jpg",
+                    flags = 0x00080000 | 0x00001000 | 0x00000800 | 0x00000200 | 0x00000008,
+                    structSize = Marshal.SizeOf(typeof(FileOpenDialog))
+                };
+                fileDialog.maxFile = fileDialog.file.Length;
+                fileDialog.maxFileTitle = fileDialog.fileTitle.Length;
+                if (GetSaveFileName(fileDialog))
+                {
+                    saveFile = new FileInfo(fileDialog.file);
+                }
+            }
+            if (selectOpenFile.SetFalse())
+            {
+                FileOpenDialog fileDialog = new FileOpenDialog()
+                {
+                    //title = "select save file",
+                    file = new string(new char[256]),
+                    fileTitle = new string(new char[256]),
+                    initialDir = AppController.Instance.CurrentDCDocument.Folder.FullName,
+                    filter = ".jpg\0*.jpg\0.png\0*.png\0.tga\0*.tga\0All Files\0*.*\0\0",
+                    defExt = "jpg",
+                    flags = 0x00080000 | 0x00001000 | 0x00000800 | 0x00000200 | 0x00000008,
+                    structSize = Marshal.SizeOf(typeof(FileOpenDialog))
+                };
+                fileDialog.maxFile = fileDialog.file.Length;
+                fileDialog.maxFileTitle = fileDialog.fileTitle.Length;
+                if (GetOpenFileName(fileDialog))
+                {
+                    openFile = new FileInfo(fileDialog.file);
+                }
+            }
             if (createDocument.SetFalse())
             {
                 AppController.Instance.CreateDocument(createDocumentParameters);

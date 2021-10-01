@@ -206,7 +206,7 @@ namespace NekoPainter.UI
             {
                 var layout = document.SelectedLayout;
                 ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
-                ImGui.ColorEdit4("颜色", ref layout.Color);
+                ImGuiExt.ColorEdit4("Color", ref layout.Color);
                 ImGuiExt.ComboBox("DataSource", ref layout.DataSource);
                 ImGuiExt.Checkbox("Hidden", ref layout.Hidden);
 
@@ -550,19 +550,19 @@ namespace NekoPainter.UI
             {
                 if (numSelectedNodes > 0 && graph != null && graph.Nodes.TryGetValue(selectednodes[0], out var selectedNode))
                 {
-                    if (selectedNode.paint2DNode != null)
-                    {
-                        bool colorChanged = false;
-                        colorChanged |= ImGui.ColorEdit4("颜色", ref selectedNode.paint2DNode.color);
-                        colorChanged |= ImGui.ColorEdit4("颜色2", ref selectedNode.paint2DNode.color2);
-                        colorChanged |= ImGui.ColorEdit4("颜色3", ref selectedNode.paint2DNode.color3);
-                        colorChanged |= ImGui.ColorEdit4("颜色4", ref selectedNode.paint2DNode.color4);
-                        if (colorChanged)
-                        {
-                            graph.NodeParamCaches[selectednodes[0]].inputNodeModification.Clear();
-                            currentLayout.generatePicture |= colorChanged;
-                        }
-                    }
+                    //if (selectedNode.paint2DNode != null)
+                    //{
+                    //    bool colorChanged = false;
+                    //    colorChanged |= ImGui.ColorEdit4("颜色", ref selectedNode.paint2DNode.color);
+                    //    colorChanged |= ImGui.ColorEdit4("颜色2", ref selectedNode.paint2DNode.color2);
+                    //    colorChanged |= ImGui.ColorEdit4("颜色3", ref selectedNode.paint2DNode.color3);
+                    //    colorChanged |= ImGui.ColorEdit4("颜色4", ref selectedNode.paint2DNode.color4);
+                    //    if (colorChanged)
+                    //    {
+                    //        graph.NodeParamCaches[selectednodes[0]].inputNodeModification.Clear();
+                    //        currentLayout.generatePicture |= colorChanged;
+                    //    }
+                    //}
                     if (selectedNode.scriptNode != null)
                     {
                         var nodeDef = document.scriptNodeDefs[selectedNode.GetNodeTypeName()];
@@ -797,7 +797,10 @@ namespace NekoPainter.UI
                     importImage = true;
                     UIHelper.selectOpenFile = true;
                 }
-                ImGuiExt.MenuItem("Export");
+                if (ImGuiExt.MenuItem("Export"))
+                {
+                    exportImage = true;
+                }
                 ImGui.Separator();
                 if (ImGuiExt.MenuItem("Exit"))
                 {
@@ -888,7 +891,8 @@ namespace NekoPainter.UI
         {
             CreateDocument();
             OpenDocument();
-            //ImportImage();
+            ImportImage();
+            ExportImage();
         }
 
         static void CreateDocument()
@@ -932,6 +936,42 @@ namespace NekoPainter.UI
             }
         }
 
+        static void ExportImage()
+        {
+            if(exportImage.SetFalse())
+            {
+                ImGui.OpenPopup("ExportImage");
+            }
+
+            ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
+            if (ImGui.BeginPopupModal("ExportImage"))
+            {
+                if (UIHelper.saveFile != null)
+                {
+                    UIHelper.exportImagePath = UIHelper.saveFile.FullName;
+                    UIHelper.saveFile = null;
+                }
+                ImGui.SetNextItemWidth(200);
+                ImGui.InputText("path", ref UIHelper.exportImagePath, 260);
+                ImGui.SameLine();
+                if (ImGuiExt.Button("Browse"))
+                {
+                    UIHelper.selectSaveFile = true;
+                }
+                if (ImGuiExt.Button("Export") && !string.IsNullOrEmpty(UIHelper.exportImagePath))
+                {
+                    ImGui.CloseCurrentPopup();
+                    AppController.Instance.ExportDocument(UIHelper.exportImagePath);
+                }
+                ImGui.SameLine();
+                if (ImGuiExt.Button("Cancel"))
+                {
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
+            }
+        }
+
         static void ImportImage()
         {
             if (importImage.SetFalse())
@@ -942,10 +982,10 @@ namespace NekoPainter.UI
             ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
             if (ImGui.BeginPopupModal("ImportImage"))
             {
-                if (UIHelper.folder != null)
+                if (UIHelper.openFile != null)
                 {
                     UIHelper.importImagePath = UIHelper.openFile.FullName;
-                    UIHelper.folder = null;
+                    UIHelper.openFile = null;
                 }
                 ImGui.SetNextItemWidth(200);
                 ImGui.InputText("path", ref UIHelper.importImagePath, 260);
@@ -957,7 +997,7 @@ namespace NekoPainter.UI
                 if (ImGuiExt.Button("Import") && !string.IsNullOrEmpty(UIHelper.importImagePath))
                 {
                     ImGui.CloseCurrentPopup();
-
+                    AppController.Instance.ImportDocument(UIHelper.importImagePath);
                 }
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Cancel"))
@@ -1070,6 +1110,7 @@ namespace NekoPainter.UI
         static bool newDocument;
         static bool openDocument;
         static bool importImage;
+        static bool exportImage;
         public static UnnamedInputLayout unnamedInputLayout = new UnnamedInputLayout
         {
             inputElementDescriptions = new InputElementDescription[]

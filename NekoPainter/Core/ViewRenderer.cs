@@ -28,7 +28,7 @@ namespace NekoPainter
         {
             if (ManagedLayout.Count == 0) return;
             PrepareRenderData();
-            RenderTarget.Clear();
+            Output.Clear();
             int ofs = 0;
             var buffer = constantBuffer1.GetBuffer(DeviceResources);
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
@@ -46,7 +46,7 @@ namespace NekoPainter
                 {
                     if (selectedLayout.DataSource == LayoutDataSource.Color)
                     {
-                        blendMode?.BlendPure(RenderTarget, buffer, ofs, 256);
+                        blendMode?.BlendPure(Output, buffer, ofs, 256);
                     }
                     else if (selectedLayout.generatePicture.SetFalse())
                     {
@@ -54,12 +54,13 @@ namespace NekoPainter
                         if (selectedLayout.graph != null)
                         {
                             PaintingTexture.Clear();
-                            if (selectedLayout.graph.Nodes.Count > 0)
+                            var graph = selectedLayout.graph;
+                            if (graph.Nodes.Count > 0)
                             {
-                                executeOrder = selectedLayout.graph.GetExecuteList(selectedLayout.graph.outputNode);
-                                ExecuteNodes(selectedLayout.graph, executeOrder);
+                                executeOrder = graph.GetExecuteList(graph.outputNode);
+                                ExecuteNodes(graph, executeOrder);
                             }
-                            if (selectedLayout.graph.NodeParamCaches.TryGetValue(selectedLayout.graph.outputNode, out var cache))
+                            if (graph.NodeParamCaches != null && graph.NodeParamCaches.TryGetValue(graph.outputNode, out var cache))
                             {
                                 foreach (var cache1 in cache.outputCache)
                                     if (cache1.Value is TiledTexture t1)
@@ -67,7 +68,7 @@ namespace NekoPainter
                             }
                         }
 
-                        blendMode?.Blend(PaintingTexture, RenderTarget, buffer, ofs, 256);
+                        blendMode?.Blend(PaintingTexture, Output, buffer, ofs, 256);
 
                         if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
                         var tiledTexture2 = new TiledTexture(PaintingTexture);
@@ -79,12 +80,13 @@ namespace NekoPainter
                         if (selectedLayout.graph != null)
                         {
                             PaintingTexture.Clear();
-                            if (selectedLayout.graph.Nodes.Count > 0)
+                            var graph = selectedLayout.graph;
+                            if (graph.Nodes.Count > 0)
                             {
-                                executeOrder = selectedLayout.graph.GetExecuteList(selectedLayout.graph.outputNode);
-                                ExecuteNodes(selectedLayout.graph, executeOrder);
+                                executeOrder = graph.GetExecuteList(graph.outputNode);
+                                ExecuteNodes(graph, executeOrder);
                             }
-                            if (selectedLayout.graph.NodeParamCaches.TryGetValue(selectedLayout.graph.outputNode, out var cache))
+                            if (graph.NodeParamCaches != null && graph.NodeParamCaches.TryGetValue(graph.outputNode, out var cache))
                             {
                                 foreach (var cache1 in cache.outputCache)
                                     if (cache1.Value is TiledTexture t1)
@@ -99,11 +101,11 @@ namespace NekoPainter
                             livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
                         }
 
-                        blendMode?.Blend(PaintingTexture, RenderTarget, buffer, ofs, 256);
+                        blendMode?.Blend(PaintingTexture, Output, buffer, ofs, 256);
                     }
                     else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                     {
-                        blendMode?.Blend(tiledTexture, RenderTarget, buffer, ofs, 256);
+                        blendMode?.Blend(tiledTexture, Output, buffer, ofs, 256);
                     }
                 }
                 ofs += 256;
@@ -188,7 +190,7 @@ namespace NekoPainter
             }
         }
 
-        RenderTexture RenderTarget { get { return livedDocument.Output; } }
+        RenderTexture Output { get { return livedDocument.Output; } }
         RenderTexture PaintingTexture { get { return livedDocument.PaintingTexture; } }
         DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
@@ -197,8 +199,8 @@ namespace NekoPainter
 
         StreamedBuffer constantBuffer1 = new StreamedBuffer();
 
-        StreamedBuffer brushDataBuffer = new StreamedBuffer();
-        StreamedBuffer tilePosDataBuffer = new StreamedBuffer();
+        //StreamedBuffer brushDataBuffer = new StreamedBuffer();
+        //StreamedBuffer tilePosDataBuffer = new StreamedBuffer();
 
         public void ExecuteNodes(Graph graph, List<int> executeOrder)
         {
@@ -212,10 +214,19 @@ namespace NekoPainter
                     cache.outputCache["strokes"] = new Stroke[] { node.strokeNode.stroke };
                     cache.modification = node.strokeNode.stroke.modification;
                 }
-                else if (node.paint2DNode != null || node.scriptNode != null)
+                else if (node.fileNode != null)
+                {
+                    var cache = (graph.NodeParamCaches ??= new Dictionary<int, NodeParamCache>()).GetOrCreate(node.Luid);
+                    if (!cache.outputCache.TryGetValue(node.fileNode.path, out object path1))
+                    {
+                        cache.outputCache["filePath"] = node.fileNode.path;
+                        cache.outputCache["bytes"] = File.ReadAllBytes(node.fileNode.path);
+                    }
+                }
+                else if (/*node.paint2DNode != null ||*/ node.scriptNode != null)
                 {
                     //测试
-                    var paint2DNode = graph.Nodes[nodeId].paint2DNode;
+                    //var paint2DNode = graph.Nodes[nodeId].paint2DNode;
 
                     var nodeDef = livedDocument.scriptNodeDefs[node.GetNodeTypeName()];
 
@@ -319,17 +330,14 @@ namespace NekoPainter
                                 }
                             }
                         }
-                        if (node.paint2DNode != null)
-                        {
-                            if (global.parameters.ContainsKey("strokes"))
-                                PaintToTexture(((Texture2D)global.parameters["texture2D"])._texture, paint2DNode, ((IList<Stroke>)global.parameters["strokes"])[0]);
-                        }
-                        else
+                        //编译、运行脚本
                         {
                             string path = nodeDef.path;
                             var script = livedDocument.scriptCache.GetOrCreate(path, () =>
                             {
-                                ScriptOptions options = ScriptOptions.Default.WithReferences(typeof(Texture2D).Assembly).WithImports("NekoPainter.Data");
+                                ScriptOptions options = ScriptOptions.Default
+                                .WithReferences(typeof(Texture2D).Assembly, typeof(SixLabors.ImageSharp.Image).Assembly)
+                                .WithImports("NekoPainter.Data");
 
                                 return CSharpScript.Create(livedDocument.scripts[path], options, typeof(ScriptGlobal));
                             });
@@ -377,95 +385,95 @@ namespace NekoPainter
                 graph.NodeParamCaches.Remove(key);
         }
 
-        public void PaintToTexture(RenderTexture texture, Paint2DNode paint2DNode, Stroke stroke)
-        {
-            var brush = livedDocument.brushes[paint2DNode.brushPath];
-            var positions = stroke.position;
-            int _width = texture.width;
-            int _height = texture.height;
-            for (int i = 1; i < positions.Count; i++)
-            {
-                brush.CheckBrush(DeviceResources);
-                UpdateBrushData2(paint2DNode, stroke, i);
-                ComputeBrush(brush.shader, texture, GetPaintingTiles(positions[(i == 0) ? 0 : (i - 1)], positions[i], paint2DNode.size, _width, _height));
-                brushDataBuffer.writer.Seek(0, SeekOrigin.Begin);
-            }
-        }
+        //public void PaintToTexture(RenderTexture texture, Paint2DNode paint2DNode, Stroke stroke)
+        //{
+        //    var brush = livedDocument.brushes[paint2DNode.brushPath];
+        //    var positions = stroke.position;
+        //    int _width = texture.width;
+        //    int _height = texture.height;
+        //    for (int i = 1; i < positions.Count; i++)
+        //    {
+        //        brush.CheckBrush(DeviceResources);
+        //        UpdateBrushData2(paint2DNode, stroke, i);
+        //        ComputeBrush(brush.shader, texture, GetPaintingTiles(positions[(i == 0) ? 0 : (i - 1)], positions[i], paint2DNode.size, _width, _height));
+        //        brushDataBuffer.writer.Seek(0, SeekOrigin.Begin);
+        //    }
+        //}
 
-        void UpdateBrushData2(Paint2DNode paint2DNode, Stroke stroke, int index)
-        {
-            var brushDataWriter = brushDataBuffer.Begin();
-            brushDataWriter.Write(paint2DNode.color);
-            brushDataWriter.Write(paint2DNode.color2);
-            brushDataWriter.Write(paint2DNode.color3);
-            brushDataWriter.Write(paint2DNode.color4);
-            brushDataWriter.Write(paint2DNode.size);
-            brushDataWriter.Write(new Vector3());
-            int k = index;
-            for (int i = 0; i < 4; i++)
-            {
-                PointerData pointerData = new PointerData();
-                if (k >= 0 && k < stroke.position.Count)
-                {
-                    pointerData.Position = stroke.position[k];
-                    pointerData.Pressure = stroke.presure[k];
-                }
-                k--;
-                brushDataWriter.Write(pointerData);
-            }
-            var brush = livedDocument.brushes[paint2DNode.brushPath];
-            if (brush.Parameters != null)
-                for (int i = 0; i < brush.Parameters.Length; i++)
-                {
-                    if (brush.Parameters[i].IsFloat)
-                        brushDataWriter.Write((float)brush.Parameters[i].Value);
-                    else
-                        brushDataWriter.Write((int)brush.Parameters[i].Value);
-                }
-            else
-            {
+        //void UpdateBrushData2(Paint2DNode paint2DNode, Stroke stroke, int index)
+        //{
+        //    var brushDataWriter = brushDataBuffer.Begin();
+        //    brushDataWriter.Write(paint2DNode.color);
+        //    brushDataWriter.Write(paint2DNode.color2);
+        //    brushDataWriter.Write(paint2DNode.color3);
+        //    brushDataWriter.Write(paint2DNode.color4);
+        //    brushDataWriter.Write(paint2DNode.size);
+        //    brushDataWriter.Write(new Vector3());
+        //    int k = index;
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        PointerData pointerData = new PointerData();
+        //        if (k >= 0 && k < stroke.position.Count)
+        //        {
+        //            pointerData.Position = stroke.position[k];
+        //            pointerData.Pressure = stroke.presure[k];
+        //        }
+        //        k--;
+        //        brushDataWriter.Write(pointerData);
+        //    }
+        //    var brush = livedDocument.brushes[paint2DNode.brushPath];
+        //    if (brush.Parameters != null)
+        //        for (int i = 0; i < brush.Parameters.Length; i++)
+        //        {
+        //            if (brush.Parameters[i].IsFloat)
+        //                brushDataWriter.Write((float)brush.Parameters[i].Value);
+        //            else
+        //                brushDataWriter.Write((int)brush.Parameters[i].Value);
+        //        }
+        //    else
+        //    {
 
-            }
-        }
+        //    }
+        //}
 
-        List<Int2> inRangeTiles = new List<Int2>();
-        List<Int2> GetPaintingTiles(Vector2 start, Vector2 end, float BrushSize, int width, int height)
-        {
-            inRangeTiles.Clear();
-            int minx = Math.Max((int)MathF.Min(start.X - BrushSize, end.X - BrushSize), 0);
-            int miny = Math.Max((int)MathF.Min(start.Y - BrushSize, end.Y - BrushSize), 0);
-            minx &= -32;
-            miny &= -32;
-            int maxx = Math.Min((int)MathF.Max(start.X + BrushSize, end.X + BrushSize), width);
-            int maxy = Math.Min((int)MathF.Max(start.Y + BrushSize, end.Y + BrushSize), height);
+        //List<Int2> inRangeTiles = new List<Int2>();
+        //List<Int2> GetPaintingTiles(Vector2 start, Vector2 end, float BrushSize, int width, int height)
+        //{
+        //    inRangeTiles.Clear();
+        //    int minx = Math.Max((int)MathF.Min(start.X - BrushSize, end.X - BrushSize), 0);
+        //    int miny = Math.Max((int)MathF.Min(start.Y - BrushSize, end.Y - BrushSize), 0);
+        //    minx &= -32;
+        //    miny &= -32;
+        //    int maxx = Math.Min((int)MathF.Max(start.X + BrushSize, end.X + BrushSize), width);
+        //    int maxy = Math.Min((int)MathF.Max(start.Y + BrushSize, end.Y + BrushSize), height);
 
-            Vector2 NS2E = start - end;
-            Vector2 OSS2 = new Vector2(4.0f, 4.0f) - start;
-            Vector2 normalizedRS2E = Vector2.Normalize(new Vector2(NS2E.Y, -NS2E.X));
+        //    Vector2 NS2E = start - end;
+        //    Vector2 OSS2 = new Vector2(4.0f, 4.0f) - start;
+        //    Vector2 normalizedRS2E = Vector2.Normalize(new Vector2(NS2E.Y, -NS2E.X));
 
-            float sRange2 = BrushSize + 6f;//6大于4*sqrt2=5.656854
+        //    float sRange2 = BrushSize + 6f;//6大于4*sqrt2=5.656854
 
-            for (int x = minx; x < maxx; x += 8)
-                for (int y = miny; y < maxy; y += 8)
-                {
-                    if (MathF.Abs(Vector2.Dot(new Vector2(x, y) + OSS2, normalizedRS2E)) > sRange2) continue;
-                    Int2 vx = new Int2(x, y);
-                    inRangeTiles.Add(vx);
-                }
-            return inRangeTiles;
-        }
+        //    for (int x = minx; x < maxx; x += 8)
+        //        for (int y = miny; y < maxy; y += 8)
+        //        {
+        //            if (MathF.Abs(Vector2.Dot(new Vector2(x, y) + OSS2, normalizedRS2E)) > sRange2) continue;
+        //            Int2 vx = new Int2(x, y);
+        //            inRangeTiles.Add(vx);
+        //        }
+        //    return inRangeTiles;
+        //}
 
-        void ComputeBrush(ComputeShader computeShader, RenderTexture texture, List<Int2> tilesCovered)
-        {
-            if (tilesCovered.Count <= 0) return;
-            var writer = tilePosDataBuffer.Begin();
-            writer.Write(tilesCovered.ToArray());
-            computeShader.SetSRV(tilePosDataBuffer.GetComputeBuffer(DeviceResources, 8), 0);
-            computeShader.SetCBV(brushDataBuffer.GetBuffer(DeviceResources), 0);
-            computeShader.SetUAV(texture, 0);
+        //void ComputeBrush(ComputeShader computeShader, RenderTexture texture, List<Int2> tilesCovered)
+        //{
+        //    if (tilesCovered.Count <= 0) return;
+        //    var writer = tilePosDataBuffer.Begin();
+        //    writer.Write(tilesCovered.ToArray());
+        //    computeShader.SetSRV(tilePosDataBuffer.GetComputeBuffer(DeviceResources, 8), 0);
+        //    computeShader.SetCBV(brushDataBuffer.GetBuffer(DeviceResources), 0);
+        //    computeShader.SetUAV(texture, 0);
 
-            computeShader.Dispatch(1, 1, tilesCovered.Count);
-        }
+        //    computeShader.Dispatch(1, 1, tilesCovered.Count);
+        //}
     }
 
     public class ScriptGlobal

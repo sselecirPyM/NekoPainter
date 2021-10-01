@@ -1,26 +1,14 @@
 {
-  "paint2DNode": {
-    "name": "paint2DNode",
-    "displayName": "paint2DNode",
+  "fileNode": {
+    "name": "fileNode",
+    "displayName": "fileNode",
     "hidden": "true",
     "ioDefs": [
       {
-        "name": "strokes",
-        "displayName": "Stroke",
-        "ioType": "input",
-        "type": "strokes"
-      },
-      {
-        "name": "texture2D",
-        "displayName": "Texture2D",
-        "ioType": "input",
-        "type": "texture2D"
-      },
-      {
-        "name": "texture2D",
-        "displayName": "Texture2D",
+        "name": "bytes",
+        "displayName": "bytes",
         "ioType": "output",
-        "type": "texture2D"
+        "type": "bytes"
       }
     ]
   },

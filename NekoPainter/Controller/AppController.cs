@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CanvasRendering;
 using NekoPainter.Core;
+using NekoPainter.Core.UndoCommand;
 using NekoPainter.FileFormat;
 using System.IO;
 using SixLabors.ImageSharp;
@@ -57,17 +58,40 @@ namespace NekoPainter.Controller
             documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
         }
 
-        //public void ImportDocument(FileInfo file)
-        //{
-        //    var stream = file.OpenRead();
-
-        //    if (CurrentLivedDocument.ActivatedLayout != null)
-        //    {
-        //        byte[] imgData = GetImageData(stream, out int width, out int height);
-        //        CurrentLivedDocument.PaintingTexture.ReadImageData1(imgData, width, height, computeShaders["CImport"]);
-        //        CurrentLivedDocument.ActivatedLayout.saved = false;
-        //    }
-        //}
+        public void ImportDocument(string path)
+        {
+            if (CurrentLivedDocument?.ActivatedLayout == null) return;
+            var layout = CurrentLivedDocument.ActivatedLayout;
+            var node = new Nodes.Node();
+            node.fileNode = new Nodes.FileNode()
+            {
+                path = path
+            };
+            if (layout.graph == null)
+            {
+                layout.graph = new Nodes.Graph();
+                layout.graph.Initialize();
+            }
+            layout.graph.AddNode(node);
+            CMD_Remove_RecoverNodes cmd = new CMD_Remove_RecoverNodes();
+            cmd.BuildRemoveNodes(CurrentLivedDocument, layout.graph, new List<int>() { node.Luid }, layout.guid);
+            CurrentLivedDocument.UndoManager.AddUndoData(cmd);
+        }
+        public void ExportDocument(string path)
+        {
+            var output = CurrentLivedDocument.Output;
+            var rawdata = output.GetData();
+            Image<RgbaVector> image = Image.LoadPixelData<RgbaVector>(rawdata, output.width, output.height);
+            string extension = Path.GetExtension(path);
+            var ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+            if (".png".Equals(extension, ignoreCase))
+                image.SaveAsPng(path);
+            if (".jpg".Equals(extension, ignoreCase))
+                image.SaveAsJpeg(path);
+            if (".tga".Equals(extension, ignoreCase))
+                image.SaveAsTga(path);
+            image.Dispose();
+        }
 
         public static byte[] GetImageData(Stream input, out int width, out int height)
         {

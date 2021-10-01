@@ -323,6 +323,7 @@ namespace NekoPainter.UI
             }
             ImGui.End();
         }
+
         static Dictionary<int, int> nodeSocketStart = new Dictionary<int, int>();
         static List<int> socket2Node = new List<int>();
         static List<int> link2InputSocket = new List<int>();
@@ -565,7 +566,8 @@ namespace NekoPainter.UI
                     if (selectedNode.scriptNode != null)
                     {
                         var nodeDef = document.scriptNodeDefs[selectedNode.GetNodeTypeName()];
-                        ShowNodeParams(nodeDef, selectedNode);
+                        if (ShowNodeParams(nodeDef, selectedNode))
+                            graph.NodeParamCaches[selectednodes[0]].inputNodeModification.Clear();
                     }
                 }
             }
@@ -596,8 +598,9 @@ namespace NekoPainter.UI
             ImGui.End();
         }
 
-        static void ShowNodeParams(Data.ScriptNodeDef nodeDef, Node selectedNode)
+        static bool ShowNodeParams(Data.ScriptNodeDef nodeDef, Node selectedNode)
         {
+            bool changed = false;
             if (nodeDef.parameters != null)
             {
                 foreach (var param in nodeDef.parameters)
@@ -608,6 +611,7 @@ namespace NekoPainter.UI
                         if (ImGui.DragFloat(param.displayName ?? param.name, ref v, param.step, param.step))
                         {
                             selectedNode.fParams[param.name] = v;
+                            changed = true;
                         }
                     }
                     else if (param.type == "float2")
@@ -616,6 +620,7 @@ namespace NekoPainter.UI
                         if (ImGui.DragFloat2(param.displayName ?? param.name, ref v, param.step))
                         {
                             selectedNode.f2Params[param.name] = v;
+                            changed = true;
                         }
                     }
                     else if (param.type == "float3")
@@ -624,6 +629,7 @@ namespace NekoPainter.UI
                         if (ImGui.DragFloat3(param.displayName ?? param.name, ref v, param.step))
                         {
                             selectedNode.f3Params[param.name] = v;
+                            changed = true;
                         }
                     }
                     else if (param.type == "float4")
@@ -632,6 +638,7 @@ namespace NekoPainter.UI
                         if (ImGui.DragFloat4(param.displayName ?? param.name, ref v, param.step))
                         {
                             selectedNode.f4Params[param.name] = v;
+                            changed = true;
                         }
                     }
                     else if (param.type == "color3")
@@ -640,6 +647,7 @@ namespace NekoPainter.UI
                         if (ImGui.ColorEdit3(param.displayName ?? param.name, ref v))
                         {
                             selectedNode.f3Params[param.name] = v;
+                            changed = true;
                         }
                     }
                     else if (param.type == "color4")
@@ -648,10 +656,12 @@ namespace NekoPainter.UI
                         if (ImGui.ColorEdit4(param.displayName ?? param.name, ref v))
                         {
                             selectedNode.f4Params[param.name] = v;
+                            changed = true;
                         }
                     }
                 }
             }
+            return changed;
         }
 
         static void BrushParametersPanel(AppController appController)
@@ -662,21 +672,7 @@ namespace NekoPainter.UI
             if (ImGui.Begin("笔刷参数"))
             {
                 //ImGui.Text(TimeCost.ToString());
-                ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
-                //ImGui.ColorEdit4("颜色", ref paintAgent._color);
-                //ImGui.ColorEdit4("颜色2", ref paintAgent._color2);
-                //ImGui.ColorEdit4("颜色3", ref paintAgent._color3);
-                //ImGui.ColorEdit4("颜色4", ref paintAgent._color4);
-                //if (paintAgent.currentBrush != null && paintAgent.currentBrush.parameters != null)
-                //{
-                //    var brushParams = paintAgent.currentBrush.parameters;
-                //    for (int i = 0; i < brushParams.Count; i++)
-                //    {
-                //        float a1 = (float)brushParams[i].Value;
-                //        ImGui.DragFloat(string.Format("{0}###{1}", brushParams[i].Name, i), ref a1);
-                //        brushParams[i].Value = a1;
-                //    }
-                //}
+                //ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
                 if (paintAgent.currentBrush?.parameters != null)
                     foreach (var param in paintAgent.currentBrush.parameters)
                     {

@@ -163,10 +163,10 @@ namespace NekoPainter
         /// 当前使用的笔刷
         /// </summary>
         public Brush1 currentBrush { get; set; }
-        /// <summary>
-        /// 笔刷尺寸
-        /// </summary>
-        public float BrushSize;
+        ///// <summary>
+        ///// 笔刷尺寸
+        ///// </summary>
+        //public float BrushSize;
 
         //public Color _color = new Color(1, 1, 1, 1);
         //public Color _color2 = new Color(1, 0.5f, 0.5f, 1);

@@ -26,6 +26,12 @@ namespace NekoPainter.Data
             return MemoryMarshal.Cast<byte, Vector4>(data);
         }
 
+        public byte[] GetRawTexture1()
+        {
+            data = _texture.GetData();
+            return data;
+        }
+
         public void EndModification()
         {
             _texture.UpdateTexture<byte>(data);

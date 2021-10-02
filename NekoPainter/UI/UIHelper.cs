@@ -68,8 +68,8 @@ namespace NekoPainter.UI
                     file = new string(new char[256]),
                     fileTitle = new string(new char[256]),
                     initialDir = AppController.Instance.CurrentDCDocument.Folder.FullName,
-                    filter = ".jpg\0*.jpg\0.png\0*.png\0.tga\0*.tga\0All Files\0*.*\0\0",
-                    defExt = "jpg",
+                    filter = "All Files\0*.*\0\0",
+                    //defExt = "jpg",
                     flags = 0x00080000 | 0x00001000 | 0x00000800 | 0x00000200 | 0x00000008,
                     structSize = Marshal.SizeOf(typeof(FileOpenDialog))
                 };

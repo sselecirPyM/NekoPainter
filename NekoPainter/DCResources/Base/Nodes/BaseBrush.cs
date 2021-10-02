@@ -51,10 +51,10 @@ static class Modified
                 int x2 = (int)(point.X + size / 2);
                 int y2 = (int)(point.Y + size / 2);
                 if (size > 50)
-                    Parallel.For(x1, x2, x =>
+                    Parallel.For(y1, y2, y =>
                      {
                          var rawTex = MemoryMarshal.Cast<byte, Vector4>(rawTex1);
-                         for (int y = y1; y < y2; y++)
+                         for (int x = x1; x < x2; x++)
                              if (x >= 0 && x < width && y >= 0 && y < height)
                              {
                                  int i = x + y * width;
@@ -69,8 +69,8 @@ static class Modified
                 else
                 {
                     var rawTex = MemoryMarshal.Cast<byte, Vector4>(rawTex1);
-                    for (int x = x1; x < x2; x++)
-                        for (int y = y1; y < y2; y++)
+                    for (int y = y1; y < y2; y++)
+                        for (int x = x1; x < x2; x++)
                             if (x >= 0 && x < width && y >= 0 && y < height)
                             {
                                 int i = x + y * width;

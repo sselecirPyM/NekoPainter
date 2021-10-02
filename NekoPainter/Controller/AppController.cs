@@ -62,19 +62,25 @@ namespace NekoPainter.Controller
         {
             if (CurrentLivedDocument?.ActivatedLayout == null) return;
             var layout = CurrentLivedDocument.ActivatedLayout;
-            var node = new Nodes.Node();
-            node.fileNode = new Nodes.FileNode()
-            {
-                path = path
-            };
             if (layout.graph == null)
             {
                 layout.graph = new Nodes.Graph();
                 layout.graph.Initialize();
             }
-            layout.graph.AddNode(node);
+            var fileNode = new Nodes.Node();
+            fileNode.fileNode = new Nodes.FileNode()
+            {
+                path = path
+            };
+            var scriptNode = new Nodes.Node();
+            scriptNode.scriptNode = new Nodes.ScriptNode();
+            scriptNode.scriptNode.nodeName = "ImageImport.json";
+
+            layout.graph.AddNodeToEnd(fileNode, new System.Numerics.Vector2(10, -20));
+            layout.graph.AddNodeToEnd(scriptNode, new System.Numerics.Vector2(70, 0));
+            layout.graph.Link(fileNode.Luid, "bytes", scriptNode.Luid, "file");
             CMD_Remove_RecoverNodes cmd = new CMD_Remove_RecoverNodes();
-            cmd.BuildRemoveNodes(CurrentLivedDocument, layout.graph, new List<int>() { node.Luid }, layout.guid);
+            cmd.BuildRemoveNodes(CurrentLivedDocument, layout.graph, new List<int>() { fileNode.Luid, scriptNode.Luid }, layout.guid);
             CurrentLivedDocument.UndoManager.AddUndoData(cmd);
         }
         public void ExportDocument(string path)
@@ -82,6 +88,13 @@ namespace NekoPainter.Controller
             var output = CurrentLivedDocument.Output;
             var rawdata = output.GetData();
             Image<RgbaVector> image = Image.LoadPixelData<RgbaVector>(rawdata, output.width, output.height);
+            for (int y = 0; y < image.Height; y++)
+                for (int x = 0; x < image.Width; x++)
+                {
+                    var color = image[x, y];
+                    color.A = Math.Clamp(color.A, 0, 1);
+                    image[x, y] = color;
+                }
             string extension = Path.GetExtension(path);
             var ignoreCase = StringComparison.InvariantCultureIgnoreCase;
             if (".png".Equals(extension, ignoreCase))

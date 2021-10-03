@@ -113,33 +113,8 @@ namespace NekoPainter.Nodes
             }
         }
 
-        public bool DependCheck()
+        public bool NoCycleCheck()
         {
-            //var inputChain = GetInputChainSet(nodeId);
-            //HashSet<int> executed = new HashSet<int>();
-            //List<int> executeOrder = new List<int>();
-            //executeOrder.Capacity = inputChain.Count + 1;
-            //int c = 0;
-            //while (inputChain.Count > 0)
-            //{
-            //    foreach (int nodeId2 in inputChain)
-            //    {
-            //        var node = Nodes[nodeId2];
-            //        if (node.Inputs == null || node.Inputs.All(u => executed.Contains(u.Value.targetUid)))
-            //        {
-            //            executed.Add(nodeId2);
-            //            executeOrder.Add(nodeId2);
-            //            continue;
-            //        }
-            //    }
-            //    if (c == executeOrder.Count && inputChain.Count > 0) return false;
-            //    for (; c < executeOrder.Count; c++)
-            //    {
-            //        inputChain.Remove(executeOrder[c]);
-            //    }
-            //}
-            //return true;
-
             Dictionary<int, int> inDegrees = new Dictionary<int, int>();
             Stack<int> executeStack = new Stack<int>();
             foreach (var node in Nodes)
@@ -179,32 +154,87 @@ namespace NekoPainter.Nodes
                 return false;
         }
 
-        public List<int> GetExecuteList(int nodeId)
+        public void SetNodeInvalid(int nodeId)
         {
-            var inputChain = GetInputChainSet(nodeId);
-            HashSet<int> executed = new HashSet<int>();
-            List<int> executeOrder = new List<int>();
-            executeOrder.Capacity = inputChain.Count + 1;
-            int c = 0;
-            while (inputChain.Count > 0)
+            if (NodeParamCaches == null)
+                NodeParamCaches = new Dictionary<int, NodeParamCache>();
+            var cache = NodeParamCaches.GetOrCreate(nodeId);
+            cache.valid = false;
+        }
+
+        public List<int> GetUpdateList(int outputNodeId)
+        {
+            if (NodeParamCaches == null)
+                NodeParamCaches = new Dictionary<int, NodeParamCache>();
+            List<int> executeList = GetExecuteList(outputNodeId);
+            List<int> updateList = new List<int>();
+            for (int i = 0; i < executeList.Count; i++)
             {
-                foreach (int nodeId2 in inputChain)
-                {
-                    var node = Nodes[nodeId2];
-                    if (node.Inputs == null || node.Inputs.All(u => executed.Contains(u.Value.targetUid)))
+                int nodeId1 = executeList[i];
+                var node = Nodes[nodeId1];
+                bool valid = NodeParamCaches.TryGetValue(nodeId1, out var cache) && cache.valid;
+
+                if (node.Inputs != null)
+                    foreach (var input in node.Inputs)
                     {
-                        executed.Add(nodeId2);
-                        executeOrder.Add(nodeId2);
-                        continue;
+                        if (!(NodeParamCaches.TryGetValue(input.Value.targetUid, out var cache1) && cache1.valid))
+                        {
+                            valid = false;
+                        }
                     }
-                }
-                for (; c < executeOrder.Count; c++)
+                if (!valid)
                 {
-                    inputChain.Remove(executeOrder[c]);
+                    if (cache != null)
+                        cache.valid = false;
+                    updateList.Add(nodeId1);
                 }
             }
-            if (Nodes.ContainsKey(nodeId))
-                executeOrder.Add(nodeId);
+            return updateList;
+        }
+
+        public List<int> GetExecuteList(int outputNodeId)
+        {
+            var inputChain = GetInputChainSet(outputNodeId);
+            inputChain.Add(outputNodeId);
+
+            List<int> executeOrder = new List<int>();
+            executeOrder.Capacity = inputChain.Count + 1;
+
+            Dictionary<int, int> inDegrees = new Dictionary<int, int>();
+            Stack<int> executeStack = new Stack<int>();
+            foreach (var nodeId1 in inputChain)
+            {
+                var node = Nodes[nodeId1];
+                int inDegree = node.Inputs == null ? 0 : node.Inputs.Count;
+                inDegrees[node.Luid] = inDegree;
+                if (inDegree == 0)
+                {
+                    executeStack.Push(node.Luid);
+                }
+            }
+
+            while (executeStack.Count > 0)
+            {
+                int nodeId1 = executeStack.Pop();
+                var node = Nodes[nodeId1];
+                if (node.Outputs != null)
+                {
+                    foreach (var output in node.Outputs)
+                    {
+                        foreach (var output1 in output.Value)
+                        {
+                            var linkedNodeId = output1.targetUid;
+                            if (!inputChain.Contains(linkedNodeId)) continue;
+                            inDegrees[linkedNodeId]--;
+                            if (inDegrees[linkedNodeId] == 0)
+                            {
+                                executeStack.Push(linkedNodeId);
+                            }
+                        }
+                    }
+                }
+                executeOrder.Add(nodeId1);
+            }
             return executeOrder;
         }
 

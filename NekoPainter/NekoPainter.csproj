@@ -19,6 +19,7 @@
     <Compile Remove="DCResources\Base\Nodes\BaseBrush.cs" />
     <Compile Remove="DCResources\Base\Nodes\ImageImport.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestBrush.cs" />
+    <Compile Remove="DCResources\Base\Nodes\TestBrush2.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -293,10 +294,6 @@
     <Content Include="Shaders\blendmode_c7.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Shaders\brush_c1.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\brush_c2.hlsl" />
     <Content Include="Strings\zh-cn\UITranslations.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -308,7 +305,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.11.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
     <PackageReference Include="Vortice.Mathematics" Version="1.3.21" />
   </ItemGroup>
 
@@ -336,6 +334,9 @@
     <None Include="DCResources\Base\Nodes\ImageImport.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="DCResources\Base\Nodes\TestBrush2.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DCResources\Base\Nodes\TestBrush.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -357,6 +358,9 @@
     <None Update="DCResources\Base\Brushes\BaseBrush.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="DCResources\Base\Brushes\TestBrush2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="DCResources\Base\Brushes\TestBrush.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -364,6 +368,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\BaseBrush.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Nodes\TestBrush2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\TestBrush.json">

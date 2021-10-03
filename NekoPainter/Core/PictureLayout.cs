@@ -45,31 +45,6 @@ namespace NekoPainter.Core
             guid = Guid.NewGuid();
         }
 
-        public static void ReplaceTiles1(TiledTexture tt, ref TiledTexture layoutTexture, RenderTexture PaintingTextureTemp, RenderTexture PaintingTexture, out TiledTexture before, bool painting)
-        {
-            if (painting)
-            {
-                //before = new TiledTexture(PaintingTexture, tt.TilePositionList);
-                tt.UnzipToTexture(PaintingTexture);
-            }
-            if (layoutTexture != null && layoutTexture.tilesCount > 0)
-            {
-                PaintingTextureTemp.Clear();
-                layoutTexture.UnzipToTexture(PaintingTextureTemp);
-                before = new TiledTexture(PaintingTextureTemp, tt.TilePositionList);
-                tt.UnzipToTexture(PaintingTextureTemp);
-
-                layoutTexture?.Dispose();
-                layoutTexture = new TiledTexture(PaintingTextureTemp);
-            }
-            else
-            {
-                PaintingTextureTemp.Clear();
-                before = new TiledTexture(PaintingTextureTemp, tt.TilePositionList);
-                layoutTexture = new TiledTexture(tt);
-            }
-        }
-
         public void Dispose()
         {
 

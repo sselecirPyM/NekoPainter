@@ -23,7 +23,6 @@ namespace NekoPainter.Nodes
 
         public StrokeNode strokeNode;
         public FileNode fileNode;
-        //public Paint2DNode paint2DNode;
         public ScriptNode scriptNode;
 
         public Dictionary<string, float> fParams;
@@ -36,7 +35,6 @@ namespace NekoPainter.Nodes
         {
             if (strokeNode != null) return "strokeNode";
             if (fileNode != null) return "fileNode";
-            //if (paint2DNode != null) return "paint2DNode";
             if (scriptNode != null) return scriptNode.nodeName;
             return string.Empty;
         }

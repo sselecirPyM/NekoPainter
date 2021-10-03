@@ -87,7 +87,7 @@ namespace NekoPainter.Controller
         {
             var output = CurrentLivedDocument.Output;
             var rawdata = output.GetData();
-            Image<RgbaVector> image = Image.LoadPixelData<RgbaVector>(rawdata, output.width, output.height);
+            Image<RgbaVector> image = Image.WrapMemory<RgbaVector>(rawdata, output.width, output.height);
             for (int y = 0; y < image.Height; y++)
                 for (int x = 0; x < image.Width; x++)
                 {
@@ -164,7 +164,6 @@ namespace NekoPainter.Controller
         #region Resources
         void LoadResources()
         {
-            Brush.LoadStaticResourcesAsync();
             BlendMode.LoadStaticResourcesAsync();
             LoadVS("default2DVertexShader", "Shaders\\Basic\\default2DVertexShader.hlsl");
             LoadVS("VSImgui", "Shaders\\Basic\\VSImgui.hlsl");

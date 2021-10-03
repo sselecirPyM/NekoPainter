@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Drawing;
 
 namespace NekoPainter.Data
 {
@@ -34,6 +35,16 @@ namespace NekoPainter.Data
         public static bool operator !=(Int2 left, Int2 right)
         {
             return !(left == right);
+        }
+
+        public static implicit operator Point(Int2 i2)
+        {
+            return new Point(i2.X, i2.Y);
+        }
+
+        public static implicit operator Int2(Point point)
+        {
+            return new Int2(point.X, point.Y);
         }
     }
 }

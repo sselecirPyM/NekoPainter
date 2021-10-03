@@ -221,27 +221,15 @@ namespace NekoPainter.FileFormat
         {
             var brushFiles = brushesFolder.GetFiles();
 
-            List<Core.Brush> brushesList = new List<Core.Brush>();
             foreach (var brushFile in brushFiles)
             {
-                if (".dcbf".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var brush = Core.Brush.LoadFromFileAsync(brushFile);
-                    brush.path = Path.GetRelativePath(Folder.FullName, brushFile.FullName);
-                    brushesList.Add(brush);
-                }
                 if (".json".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var brush1 = ReadJsonStream<Brush1>(brushFile.OpenRead());
-                    livedDocument.brushes1[brushFile.FullName] = brush1;
+                    var brush1 = ReadJsonStream<Brush>(brushFile.OpenRead());
+                    livedDocument.brushes[brushFile.FullName] = brush1;
                 }
             }
-            brushesList.Sort();
-            livedDocument.PaintAgent.brushes = new List<Core.Brush1>(livedDocument.brushes1.Values);
-            foreach (var brush in brushesList)
-            {
-                livedDocument.brushes.Add(brush.path, brush);
-            }
+            livedDocument.PaintAgent.brushes = new List<Brush>(livedDocument.brushes.Values);
             foreach (var nodeDef in livedDocument.PaintAgent.brushes)
             {
                 if (nodeDef.parameters != null)
@@ -383,7 +371,6 @@ namespace NekoPainter.FileFormat
         public int Width;
         public int Height;
         public Guid DefaultBlendMode;
-
     }
 
     public class _PictureLayoutSave

@@ -184,9 +184,8 @@ namespace NekoPainter.Core
 
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
         public Dictionary<System.Guid, BlendMode> blendmodesMap = new Dictionary<System.Guid, BlendMode>();
-        public Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
 
-        public Dictionary<string, Brush1> brushes1 = new Dictionary<string, Brush1>();
+        public Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
 
         public float logicScale = 1.0f;
         public float rotation = 0.0f;

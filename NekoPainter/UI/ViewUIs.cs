@@ -526,7 +526,7 @@ namespace NekoPainter.UI
                     undoCmd.setOutputNode = graph.outputNode;
                     undoCmd.layoutGuid = currentLayout.guid;
                     undoCmd.document = document;
-                    if (graph.DependCheck())
+                    if (graph.NoCycleCheck())
                         document.UndoManager.AddUndoData(undoCmd);
                     else
                         undoCmd.Execute();
@@ -550,24 +550,11 @@ namespace NekoPainter.UI
             {
                 if (numSelectedNodes > 0 && graph != null && graph.Nodes.TryGetValue(selectednodes[0], out var selectedNode))
                 {
-                    //if (selectedNode.paint2DNode != null)
-                    //{
-                    //    bool colorChanged = false;
-                    //    colorChanged |= ImGui.ColorEdit4("颜色", ref selectedNode.paint2DNode.color);
-                    //    colorChanged |= ImGui.ColorEdit4("颜色2", ref selectedNode.paint2DNode.color2);
-                    //    colorChanged |= ImGui.ColorEdit4("颜色3", ref selectedNode.paint2DNode.color3);
-                    //    colorChanged |= ImGui.ColorEdit4("颜色4", ref selectedNode.paint2DNode.color4);
-                    //    if (colorChanged)
-                    //    {
-                    //        graph.NodeParamCaches[selectednodes[0]].inputNodeModification.Clear();
-                    //        currentLayout.generatePicture |= colorChanged;
-                    //    }
-                    //}
                     if (selectedNode.scriptNode != null)
                     {
                         var nodeDef = document.scriptNodeDefs[selectedNode.GetNodeTypeName()];
                         if (ShowNodeParams(nodeDef, selectedNode))
-                            graph.NodeParamCaches[selectednodes[0]].inputNodeModification.Clear();
+                            graph.NodeParamCaches[selectednodes[0]].valid = false;
                     }
                 }
             }
@@ -740,7 +727,7 @@ namespace NekoPainter.UI
                 var brushes = paintAgent.brushes;
                 for (int i = 0; i < brushes.Count; i++)
                 {
-                    Core.Brush1 brush = brushes[i];
+                    Core.Brush brush = brushes[i];
                     bool selected = brush == paintAgent.currentBrush;
                     ImGui.Selectable(brush.displayName ?? brush.name, ref selected);
                     if (ImGui.IsItemHovered())
@@ -938,7 +925,7 @@ namespace NekoPainter.UI
 
         static void ExportImage()
         {
-            if(exportImage.SetFalse())
+            if (exportImage.SetFalse())
             {
                 ImGui.OpenPopup("ExportImage");
             }

@@ -3,6 +3,7 @@ using NekoPainter.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +15,9 @@ namespace NekoPainter
         Dictionary<Int2, int> _indice;
         TileIndexCollection _collection;
 
-        TileRect rect;
+        Rectangle rect;
 
-        public TileIndexCollection2(TileRect rect)
+        public TileIndexCollection2(Rectangle rect)
         {
             this.rect = rect;
             _collection = new TileIndexCollection(rect);
@@ -39,7 +40,7 @@ namespace NekoPainter
         {
             get
             {
-                if (rect.InRange(key))
+                if (rect.Contains(key))
                 {
                     if (_collection != null)
                     {
@@ -56,7 +57,7 @@ namespace NekoPainter
             }
             set
             {
-                if (rect.InRange(key))
+                if (rect.Contains(key))
                 {
                     if (_collection != null)
                     {
@@ -75,7 +76,7 @@ namespace NekoPainter
 
         public void Add(Int2 key, int value)
         {
-            if (rect.InRange(key))
+            if (rect.Contains(key))
             {
                 if (_collection != null)
                 {
@@ -95,13 +96,13 @@ namespace NekoPainter
         int[] _texture;
         int stride;
         int capacity;
-        TileRect rect;
+        Rectangle rect;
 
-        public TileIndexCollection(TileRect rect)
+        public TileIndexCollection(Rectangle rect)
         {
             this.rect = rect;
-            stride = (rect.maxX - rect.minX) / 8 + 1;
-            capacity = stride * ((rect.maxY - rect.minY + 8) / 8);
+            stride = (rect.Width) / 8 + 1;
+            capacity = stride * ((rect.Height + 8) / 8);
             _texture = new int[capacity];
             for (int i = 0; i < capacity; i++)
             {
@@ -109,11 +110,11 @@ namespace NekoPainter
             }
         }
 
-        public TileIndexCollection(TileRect rect, IReadOnlyList<Int2> points)
+        public TileIndexCollection(Rectangle rect, IReadOnlyList<Int2> points)
         {
             this.rect = rect;
-            stride = (rect.maxX - rect.minX) / 8 + 1;
-            capacity = stride * ((rect.maxY - rect.minY + 8) / 8);
+            stride = (rect.Width) / 8 + 1;
+            capacity = stride * ((rect.Height + 8) / 8);
             _texture = new int[capacity];
             for (int i = 0; i < capacity; i++)
             {
@@ -141,17 +142,17 @@ namespace NekoPainter
         {
             get
             {
-                if (rect.InRange(key))
+                if (rect.Contains(key))
                 {
-                    return _texture[(key.X - rect.minX) / 8 % stride + (key.Y - rect.minY) / 8 * stride];
+                    return _texture[(key.X - rect.Left) / 8 % stride + (key.Y - rect.Top) / 8 * stride];
                 }
                 else return -1;
             }
             set
             {
-                if (rect.InRange(key))
+                if (rect.Contains(key))
                 {
-                    _texture[(key.X - rect.minX) / 8 % stride + (key.Y - rect.minY) / 8 * stride] = value;
+                    _texture[(key.X - rect.Left) / 8 % stride + (key.Y - rect.Top) / 8 * stride] = value;
                 }
                 else return;
             }
@@ -159,9 +160,9 @@ namespace NekoPainter
 
         public void Add(Int2 key, int value)
         {
-            if (rect.InRange(key))
+            if (rect.Contains(key))
             {
-                _texture[(key.X - rect.minX) / 8 % stride + (key.Y - rect.minY) / 8 * stride] = value;
+                _texture[(key.X - rect.Left) / 8 % stride + (key.Y - rect.Top) / 8 * stride] = value;
             }
             else return;
         }

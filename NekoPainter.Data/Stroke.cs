@@ -13,8 +13,6 @@ namespace NekoPainter.Data
         public List<float> deltaTime;
         public List<float> presure;
         public DateTime startTime;
-        [NonSerialized]
-        public int modification = 1;
 
         public Stroke Clone()
         {

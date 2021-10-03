@@ -25,13 +25,9 @@ namespace NekoPainter
         /// <summary>
         /// 设置当前使用的笔刷。
         /// </summary>
-        public void SetBrush(Brush1 brush)
+        public void SetBrush(Brush brush)
         {
-            //if (currentBrush != null)
-            //    currentBrush.Size = BrushSize;
             currentBrush = brush;
-            //currentBrush.CheckBrush(document.DeviceResources);
-            //BrushSize = currentBrush.Size;
         }
 
         public bool Draw(PenInputData penInputData)
@@ -41,6 +37,7 @@ namespace NekoPainter
             return true;
         }
         Stroke stroke;
+        Node strokeNode2;
         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
         double previousStopWatchValue;
         public void Process()
@@ -82,6 +79,7 @@ namespace NekoPainter
                             scriptNode.nodeName = node.name;
                             var strokeNode1 = new Node { scriptNode = scriptNode };
                             strokeNode1.creationTime = DateTime.Now;
+                            strokeNode2 = strokeNode1;
                             if (node.parameters != null)
                                 foreach (var param in node.parameters)
                                 {
@@ -136,16 +134,19 @@ namespace NekoPainter
                 }
                 stroke.position.Add(position);
                 stroke.presure.Add(inputPointerData.PointerData.Pressure);
-                stroke.modification++;
+
+                if (strokeNode2 != null)
+                {
+                    CurrentLayout.graph.SetNodeInvalid(strokeNode2.Luid);
+                }
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     stroke = null;
+                    strokeNode2 = null;
                 }
 
                 CurrentLayout.saved = false;
 
-
-                //currentBrush.CheckBrush(document.DeviceResources);
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     CurrentLayout.generatePicture = true;
@@ -162,22 +163,13 @@ namespace NekoPainter
         /// <summary>
         /// 当前使用的笔刷
         /// </summary>
-        public Brush1 currentBrush { get; set; }
-        ///// <summary>
-        ///// 笔刷尺寸
-        ///// </summary>
-        //public float BrushSize;
-
-        //public Color _color = new Color(1, 1, 1, 1);
-        //public Color _color2 = new Color(1, 0.5f, 0.5f, 1);
-        //public Color _color3 = new Color(1, 1, 1, 1);
-        //public Color _color4 = new Color(1, 1, 1, 1);
+        public Brush currentBrush { get; set; }
 
         public ConcurrentQueue<InputPointerData> inputPointerDatas = new ConcurrentQueue<InputPointerData>();
 
         public UndoManager UndoManager;
 
-        public List<Brush1> brushes;
+        public List<Brush> brushes;
 
         public static PointerData GetBrushData(Vector2 position, NekoPainter.Core.PointerPoint pointerPoint)
         {

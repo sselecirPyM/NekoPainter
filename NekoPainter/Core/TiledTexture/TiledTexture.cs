@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using CanvasRendering;
 using NekoPainter.Data;
 
@@ -70,7 +71,7 @@ namespace NekoPainter
             Texture2TT.SetSRV(BlocksOffsetsData, 1);
             Texture2TT.SetUAV(BlocksData, 0);
             Texture2TT.Dispatch(1, 1, (tilesCount + 15) / 16);
-            tileRect = new TileRect(TilePositionList);
+            tileRect = GetBouding(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
         public TiledTexture(RenderTexture tex, List<Int2> tiles)
@@ -85,7 +86,7 @@ namespace NekoPainter
             Texture2TT.Dispatch(1, 1, (tilesCount + 15) / 16);
 
             TilePositionList = new List<Int2>(tiles);
-            tileRect = new TileRect(TilePositionList);
+            tileRect = GetBouding(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
 
@@ -96,7 +97,7 @@ namespace NekoPainter
             if (tiledTexture.BlocksData == null)
             {
                 TilePositionList = new List<Int2>(1);
-                TilesStatus = new TileIndexCollection(new TileRect());
+                TilesStatus = new TileIndexCollection(new Rectangle());
                 tilesCount = 0;
             }
             else
@@ -119,21 +120,9 @@ namespace NekoPainter
             {
                 return;
             }
-            //for (int i = 0; i < tilesCount; i++)
-            //{
-            //    TilesStatus.Add(TilesList[i], i);
-            //}
 
             for (int i = 0; i < tilesCount; i++)
             {
-                //if (tiledTexture.TilesStatus.TryGetValue(tiles[i], out int tIndex))
-                //{
-                //    indexs.Add(tIndex);
-                //}
-                //else
-                //{
-                //    indexs.Add(magicNumber);
-                //}
                 int tIndex = tiledTexture.TilesStatus[tiles[i]];
                 if (tIndex != -1)
                 {
@@ -156,7 +145,7 @@ namespace NekoPainter
                 TTPartCopy.Dispatch(1, 1, (tilesCount + 15) / 16);
                 indicates.Dispose();
             }
-            tileRect = new TileRect(TilePositionList);
+            tileRect = GetBouding(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
 
@@ -179,7 +168,7 @@ namespace NekoPainter
             }
             BlocksData = ComputeBuffer.New<byte>(deviceResources, tilesCount, 1024, data);
             BlocksOffsetsData = ComputeBuffer.New<byte>(deviceResources, tilesCount, 8, offsetsData);
-            tileRect = new TileRect(TilePositionList);
+            tileRect = GetBouding(TilePositionList);
             TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
 
@@ -242,19 +231,36 @@ namespace NekoPainter
         //    else
         //        return new TiledTexture(target);
         //}
-
-        public static TiledTexture ReplaceTiles(TiledTexture source, TiledTexture target, RenderTexture tempTexture)
+        Rectangle GetBouding(List<Int2> int2s)
         {
-            if (source.tilesCount != 0)
+            if (int2s.Count == 0)
+                return new Rectangle();
+            int minX = int2s[0].X;
+            int maxX = int2s[0].X;
+            int minY = int2s[0].Y;
+            int maxY = int2s[0].Y;
+            for (int i = 1; i < int2s.Count; i++)
             {
-                tempTexture.Clear();
-                source.UnzipToTexture(tempTexture);
-                target.UnzipToTexture(tempTexture);
-                return new TiledTexture(tempTexture);
+                minX = Math.Min(minX, int2s[i].X);
+                maxX = Math.Max(maxX, int2s[i].X);
+                minY = Math.Min(minY, int2s[i].Y);
+                maxY = Math.Max(maxY, int2s[i].Y);
             }
-            else return new TiledTexture(target);
+            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
         }
-        public TileRect tileRect;
+
+        //public static TiledTexture ReplaceTiles(TiledTexture source, TiledTexture target, RenderTexture tempTexture)
+        //{
+        //    if (source.tilesCount != 0)
+        //    {
+        //        tempTexture.Clear();
+        //        source.UnzipToTexture(tempTexture);
+        //        target.UnzipToTexture(tempTexture);
+        //        return new TiledTexture(tempTexture);
+        //    }
+        //    else return new TiledTexture(target);
+        //}
+        public Rectangle tileRect;
 
         public readonly int tilesCount;
     }

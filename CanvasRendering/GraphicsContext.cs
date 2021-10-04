@@ -45,9 +45,8 @@ namespace CanvasRendering
         {
             var deviceContext = DeviceResources.d3dContext;
             deviceContext.RSSetViewport(0, 0, DeviceResources.m_d3dRenderTargetSize.X, DeviceResources.m_d3dRenderTargetSize.Y);
-            deviceContext.OMSetRenderTargets(DeviceResources.renderTargetView1, DeviceResources.depthStencilView);
+            deviceContext.OMSetRenderTargets(DeviceResources.renderTargetView1);
             deviceContext.ClearRenderTargetView(DeviceResources.renderTargetView1, color);
-            deviceContext.ClearDepthStencilView(DeviceResources.depthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
         }
         public void SetLogicSize(Vector2 size)
         {

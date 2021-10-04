@@ -43,6 +43,7 @@ namespace NekoPainter.Core
             graph = pictureLayout.graph.Clone();
 
             guid = Guid.NewGuid();
+            generateCache = true;
         }
 
         public void Dispose()
@@ -56,7 +57,7 @@ namespace NekoPainter.Core
 
         public bool saved = false;
 
-        public bool generatePicture = false;
+        public bool generateCache = false;
     }
 
     public enum LayoutDataSource

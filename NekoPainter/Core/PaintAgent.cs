@@ -3,7 +3,6 @@ using System;
 using System.Numerics;
 using System.Collections;
 using System.Collections.Generic;
-using CanvasRendering;
 using System.Collections.Concurrent;
 using NekoPainter.UI;
 using System.IO;
@@ -37,7 +36,7 @@ namespace NekoPainter
             return true;
         }
         Stroke stroke;
-        Node strokeNode2;
+        Node strokeNode1;
         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
         double previousStopWatchValue;
         public void Process()
@@ -77,9 +76,8 @@ namespace NekoPainter
                         {
                             ScriptNode scriptNode = new ScriptNode();
                             scriptNode.nodeName = node.name;
-                            var strokeNode1 = new Node { scriptNode = scriptNode };
+                            strokeNode1 = new Node { scriptNode = scriptNode };
                             strokeNode1.creationTime = DateTime.Now;
-                            strokeNode2 = strokeNode1;
                             if (node.parameters != null)
                                 foreach (var param in node.parameters)
                                 {
@@ -134,22 +132,19 @@ namespace NekoPainter
                 }
                 stroke.position.Add(position);
                 stroke.presure.Add(inputPointerData.PointerData.Pressure);
+                CurrentLayout.graph.SetNodeCacheInvalid(strokeNode1.Luid);
 
-                if (strokeNode2 != null)
-                {
-                    CurrentLayout.graph.SetNodeInvalid(strokeNode2.Luid);
-                }
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
                     stroke = null;
-                    strokeNode2 = null;
+                    strokeNode1 = null;
                 }
 
                 CurrentLayout.saved = false;
 
                 if (inputPointerData.penInputFlag == PenInputFlag.End)
                 {
-                    CurrentLayout.generatePicture = true;
+                    CurrentLayout.generateCache = true;
                 }
             }
         }

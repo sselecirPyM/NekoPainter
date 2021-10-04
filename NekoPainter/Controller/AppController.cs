@@ -106,18 +106,6 @@ namespace NekoPainter.Controller
             image.Dispose();
         }
 
-        public static byte[] GetImageData(Stream input, out int width, out int height)
-        {
-            Image<RgbaVector> image = Image<RgbaVector>.Load<RgbaVector>(input);
-            image.Frames[0].TryGetSinglePixelSpan(out var rgbas);
-            width = image.Frames[0].Width;
-            height = image.Frames[0].Height;
-            var span1 = MemoryMarshal.Cast<RgbaVector, byte>(rgbas);
-            byte[] bytes = new byte[span1.Length];
-            span1.CopyTo(bytes);
-            return bytes;
-        }
-
         //Task RenderTask;
 
         //public void GameLoop()

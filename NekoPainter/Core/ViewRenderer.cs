@@ -16,11 +16,12 @@ using NekoPainter.Data;
 
 namespace NekoPainter
 {
-    public class ViewRenderer
+    public class ViewRenderer : IDisposable
     {
         public ViewRenderer(LivedNekoPainterDocument livedDocument)
         {
             this.livedDocument = livedDocument;
+            _paintingTexture1 = new RenderTexture(livedDocument.DeviceResources, livedDocument.Width, livedDocument.Height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
         }
 
         public void RenderAll()
@@ -51,7 +52,7 @@ namespace NekoPainter
                     {
                         blendMode?.BlendPure(Output, buffer, ofs, 256);
                     }
-                    else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generatePicture)
+                    else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
                     {
                         List<int> executeOrder;
                         PaintingTexture.Clear();
@@ -72,7 +73,7 @@ namespace NekoPainter
                             }
                         }
 
-                        if (selectedLayout.generatePicture.SetFalse())
+                        if (selectedLayout.generateCache.SetFalse())
                         {
                             if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
                             var tiledTexture2 = new TiledTexture(PaintingTexture);
@@ -124,7 +125,8 @@ namespace NekoPainter
         }
 
         RenderTexture Output { get { return livedDocument.Output; } }
-        RenderTexture PaintingTexture { get { return livedDocument.PaintingTexture; } }
+        RenderTexture PaintingTexture { get { return _paintingTexture1; } }
+        RenderTexture _paintingTexture1;
         Texture2D _paintingTexture;
         DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
@@ -141,13 +143,13 @@ namespace NekoPainter
                 var node = graph.Nodes[nodeId];
                 if (node.strokeNode != null)
                 {
-                    var cache = (graph.NodeParamCaches ??= new Dictionary<int, NodeParamCache>()).GetOrCreate(node.Luid);
+                    var cache = graph.NodeParamCaches.GetOrCreate(node.Luid);
                     cache.outputCache["strokes"] = new Stroke[] { node.strokeNode.stroke };
                     cache.valid = true;
                 }
                 else if (node.fileNode != null)
                 {
-                    var cache = (graph.NodeParamCaches ??= new Dictionary<int, NodeParamCache>()).GetOrCreate(node.Luid);
+                    var cache = graph.NodeParamCaches.GetOrCreate(node.Luid);
                     if (!cache.outputCache.TryGetValue(node.fileNode.path, out object path1))
                     {
                         cache.outputCache["filePath"] = node.fileNode.path;
@@ -162,7 +164,7 @@ namespace NekoPainter
 
                     ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>() };
 
-                    var cache = (graph.NodeParamCaches ??= new Dictionary<int, NodeParamCache>()).GetOrCreate(nodeId);
+                    var cache = graph.NodeParamCaches.GetOrCreate(nodeId);
                     cache.valid = true;
 
                     //获取输入
@@ -201,6 +203,10 @@ namespace NekoPainter
 
                             }
                         }
+                        else if (ioDef.ioType == "cache")
+                        {
+                            global.parameters[ioDef.name] = cache.outputCache.GetOrDefault(ioDef.name, null);
+                        }
                     }
                     //检查参数
                     if (nodeDef.parameters != null)
@@ -209,19 +215,23 @@ namespace NekoPainter
                         {
                             if (param.type == "float")
                             {
-                                global.parameters[param.name] = (node.fParams ??= new Dictionary<string, float>()).GetOrDefault(param.name, (float)(param.defaultValue1));
+                                global.parameters[param.name] = node.fParams.GetOrDefault(param.name, (float)(param.defaultValue1));
                             }
                             if (param.type == "float2")
                             {
-                                global.parameters[param.name] = (node.f2Params ??= new Dictionary<string, Vector2>()).GetOrDefault(param.name, (Vector2)(param.defaultValue1));
+                                global.parameters[param.name] = node.f2Params.GetOrDefault(param.name, (Vector2)(param.defaultValue1));
                             }
                             if (param.type == "float3" || param.type == "color3")
                             {
-                                global.parameters[param.name] = (node.f3Params ??= new Dictionary<string, Vector3>()).GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                                global.parameters[param.name] = node.f3Params.GetOrDefault(param.name, (Vector3)(param.defaultValue1));
                             }
                             if (param.type == "float4" || param.type == "color4")
                             {
-                                global.parameters[param.name] = (node.f4Params ??= new Dictionary<string, Vector4>()).GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                                global.parameters[param.name] = node.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                            }
+                            if (param.type == "bool")
+                            {
+                                global.parameters[param.name] = node.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));
                             }
                         }
                     }
@@ -241,14 +251,25 @@ namespace NekoPainter
                     //缓存输出
                     foreach (var ioDef in nodeDef.ioDefs)
                     {
-                        if (ioDef.type == "texture2D" && ioDef.ioType == "output" && global.parameters.ContainsKey(ioDef.name))
+                        if (ioDef.ioType == "output")
                         {
-                            Texture2D tex = (Texture2D)global.parameters[ioDef.name];
-                            if (cache.outputCache.TryGetValue(ioDef.name, out var _tex1))
+                            if (ioDef.type == "texture2D" && global.parameters.ContainsKey(ioDef.name))
                             {
-                                ((TiledTexture)_tex1).Dispose();
+                                Texture2D tex = (Texture2D)global.parameters[ioDef.name];
+                                if (cache.outputCache.TryGetValue(ioDef.name, out var _tex1))
+                                {
+                                    ((TiledTexture)_tex1).Dispose();
+                                }
+                                cache.outputCache[ioDef.name] = new TiledTexture(tex._texture);
                             }
-                            cache.outputCache[ioDef.name] = new TiledTexture(tex._texture);
+                            else
+                            {
+                                cache.outputCache[ioDef.name] = global.parameters[ioDef.name];
+                            }
+                        }
+                        else if (ioDef.ioType == "cache")
+                        {
+                            cache.outputCache[ioDef.name] = global.parameters[ioDef.name];
                         }
                     }
                 }
@@ -263,7 +284,7 @@ namespace NekoPainter
                 var nodeDef = livedDocument.scriptNodeDefs[node.GetNodeTypeName()];
                 if (nodeDef.animated)
                 {
-                    graph.SetNodeInvalid(nodePair.Key);
+                    graph.SetNodeCacheInvalid(nodePair.Key);
                 }
             }
         }
@@ -290,12 +311,24 @@ namespace NekoPainter
             foreach (var key in gcRemoveNode)
                 graph.NodeParamCaches.Remove(key);
         }
+
+        public void Dispose()
+        {
+            _paintingTexture1.Dispose();
+        }
     }
 
     public class ScriptGlobal
     {
         public Dictionary<string, object> parameters;
         public NodeContext context;
+    }
+
+    public class LayoutRenderConfig
+    {
+        public int frame;
+        public float frameInterval;
+
     }
 }
 

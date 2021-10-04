@@ -12,7 +12,7 @@ namespace NekoPainter.Nodes
     {
         public Dictionary<int, Node> Nodes;
         [NonSerialized]
-        public Dictionary<int, NodeParamCache> NodeParamCaches;
+        public Dictionary<int, NodeParamCache> NodeParamCaches = new Dictionary<int, NodeParamCache>();
 
         public int outputNode;
         public int idAllocated;
@@ -36,6 +36,7 @@ namespace NekoPainter.Nodes
                 input.Inputs = new Dictionary<string, NodeSocket>();
             output.Outputs.GetOrCreate(outputName).Add(new NodeSocket { targetUid = input.Luid, targetSocket = inputName });
             input.Inputs[inputName] = new NodeSocket { targetUid = output.Luid, targetSocket = outputName };
+            SetNodeCacheInvalid(input.Luid);
             return new LinkDesc { outputNode = output.Luid, outputName = outputName, inputNode = input.Luid, inputName = inputName };
         }
 
@@ -72,6 +73,7 @@ namespace NekoPainter.Nodes
             var outputNode1 = Nodes[outputNode];
             inputNode1.Inputs.Remove(inputSocketName);
             outputNode1.Outputs[outputSocketName].RemoveWhere(u => u.targetSocket == inputSocketName && u.targetUid == inputNode);
+            SetNodeCacheInvalid(inputNode);
             return new LinkDesc { inputNode = inputNode, inputName = inputSocketName, outputNode = outputNode, outputName = outputSocketName };
         }
 
@@ -103,7 +105,10 @@ namespace NekoPainter.Nodes
                         foreach (var link in links.Value)
                         {
                             if (this.Nodes.TryGetValue(link.targetUid, out var targetNode) && !nodes.Any(u => u.Luid == targetNode.Luid))
+                            {
                                 targetNode.Inputs.Remove(link.targetSocket);
+                                SetNodeCacheInvalid(link.targetUid);
+                            }
                         }
                     }
             }
@@ -154,18 +159,14 @@ namespace NekoPainter.Nodes
                 return false;
         }
 
-        public void SetNodeInvalid(int nodeId)
+        public void SetNodeCacheInvalid(int nodeId)
         {
-            if (NodeParamCaches == null)
-                NodeParamCaches = new Dictionary<int, NodeParamCache>();
             var cache = NodeParamCaches.GetOrCreate(nodeId);
             cache.valid = false;
         }
 
         public List<int> GetUpdateList(int outputNodeId)
         {
-            if (NodeParamCaches == null)
-                NodeParamCaches = new Dictionary<int, NodeParamCache>();
             List<int> executeList = GetExecuteList(outputNodeId);
             List<int> updateList = new List<int>();
             for (int i = 0; i < executeList.Count; i++)
@@ -194,6 +195,7 @@ namespace NekoPainter.Nodes
 
         public List<int> GetExecuteList(int outputNodeId)
         {
+            if (!Nodes.ContainsKey(outputNodeId)) return new List<int>();
             var inputChain = GetInputChainSet(outputNodeId);
             inputChain.Add(outputNodeId);
 
@@ -264,6 +266,7 @@ namespace NekoPainter.Nodes
         {
             Graph clone = (Graph)MemberwiseClone();
             clone.Nodes = new Dictionary<int, Node>();
+            clone.NodeParamCaches = new Dictionary<int, NodeParamCache>();
             foreach (var pair in Nodes)
             {
                 clone.Nodes.Add(pair.Key, pair.Value.Clone());

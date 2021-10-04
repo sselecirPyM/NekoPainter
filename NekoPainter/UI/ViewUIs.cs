@@ -237,12 +237,14 @@ namespace NekoPainter.UI
             var io = ImGui.GetIO();
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(200, 600), ImGuiCond.FirstUseEver);
+            var controller = AppController.Instance;
             if (ImGuiExt.Begin("Thumbnail"))
             {
-                string texPath = string.Format("{0}/Canvas", AppController.Instance.CurrentLivedDocument.Path);
-                IntPtr imageId = new IntPtr(AppController.Instance.GetId(texPath));
+                controller.AddTexture(string.Format("{0}/Canvas", controller.CurrentLivedDocument.Path), controller.CurrentLivedDocument.Output);
+                string texPath = string.Format("{0}/Canvas", controller.CurrentLivedDocument.Path);
+                IntPtr imageId = new IntPtr(controller.GetId(texPath));
                 Vector2 pos = ImGui.GetCursorScreenPos();
-                var tex = AppController.Instance.GetTexture(texPath);
+                var tex = controller.GetTexture(texPath);
                 Vector2 spaceSize = ImGui.GetWindowSize() - new Vector2(20, 40);
                 float factor = MathF.Max(MathF.Min(spaceSize.X / tex.width, spaceSize.Y / tex.height), 0.01f);
 
@@ -268,20 +270,22 @@ namespace NekoPainter.UI
         static void Canvas(LivedNekoPainterDocument document, string path)
         {
             var io = ImGui.GetIO();
-            var paintAgent = AppController.Instance?.CurrentLivedDocument?.PaintAgent;
+            var controller = AppController.Instance;
+            var paintAgent = controller.CurrentLivedDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(400, 0), ImGuiCond.FirstUseEver);
             if (ImGui.Begin(string.Format("画布 {0}###{1}", document.Name, path)))
             {
                 if (ImGui.IsWindowFocused())
                 {
-                    AppController.Instance.CurrentDCDocument = AppController.Instance.documents[path];
-                    AppController.Instance.CurrentLivedDocument = AppController.Instance.livedDocuments[path];
+                    controller.CurrentDCDocument = controller.documents[path];
+                    controller.CurrentLivedDocument = controller.livedDocuments[path];
                 }
+                controller.AddTexture(string.Format("{0}/Canvas", path), controller.livedDocuments[path].Output);
                 string texPath = string.Format("{0}/Canvas", path);
-                IntPtr imageId = new IntPtr(AppController.Instance.GetId(texPath));
+                IntPtr imageId = new IntPtr(controller.GetId(texPath));
                 Vector2 pos = ImGui.GetCursorScreenPos();
-                var tex = AppController.Instance.GetTexture(texPath);
+                var tex = controller.GetTexture(texPath);
 
                 Vector2 spaceSize = ImGui.GetWindowSize() - new Vector2(20, 40);
                 float factor = MathF.Max(MathF.Min(spaceSize.X / document.Width, spaceSize.Y / document.Height), 0.01f);
@@ -520,7 +524,7 @@ namespace NekoPainter.UI
                     }
                     var desc2 = graph.Link(nodeA, socketDefsA[linkA - nodeStartA].name, nodeB, socketDefsB[linkB - nodeStartB].name);
 
-                    currentLayout.generatePicture = true;
+                    currentLayout.generateCache = true;
                     undoCmd.graph = currentLayout.graph;
                     undoCmd.disconnectLinks = new List<LinkDesc>() { desc2 };
                     undoCmd.setOutputNode = graph.outputNode;
@@ -542,6 +546,7 @@ namespace NekoPainter.UI
                     if (ImGui.IsMouseDown(ImGuiMouseButton.Right))
                     {
                         graph.outputNode = nodeHovered;
+                        currentLayout.generateCache = true;
                     }
                 }
             }
@@ -554,7 +559,10 @@ namespace NekoPainter.UI
                     {
                         var nodeDef = document.scriptNodeDefs[selectedNode.GetNodeTypeName()];
                         if (ShowNodeParams(nodeDef, selectedNode))
+                        {
                             graph.NodeParamCaches[selectednodes[0]].valid = false;
+                            currentLayout.generateCache = true;
+                        }
                     }
                 }
             }
@@ -575,7 +583,7 @@ namespace NekoPainter.UI
                             currentLayout.graph = graph;
                             graph.Initialize();
                         }
-                        graph.AddNode(node);
+                        graph.AddNodeToEnd(node, new Vector2(100, 0));
                         var undocmd = new Core.UndoCommand.CMD_Remove_RecoverNodes();
                         undocmd.BuildRemoveNodes(document, graph, new List<int>() { node.Luid }, currentLayout.guid);
                         document.UndoManager.AddUndoData(undocmd);
@@ -590,59 +598,69 @@ namespace NekoPainter.UI
             bool changed = false;
             if (nodeDef.parameters != null)
             {
+                ImGuiExt.Text(nodeDef.displayName);
                 foreach (var param in nodeDef.parameters)
                 {
                     if (param.type == "float")
                     {
-                        float v = (selectedNode.fParams ??= new Dictionary<string, float>()).GetOrDefault(param.name, (float)(param.defaultValue1));
+                        float v = selectedNode.fParams.GetOrDefault(param.name, (float)(param.defaultValue1));
                         if (ImGui.DragFloat(param.displayName ?? param.name, ref v, param.step, param.step))
                         {
-                            selectedNode.fParams[param.name] = v;
+                            DictionaryExt.SetAndCreate(ref selectedNode.fParams, param.name, v);
                             changed = true;
                         }
                     }
                     else if (param.type == "float2")
                     {
-                        Vector2 v = (selectedNode.f2Params ??= new Dictionary<string, Vector2>()).GetOrDefault(param.name, (Vector2)(param.defaultValue1));
+                        Vector2 v = selectedNode.f2Params.GetOrDefault(param.name, (Vector2)(param.defaultValue1));
                         if (ImGui.DragFloat2(param.displayName ?? param.name, ref v, param.step))
                         {
-                            selectedNode.f2Params[param.name] = v;
+                            DictionaryExt.SetAndCreate(ref selectedNode.f2Params, param.name, v);
                             changed = true;
                         }
                     }
                     else if (param.type == "float3")
                     {
-                        Vector3 v = (selectedNode.f3Params ??= new Dictionary<string, Vector3>()).GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                        Vector3 v = selectedNode.f3Params.GetOrDefault(param.name, (Vector3)(param.defaultValue1));
                         if (ImGui.DragFloat3(param.displayName ?? param.name, ref v, param.step))
                         {
-                            selectedNode.f3Params[param.name] = v;
+                            DictionaryExt.SetAndCreate(ref selectedNode.f3Params, param.name, v);
                             changed = true;
                         }
                     }
                     else if (param.type == "float4")
                     {
-                        Vector4 v = (selectedNode.f4Params ??= new Dictionary<string, Vector4>()).GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                        Vector4 v = selectedNode.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
                         if (ImGui.DragFloat4(param.displayName ?? param.name, ref v, param.step))
                         {
-                            selectedNode.f4Params[param.name] = v;
+                            DictionaryExt.SetAndCreate(ref selectedNode.f4Params, param.name, v);
                             changed = true;
                         }
                     }
                     else if (param.type == "color3")
                     {
-                        Vector3 v = (selectedNode.f3Params ??= new Dictionary<string, Vector3>()).GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                        Vector3 v = selectedNode.f3Params.GetOrDefault(param.name, (Vector3)(param.defaultValue1));
                         if (ImGui.ColorEdit3(param.displayName ?? param.name, ref v))
                         {
-                            selectedNode.f3Params[param.name] = v;
+                            DictionaryExt.SetAndCreate(ref selectedNode.f3Params, param.name, v);
                             changed = true;
                         }
                     }
                     else if (param.type == "color4")
                     {
-                        Vector4 v = (selectedNode.f4Params ??= new Dictionary<string, Vector4>()).GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                        Vector4 v = selectedNode.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
                         if (ImGui.ColorEdit4(param.displayName ?? param.name, ref v))
                         {
-                            selectedNode.f4Params[param.name] = v;
+                            DictionaryExt.SetAndCreate(ref selectedNode.f4Params, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "bool")
+                    {
+                        bool v = selectedNode.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));
+                        if (ImGui.Checkbox(param.displayName ?? param.name, ref v))
+                        {
+                            DictionaryExt.SetAndCreate(ref selectedNode.bParams, param.name, v);
                             changed = true;
                         }
                     }
@@ -658,8 +676,6 @@ namespace NekoPainter.UI
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("笔刷参数"))
             {
-                //ImGui.Text(TimeCost.ToString());
-                //ImGui.SliderFloat("笔刷尺寸", ref paintAgent.BrushSize, 1, 300);
                 if (paintAgent.currentBrush?.parameters != null)
                     foreach (var param in paintAgent.currentBrush.parameters)
                     {
@@ -707,6 +723,14 @@ namespace NekoPainter.UI
                         {
                             Vector4 v = (Vector4)(param.defaultValue1 ?? new Vector4());
                             if (ImGui.ColorEdit4(param.displayName ?? param.name, ref v))
+                            {
+                                param.defaultValue1 = v;
+                            }
+                        }
+                        else if (param.type == "bool")
+                        {
+                            bool v = (bool)(param.defaultValue1 ?? false);
+                            if (ImGui.Checkbox(param.displayName ?? param.name, ref v))
                             {
                                 param.defaultValue1 = v;
                             }

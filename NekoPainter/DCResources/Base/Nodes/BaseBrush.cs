@@ -16,7 +16,7 @@ static class Modified
         IList<Stroke> strokes = (IList<Stroke>)pstrokes;
         Texture2D tex = (Texture2D)ptexture2D;
         Vector4 color = (Vector4)parameters["color"];
-        float size = (float)parameters["size"];
+        float size = Math.Max((float)parameters["size"], 1);
         float spacing = Math.Max((float)parameters["spacing"], 0.01f);
         color.W *= 0.5f;
         int width = tex.width;
@@ -48,8 +48,8 @@ static class Modified
             {
                 int x1 = (int)(point.X - size / 2);
                 int y1 = (int)(point.Y - size / 2);
-                int x2 = (int)(point.X + size / 2);
-                int y2 = (int)(point.Y + size / 2);
+                int x2 = (int)(point.X + size / 2) + 1;
+                int y2 = (int)(point.Y + size / 2) + 1;
                 if (size > 50)
                     Parallel.For(y1, y2, y =>
                      {

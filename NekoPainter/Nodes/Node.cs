@@ -30,6 +30,7 @@ namespace NekoPainter.Nodes
         public Dictionary<string, Vector2> f2Params;
         public Dictionary<string, Vector3> f3Params;
         public Dictionary<string, Vector4> f4Params;
+        public Dictionary<string, bool> bParams;
 
         public string GetNodeTypeName()
         {

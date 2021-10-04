@@ -98,7 +98,7 @@ namespace NekoPainter.Core.UndoCommand
             if (layoutGuid != Guid.Empty)
             {
                 var layout = document.Layouts.Find(u => u.guid == layoutGuid);
-                layout.generatePicture = true;
+                layout.generateCache = true;
             }
             graph.outputNode = setOutputNode;
             return newCmd;

@@ -43,7 +43,6 @@ namespace CanvasRendering
             ID3D11RenderTargetView[] nullViews = { };
             d3dContext.OMSetRenderTargets(nullViews);
             renderTargetView1?.Dispose();
-            depthStencilView?.Dispose();
             d3dContext.Flush();
 
             UpdateRenderTargetSize();
@@ -92,9 +91,6 @@ namespace CanvasRendering
             ID3D11Texture2D1 backBaffer = swapChain.GetBuffer<ID3D11Texture2D1>(0);
             renderTargetView1 = device.CreateRenderTargetView1(backBaffer);
             backBaffer.Dispose();
-            ID3D11Texture2D1 depthStencil = device.CreateTexture2D1(new Texture2DDescription1(Format.D24_UNorm_S8_UInt, width, height, 1, 0, BindFlags.DepthStencil));
-            depthStencilView = device.CreateDepthStencilView(depthStencil);
-            depthStencil.Dispose();
         }
 
         void UpdateRenderTargetSize()
@@ -110,7 +106,6 @@ namespace CanvasRendering
         {
             var hr = swapChain.Present(0, PresentFlags.None, new PresentParameters());
             d3dContext.DiscardView1(renderTargetView1);
-            d3dContext.DiscardView1(depthStencilView);
             if (hr.Failure)
                 throw new Exception(hr.ToString());
         }
@@ -155,7 +150,6 @@ namespace CanvasRendering
         public ID3D11DeviceContext3 d3dContext;
         public IDXGISwapChain3 swapChain;
         public ID3D11RenderTargetView1 renderTargetView1;
-        public ID3D11DepthStencilView depthStencilView;
         public Format swapChainFormat = Format.R8G8B8A8_UNorm;
         public SwapChainFlags swapChainFlags = SwapChainFlags.AllowTearing;
 

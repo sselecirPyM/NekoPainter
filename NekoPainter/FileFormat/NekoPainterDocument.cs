@@ -198,7 +198,7 @@ namespace NekoPainter.FileFormat
             {
                 if (!livedDocument.LayoutTex.ContainsKey(layout.guid))
                 {
-                    layout.generatePicture = true;
+                    layout.generateCache = true;
                     layout.saved = false;
                 }
             }
@@ -290,6 +290,10 @@ namespace NekoPainter.FileFormat
             if (paramDef.type == "float4" || paramDef.type == "color4")
             {
                 paramDef.defaultValue1 ??= StringConvert.GetFloat4(paramDef.defaultValue);
+            }
+            if (paramDef.type == "bool")
+            {
+                paramDef.defaultValue1 ??= bool.Parse(paramDef.defaultValue);
             }
         }
 

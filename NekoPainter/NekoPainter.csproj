@@ -20,6 +20,7 @@
     <Compile Remove="DCResources\Base\Nodes\ImageImport.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestBrush.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestBrush2.cs" />
+    <Compile Remove="DCResources\Base\Nodes\TestParticle.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -334,6 +335,9 @@
     <None Include="DCResources\Base\Nodes\ImageImport.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="DCResources\Base\Nodes\TestParticle.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DCResources\Base\Nodes\TestBrush2.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -358,6 +362,9 @@
     <None Update="DCResources\Base\Brushes\BaseBrush.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="DCResources\Base\Brushes\TestBrushParticle.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="DCResources\Base\Brushes\TestBrush2.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -368,6 +375,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\BaseBrush.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Nodes\TestParticle.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\TestBrush2.json">

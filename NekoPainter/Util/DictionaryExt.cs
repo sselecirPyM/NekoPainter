@@ -40,11 +40,19 @@ namespace NekoPainter.Util
         }
         public static T GetOrDefault<T1, T>(this Dictionary<T1, T> dict, T1 key, T defaultValue) where T : new()
         {
+            if (dict == null)
+                return defaultValue;
             if (dict.TryGetValue(key, out T v))
             {
                 return v;
             }
             return defaultValue;
+        }
+        public static void SetAndCreate<T1, T>(ref Dictionary<T1, T> dict, T1 key, T value)
+        {
+            if (dict == null)
+                dict = new Dictionary<T1, T>();
+            dict[key] = value;
         }
     }
 }

@@ -29,7 +29,14 @@
       "displayName": "scale",
       "type": "float",
       "defaultValue": "1.0",
-      "step": 0.001
+      "step": 0.01
+    },
+    {
+      "name": "offset",
+      "displayName": "offset",
+      "type": "float2",
+      "defaultValue": "[0,0]",
+      "step": 1
     }
   ]
 }

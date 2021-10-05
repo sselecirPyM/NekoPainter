@@ -14,63 +14,22 @@ namespace NekoPainter.Core
 {
     public class BlendMode
     {
-        public BlendMode(ComputeShader[] cX)
-        {
-            csBlend = cX;
-        }
         static string[] componentCode = new string[c_csBlendCount];
-        //const int c_csBlendCount = 7;
         const int c_csBlendCount = 6;
 
-        static string appUsedCultureName;
-        public static void LoadStaticResourcesAsync()
+        public static void LoadStaticResources()
         {
-            appUsedCultureName = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
             componentCode[0] = File.ReadAllText("Shaders\\blendmode_c1.hlsl");
             componentCode[1] = File.ReadAllText("Shaders\\blendmode_c2.hlsl");
             componentCode[2] = File.ReadAllText("Shaders\\blendmode_c3.hlsl");
             componentCode[3] = File.ReadAllText("Shaders\\blendmode_c4.hlsl");
             componentCode[4] = File.ReadAllText("Shaders\\blendmode_c5.hlsl");
             componentCode[5] = File.ReadAllText("Shaders\\blendmode_c6.hlsl");
-            //componentCode[6] = await DCUtil.ReadStringAsync("Shaders\\blendmode_c7.hlsl");
         }
 
-        //static bool CultureCheck2(DCParameter parameter, string culture)
-        //{
-        //    if (culture == null) culture = "";
-        //    if (parameter.Culture == null) parameter.Culture = culture;
-        //    bool isCurrentCulture = appUsedCultureName.Equals(culture, StringComparison.CurrentCultureIgnoreCase);
-        //    bool inCurrentCulture = appUsedCultureName.Equals(parameter.Culture, StringComparison.CurrentCultureIgnoreCase);
-        //    bool isSubstitute = culture.Equals(parameter.Culture, StringComparison.CurrentCultureIgnoreCase);
-        //    if (isCurrentCulture ||
-        //        isSubstitute ||
-        //        (string.IsNullOrEmpty(culture) && !inCurrentCulture))
-        //    {
-        //        parameter.Culture = culture;
-        //        return true;
-        //    }
-        //    else return false;
-        //}
-
-        //static bool CultureCheck2(ref string curCul, string culture)
-        //{
-        //    if (culture == null) culture = "";
-        //    if (curCul == null) curCul = culture;
-        //    bool isCurrentCulture = appUsedCultureName.Equals(culture, StringComparison.CurrentCultureIgnoreCase);
-        //    bool inCurrentCulture = appUsedCultureName.Equals(curCul, StringComparison.CurrentCultureIgnoreCase);
-        //    bool isSubstitute = culture.Equals(curCul, StringComparison.CurrentCultureIgnoreCase);
-        //    if (isCurrentCulture ||
-        //        isSubstitute ||
-        //        (string.IsNullOrEmpty(culture) && !inCurrentCulture))
-        //    {
-        //        curCul = culture;
-        //        return true;
-        //    }
-        //    else return false;
-        //}
         public static XmlSerializer xmlSerializer = new XmlSerializer(typeof(BlendModeCode));
 
-        public static BlendMode LoadFromFileAsync(DeviceResources deviceResources, string file)
+        public static BlendMode LoadFromFile(string file)
         {
             Stream stream = new FileStream(file, FileMode.Open);
             BlendModeCode blendModeCode = (BlendModeCode)xmlSerializer.Deserialize(stream);
@@ -88,13 +47,9 @@ namespace NekoPainter.Core
             }
             fCode.Append("}");
             fCode.Append(blendModeCode.Code);
-            ComputeShader[] shaders = new ComputeShader[c_csBlendCount];
-            Parallel.For(0, c_csBlendCount, (int i) =>
-            {
-                shaders[i] = ComputeShader.CompileAndCreate(deviceResources, Encoding.UTF8.GetBytes(componentCode[i].Replace("#define codehere", fCode.ToString())));
-            });
 
-            BlendMode blendMode = new BlendMode(shaders);
+            BlendMode blendMode = new BlendMode();
+            blendMode.code = fCode.ToString();
             blendMode.Name = blendModeCode.Name;
             blendMode.Description = blendModeCode.Description;
             blendMode.Guid = blendModeCode.Guid;
@@ -108,6 +63,7 @@ namespace NekoPainter.Core
 
         public void Blend(RenderTexture source, RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
+            Check(target.GetDevice(), 0);
             int width = source.width;
             int height = source.height;
 
@@ -122,6 +78,8 @@ namespace NekoPainter.Core
         public void Blend(TiledTexture source, RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
             if (source.tilesCount == 0) return;
+            Check(target.GetDevice(), 1);
+            source.Check(target.GetDevice());
             csBlend[1].SetSRV(source.BlocksData, 0);
             csBlend[1].SetSRV(source.BlocksOffsetsData, 1);
             csBlend[1].SetUAV(target, 0);
@@ -132,6 +90,7 @@ namespace NekoPainter.Core
         public void Blend(RenderTexture source, RenderTexture target, List<Int2> part, ConstantBuffer parametersData, int ofs, int size)
         {
             if (part == null || part.Count == 0) return;
+            Check(target.GetDevice(), 2);
             int z = (part.Count + 15) / 16;
             ComputeBuffer buf_Part = ComputeBuffer.New<Int2>(source.GetDevice(), part.Count, 8, part.ToArray());
             csBlend[2].SetSRV(source, 0);
@@ -145,13 +104,11 @@ namespace NekoPainter.Core
         public void Blend(TiledTexture source, RenderTexture target, List<Int2> part, ConstantBuffer parametersData, int ofs, int size)
         {
             if (part == null || part.Count == 0 || source.tilesCount == 0) return;
+            Check(target.GetDevice(), 3);
+            source.Check(target.GetDevice());
             List<int> hParts = new List<int>();
             for (int i = 0; i < part.Count; i++)
             {
-                //if (source.TilesStatus.TryGetValue(part[i], out int tIndex))
-                //{
-                //    hParts.Add(tIndex);
-                //}
                 int tIndex = source.TilesStatus[part[i]];
                 if (tIndex != -1)
                 {
@@ -160,7 +117,7 @@ namespace NekoPainter.Core
             }
             if (hParts.Count == 0) return;
             int z = (hParts.Count + 15) / 16;
-            ComputeBuffer buf_Index = ComputeBuffer.New<int>(source.deviceResources, hParts.Count, 4, hParts.ToArray());
+            ComputeBuffer buf_Index = ComputeBuffer.New<int>(target.GetDevice(), hParts.Count, 4, hParts.ToArray());
             csBlend[3].SetSRV(source.BlocksData, 0);
             csBlend[3].SetSRV(buf_Index, 1);
             csBlend[3].SetSRV(source.BlocksOffsetsData, 2);
@@ -173,8 +130,10 @@ namespace NekoPainter.Core
         public void Blend3Indicate(TiledTexture source, RenderTexture target, List<int> indicate, ConstantBuffer parametersData, int ofs, int size)
         {
             if (indicate == null || indicate.Count == 0 || source.tilesCount == 0) return;
+            Check(target.GetDevice(), 3);
+            source.Check(target.GetDevice());
             int z = (indicate.Count + 15) / 16;
-            ComputeBuffer buf_Index = ComputeBuffer.New<int>(source.deviceResources, indicate.Count, 4, indicate.ToArray());
+            ComputeBuffer buf_Index = ComputeBuffer.New<int>(target.GetDevice(), indicate.Count, 4, indicate.ToArray());
             csBlend[3].SetSRV(source.BlocksData, 0);
             csBlend[3].SetSRV(buf_Index, 1);
             csBlend[3].SetSRV(source.BlocksOffsetsData, 2);
@@ -186,7 +145,7 @@ namespace NekoPainter.Core
 
         public void BlendPure(RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
-
+            Check(target.GetDevice(), 4);
             int width = target.width;
             int height = target.height;
 
@@ -200,6 +159,7 @@ namespace NekoPainter.Core
         public void BlendPure(RenderTexture target, List<Int2> part, ConstantBuffer parametersData, int ofs, int size)
         {
             if (part == null || part.Count == 0) return;
+            Check(target.GetDevice(), 5);
             int z = (part.Count + 15) / 16;
             ComputeBuffer buf_Part = ComputeBuffer.New<Int2>(target.GetDevice(), part.Count, 8, part.ToArray());
             csBlend[5].SetSRV(buf_Part, 0);
@@ -209,21 +169,16 @@ namespace NekoPainter.Core
             buf_Part.Dispose();
         }
 
-        //public void Blend7(RenderTexture source, RenderTexture target, ConstantBuffer parametersData, ConstantBuffer selectionOffsetData)
-        //{
-        //    int width = source.width;
-        //    int height = source.height;
-
-        //    int x = (width + 31) / 32;
-        //    int y = (height + 31) / 32;
-        //    csBlend[0].SetSRV(source, 0);
-        //    csBlend[6].SetUAV(target, 0);
-        //    csBlend[6].SetCBV(parametersData, 0);
-        //    csBlend[6].SetCBV(selectionOffsetData, 1);
-        //    csBlend[6].Dispatch(x, y, 1);
-        //}
+        void Check(DeviceResources device,int index)
+        {
+            if (csBlend[index] == null)
+            {
+                csBlend[index] = ComputeShader.CompileAndCreate(device, Encoding.UTF8.GetBytes(componentCode[index].Replace("#define codehere", code)));
+            }
+        }
 
         private readonly ComputeShader[] csBlend = new ComputeShader[c_csBlendCount];
+        private string code;
 
         public string Name { get; set; }
         public string Description { get; set; }

@@ -292,9 +292,6 @@
     <Content Include="Shaders\blendmode_c6.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Shaders\blendmode_c7.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Strings\zh-cn\UITranslations.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

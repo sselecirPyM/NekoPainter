@@ -41,8 +41,8 @@ namespace NekoPainter.Controller
             var height = parameters.Height;
 
             var documentStorageFolder = new DirectoryInfo(folder).CreateSubdirectory(name);
-            CurrentDCDocument = new NekoPainterDocument(graphicsContext.DeviceResources, documentStorageFolder);
-            CurrentDCDocument.Create(width, height, name);
+            CurrentDCDocument = new NekoPainterDocument(documentStorageFolder);
+            CurrentDCDocument.Create(graphicsContext.DeviceResources, width, height, name);
             CurrentLivedDocument = CurrentDCDocument.livedDocument;
             livedDocuments.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument.livedDocument);
             documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
@@ -51,8 +51,8 @@ namespace NekoPainter.Controller
         public void OpenDocument(string folder)
         {
             ApplyAllResources();
-            CurrentDCDocument = new NekoPainterDocument(graphicsContext.DeviceResources, new DirectoryInfo(folder));
-            CurrentDCDocument.Load();
+            CurrentDCDocument = new NekoPainterDocument(new DirectoryInfo(folder));
+            CurrentDCDocument.Load(graphicsContext.DeviceResources);
             CurrentLivedDocument = CurrentDCDocument.livedDocument;
             livedDocuments.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument.livedDocument);
             documents.Add(CurrentDCDocument.Folder.FullName, CurrentDCDocument);
@@ -152,7 +152,7 @@ namespace NekoPainter.Controller
         #region Resources
         void LoadResources()
         {
-            BlendMode.LoadStaticResourcesAsync();
+            BlendMode.LoadStaticResources();
             LoadVS("default2DVertexShader", "Shaders\\Basic\\default2DVertexShader.hlsl");
             LoadVS("VSImgui", "Shaders\\Basic\\VSImgui.hlsl");
             LoadPS("PSImgui", "Shaders\\Basic\\PSImgui.hlsl");

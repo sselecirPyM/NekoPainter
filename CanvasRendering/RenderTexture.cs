@@ -26,7 +26,7 @@ namespace CanvasRendering
             this.width = width;
             this.height = height;
             this.format = format;
-            deivec = device;
+            this.device = device;
             texture2D = device.device.CreateTexture2D(new Texture2DDescription(format, width, height, 1, 1, BindFlags.ShaderResource | BindFlags.UnorderedAccess));
             srv = device.device.CreateShaderResourceView(texture2D);
             uav = device.device.CreateUnorderedAccessView(texture2D);
@@ -37,7 +37,7 @@ namespace CanvasRendering
             this.width = width;
             this.height = height;
             this.format = format;
-            deivec = device;
+            this.device = device;
             int bytePerPixel = 4;
             if (format == Format.R32G32B32A32_Float)
                 bytePerPixel = 16;
@@ -54,18 +54,18 @@ namespace CanvasRendering
         public void UpdateTexture<T>(Span<T> data) where T : unmanaged
         {
             int bytePerPixel = GetBytePerPixel(format);
-            var context = deivec.d3dContext;
+            var context = device.d3dContext;
             context.UpdateSubresource(data, texture2D, 0, width * bytePerPixel,width * height * bytePerPixel);
         }
 
         public void CopyTo(RenderTexture another)
         {
-            deivec.d3dContext.CopyResource(another.texture2D, texture2D);
+            device.d3dContext.CopyResource(another.texture2D, texture2D);
         }
 
         public void Clear()
         {
-            deivec.d3dContext.ClearUnorderedAccessView(uav, Color4.Transparent);
+            device.d3dContext.ClearUnorderedAccessView(uav, Color4.Transparent);
         }
 
         public Span<float> GetRawData()
@@ -75,9 +75,9 @@ namespace CanvasRendering
 
         public byte[] GetData()
         {
-            var context = deivec.d3dContext;
+            var context = device.d3dContext;
             Texture2DDescription tex2dReadbackDesc = new Texture2DDescription(Format.R32G32B32A32_Float, width, height, 1, 1, 0, ResourceUsage.Staging, CpuAccessFlags.Read);
-            ID3D11Texture2D tex2dReadBack = deivec.device.CreateTexture2D(tex2dReadbackDesc);
+            ID3D11Texture2D tex2dReadBack = device.device.CreateTexture2D(tex2dReadbackDesc);
             context.CopyResource(tex2dReadBack, texture2D);
 
             Span<byte> cpuRes = context.Map<byte>(tex2dReadBack, 0, 0, MapMode.Read);
@@ -91,14 +91,14 @@ namespace CanvasRendering
 
         public byte[] GetData(ComputeShader processor)
         {
-            var context = deivec.d3dContext;
+            var context = device.d3dContext;
             Texture2DDescription tex2dDesc = new Texture2DDescription(Format.R32G32B32A32_Float, width, height, 1, 1, BindFlags.UnorderedAccess);
             Texture2DDescription tex2dReadbackDesc = new Texture2DDescription(Format.R32G32B32A32_Float, width, height, 1, 1, 0, ResourceUsage.Staging, CpuAccessFlags.Read);
 
-            ID3D11Texture2D tex2d = deivec.device.CreateTexture2D(tex2dDesc);
+            ID3D11Texture2D tex2d = device.device.CreateTexture2D(tex2dDesc);
             UnorderedAccessViewDescription uavDesc = new UnorderedAccessViewDescription(tex2d, UnorderedAccessViewDimension.Texture2D, Format.R32G32B32A32_Float);
-            ID3D11UnorderedAccessView uav2 = deivec.device.CreateUnorderedAccessView(tex2d, uavDesc);
-            ID3D11Texture2D tex2dReadBack = deivec.device.CreateTexture2D(tex2dReadbackDesc);
+            ID3D11UnorderedAccessView uav2 = device.device.CreateUnorderedAccessView(tex2d, uavDesc);
+            ID3D11Texture2D tex2dReadBack = device.device.CreateTexture2D(tex2dReadbackDesc);
             context.CSSetShaderResource(0, srv);
             context.CSSetUnorderedAccessView(0, uav2);
             processor.Dispatch((width + 31) / 32, (height + 31) / 32, 1);
@@ -117,7 +117,7 @@ namespace CanvasRendering
 
         public void ReadImageData1<T>(T[] data, int width, int height, ComputeShader processor)
         {
-            var context = deivec.d3dContext;
+            var context = device.d3dContext;
             ID3D11Texture2D tex2d = null;
             Texture2DDescription tex2dDesc = new Texture2DDescription(Format.R32G32B32A32_Float, width, height, 1, 1, BindFlags.ShaderResource);
             ID3D11ShaderResourceView srv2 = null;
@@ -125,9 +125,9 @@ namespace CanvasRendering
             subresourceData.DataPointer = Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
             subresourceData.Pitch = width * 16;
             subresourceData.SlicePitch = width * height * 16;
-            tex2d = deivec.device.CreateTexture2D(tex2dDesc, new[] { subresourceData });
+            tex2d = device.device.CreateTexture2D(tex2dDesc, new[] { subresourceData });
             ShaderResourceViewDescription srvDesc = new ShaderResourceViewDescription(texture2D, ShaderResourceViewDimension.Texture2D, Format.R32G32B32A32_Float);
-            srv2 = deivec.device.CreateShaderResourceView(tex2d, srvDesc);
+            srv2 = device.device.CreateShaderResourceView(tex2d, srvDesc);
             context.CSSetShaderResource(0, srv2);
             context.CSSetUnorderedAccessView(0, uav);
             processor.Dispatch((width + 31) / 32, (height + 31) / 32, 1);
@@ -137,7 +137,7 @@ namespace CanvasRendering
 
         public DeviceResources GetDevice()
         {
-            return deivec;
+            return device;
         }
 
         public void Dispose()
@@ -172,7 +172,7 @@ namespace CanvasRendering
         public ID3D11ShaderResourceView srv { get; private set; }
         public ID3D11UnorderedAccessView uav { get; private set; }
         public Format format { get; private set; }
-        public DeviceResources deivec { get; private set; }
+        public DeviceResources device { get; private set; }
         public int width { get; private set; }
         public int height { get; private set; }
     }

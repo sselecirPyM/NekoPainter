@@ -8,17 +8,15 @@ using System.IO;
 
 namespace NekoPainter.FileFormat
 {
-    public static class NekoPainterLayoutFormat
+    public static class CompressedTexFormat
     {
-        static byte[] header = { 0x44, 0x43, 0x4c, 0x46 };//DCLF
+        static byte[] header = { 0x44, 0x43, 0x4c, 0x46 };
         public static void SaveToFile(this PictureLayout layout, LivedNekoPainterDocument document, FileInfo file)
         {
             var stream = file.OpenWrite();
-            TiledTexture tex0 = null;
             int count;
-            if (document.LayoutTex.TryGetValue(layout.guid, out var tiledTexture))
+            if (document.LayoutTex.TryGetValue(layout.guid, out var tex0))
             {
-                tex0 = new TiledTexture(tiledTexture);
                 count = tex0.tilesCount;
             }
             else
@@ -34,11 +32,8 @@ namespace NekoPainter.FileFormat
 
             if (count != 0)
             {
-                byte[] oData = new byte[count * 8];
-                byte[] bData = new byte[count * 1024];
-                tex0.BlocksData.GetData<byte>(bData);
-                tex0.BlocksOffsetsData.GetData<byte>(oData);
-                tex0.Dispose();//此时为临时创建的TiledTexture
+                var bData = tex0.GetBlocksData();
+                var oData = tex0.GetBlocksOffsetsData();
                 dataWriter.Write(oData);
                 dataWriter.Write(bData);
             }
@@ -60,7 +55,7 @@ namespace NekoPainter.FileFormat
             byte[] oData = reader.ReadBytes(count * 8);
             byte[] bData = reader.ReadBytes(count * 1024);
 
-            TiledTexture tTex = new TiledTexture(document.DeviceResources, bData, oData);
+            TiledTexture tTex = new TiledTexture(bData, oData);
             document.LayoutTex[readedGuid] = tTex;
             return readedGuid;
         }

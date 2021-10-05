@@ -20,8 +20,7 @@ static class ImageImport
         byte[] bytes = (byte[])pbytes;
         Texture2D tex = (Texture2D)ptexture2D;
         float scale = Math.Max((float)parameters["scale"], 0.001f);
-        //Vector4 color = (Vector4)parameters["color"];
-        //float spacing = Math.Max((float)parameters["spacing"], 0.01f);
+        Vector2 offset = (Vector2)parameters["offset"];
 
         int width = tex.width;
         int height = tex.height;
@@ -33,15 +32,18 @@ static class ImageImport
             int height1 = Math.Max((int)(scale * image.Height), 1);
             if (width1 != image.Width || height1 != image.Height)
                 image.Mutate(x => x.Resize(width1, height1, KnownResamplers.Box));
-            int x2 = Math.Min(image.Width, width);
-            int y2 = Math.Min(image.Height, height);
+            int x1 = (int)offset.X;
+            int y1 = (int)offset.Y;
+            int x2 = Math.Min(x1 + image.Width, width);
+            int y2 = Math.Min(y1 + image.Height, height);
             var rawTex1 = tex.GetRawTexture1();
             var rawTex = MemoryMarshal.Cast<byte, Vector4>(rawTex1);
-            for (int y = 0; y < y2; y++)
-                for (int x = 0; x < x2; x++)
+            for (int y = y1; y < y2; y++)
+                for (int x = x1; x < x2; x++)
                 {
+                    if (x < 0 || y < 0 || x - x1 < 0 || y - y1 < 0) continue;
                     int i = x + y * width;
-                    var pixel = image[x, y];
+                    var pixel = image[x - x1, y - y1];
                     rawTex[i] = new Vector4(pixel.R, pixel.G, pixel.B, pixel.A);
                 }
 

@@ -33,7 +33,6 @@ namespace NekoPainter.Core
             Width = width;
             Height = height;
             Output = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
-            //PaintingTexture = new RenderTexture(DeviceResources, width, height, Format.R32G32B32A32_Float, false);
         }
 
         public void SetActivatedLayout(int layoutIndex)
@@ -53,7 +52,6 @@ namespace NekoPainter.Core
 
             LayoutTex.TryGetValue(ActivatedLayout.guid, out TiledTexture tiledTexture);
             PaintAgent.CurrentLayout = ActivatedLayout;
-            ActivatedLayoutChanged?.Invoke();
         }
 
         public PictureLayout NewStandardLayout(int insertIndex)
@@ -88,14 +86,7 @@ namespace NekoPainter.Core
             TiledTexture tiledTexture = null;
             LayoutTex.TryGetValue(pictureLayout.guid, out var standardLayoutTiledTexture);
 
-            //if (PaintAgent.CurrentLayout == pictureLayout)
-            //{
-            //    tiledTexture = new TiledTexture(PaintingTexture);
-            //}
-            //else if (standardLayoutTiledTexture != null)
-            //{
-                tiledTexture = new TiledTexture(standardLayoutTiledTexture);
-            //}
+            tiledTexture = new TiledTexture(standardLayoutTiledTexture);
 
             newPictureLayout = new PictureLayout(pictureLayout)
             {
@@ -137,9 +128,9 @@ namespace NekoPainter.Core
             {
                 Layouts[i]?.Dispose();
             }
+            ViewRenderer.Dispose();
             UndoManager?.Dispose();
             Output?.Dispose();
-            //PaintingTexture?.Dispose();
         }
         #region Members
         public int Width { get; private set; }
@@ -151,10 +142,6 @@ namespace NekoPainter.Core
         /// 图像渲染在此进行，并代表图像最终渲染结果。
         /// </summary>
         public RenderTexture Output;
-        ///// <summary>
-        ///// 正在绘制的图像
-        ///// </summary>
-        //public RenderTexture PaintingTexture;
 
         /// <summary>
         /// 此案例中的撤销/重做管理器
@@ -187,8 +174,6 @@ namespace NekoPainter.Core
         public float logicScale = 1.0f;
         public float rotation = 0.0f;
         public System.Numerics.Vector2 position;
-
-        public event System.Action ActivatedLayoutChanged;
 
         public System.Guid DefaultBlendMode;
 

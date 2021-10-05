@@ -53,7 +53,7 @@
       "name": "particleSize",
       "displayName": "particleSize",
       "type": "float",
-      "defaultValue": "8",
+      "defaultValue": "32",
       "step": 0.2
     },
     {
@@ -61,6 +61,13 @@
       "displayName": "speed",
       "type": "float",
       "defaultValue": "40",
+      "step": 0.5
+    },
+    {
+      "name": "threshold",
+      "displayName": "threshold",
+      "type": "float",
+      "defaultValue": "1024",
       "step": 0.5
     }
   ]

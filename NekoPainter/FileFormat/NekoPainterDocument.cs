@@ -18,13 +18,11 @@ namespace NekoPainter.FileFormat
 {
     public class NekoPainterDocument
     {
-        public NekoPainterDocument(DeviceResources deviceResources, DirectoryInfo folder)
+        public NekoPainterDocument(DirectoryInfo folder)
         {
-            this.DeviceResources = deviceResources;
             Folder = folder;
         }
 
-        DeviceResources DeviceResources;
         public LivedNekoPainterDocument livedDocument;
         public DirectoryInfo Folder;
         public DirectoryInfo blendModesFolder;
@@ -40,12 +38,12 @@ namespace NekoPainter.FileFormat
             new VectorConverter(),
         };
 
-        public void Create(int width, int height, string name)
+        public void Create(DeviceResources deviceResources, int width, int height, string name)
         {
             FolderDefs();
             InitializeResource();
 
-            livedDocument = new LivedNekoPainterDocument(DeviceResources, width, height, Folder.FullName);
+            livedDocument = new LivedNekoPainterDocument(deviceResources, width, height, Folder.FullName);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
             livedDocument.Name = name;
@@ -53,10 +51,10 @@ namespace NekoPainter.FileFormat
             LoadDocRes();
         }
 
-        public void Load()
+        public void Load(DeviceResources deviceResources)
         {
             FolderDefs();
-            LoadDocInfo();
+            LoadDocInfo(deviceResources);
             LoadLayouts();
             LoadDocRes();
         }
@@ -159,7 +157,7 @@ namespace NekoPainter.FileFormat
             foreach (var layoutFile in layoutFiles)
             {
                 if (!".dclf".Equals(layoutFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                Guid guid = NekoPainterLayoutFormat.LoadFromFile(livedDocument, layoutFile);
+                Guid guid = CompressedTexFormat.LoadFromFile(livedDocument, layoutFile);
                 layoutFileMap[guid] = layoutFile;
             }
 
@@ -211,7 +209,7 @@ namespace NekoPainter.FileFormat
             foreach (FileInfo blendmodeFile in BlendmodeFiles)
             {
                 if (!".dcbm".Equals(blendmodeFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var blendmode = Core.BlendMode.LoadFromFileAsync(livedDocument.DeviceResources, blendmodeFile.FullName);
+                var blendmode = Core.BlendMode.LoadFromFile(blendmodeFile.FullName);
                 blendmodesMap.Add(blendmode.Guid, blendmode);
                 livedDocument.blendModes.Add(blendmode);
             }
@@ -297,13 +295,13 @@ namespace NekoPainter.FileFormat
             }
         }
 
-        private void LoadDocInfo()
+        private void LoadDocInfo(DeviceResources deviceResources)
         {
             FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
             _DCDocument document = ReadJsonStream<_DCDocument>(settingsStream);
-            livedDocument = new LivedNekoPainterDocument(DeviceResources, document.Width, document.Height, Folder.FullName);
+            livedDocument = new LivedNekoPainterDocument(deviceResources, document.Width, document.Height, Folder.FullName);
             livedDocument.Name = document.Name;
             livedDocument.Description = document.Description;
             livedDocument.DefaultBlendMode = document.DefaultBlendMode;

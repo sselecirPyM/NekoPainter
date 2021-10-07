@@ -11,9 +11,6 @@ namespace NekoPainter.Data
         public Dictionary<string, string> CustomData;
         public int width;
         public int height;
-        public Action<string> setComputeShader;
-        public Action<byte[], string> setBuffer;
-        public Action<Texture2D, string> setTexture;
-        public Action<int, int, int> dispatch;
+        public IGPUCompute gpuCompute;
     }
 }

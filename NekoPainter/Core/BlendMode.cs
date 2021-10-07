@@ -77,6 +77,7 @@ namespace NekoPainter.Core
 
         public void Blend(TiledTexture source, RenderTexture target, ConstantBuffer parametersData, int ofs, int size)
         {
+            if (source == null) return;
             if (source.tilesCount == 0) return;
             Check(target.GetDevice(), 1);
             source.Check(target.GetDevice());

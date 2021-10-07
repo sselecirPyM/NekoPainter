@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 
 namespace NekoPainter.Data
 {
-    public class Texture2D
+    public class Texture2D : ITexture2D
     {
-        public int width;
-        public int height;
+        public int width { get => _texture.width; }
+        public int height { get => _texture.height; }
         public string name;
         public float scale = 1.0f;
         [NonSerialized]
@@ -47,6 +47,11 @@ namespace NekoPainter.Data
         public void EndModification()
         {
             _texture.UpdateTexture<byte>(data);
+        }
+
+        public void UpdateTexture<T>(Span<T> data) where T : unmanaged
+        {
+            _texture.UpdateTexture<T>(data);
         }
 
         //public void BeginGpu()

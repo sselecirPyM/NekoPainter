@@ -13,11 +13,15 @@ namespace NekoPainter.Data
         public string path;
         public string[] includes;
         public string entry;
-        public Dictionary<string, ComputeShaderParamDef> parameters;
+        public List<ScriptNodeParamDef> parameters;
     }
-    public class ComputeShaderParamDef
-    {
-        public string type;
-
-    }
+    //public class ComputeShaderParamDef
+    //{
+    //    public string name;
+    //    public string displayName;
+    //    public string type;
+    //    public string defaultValue;
+    //    [NonSerialized]
+    //    public object defaultValue1;
+    //}
 }

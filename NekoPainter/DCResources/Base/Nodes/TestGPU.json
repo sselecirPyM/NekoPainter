@@ -1,0 +1,80 @@
+{
+  "language": "CSharpScript",
+  "path": "TestGPU.cs",
+  "name": "TestGPU",
+  "displayName": "TestGPU",
+  "animated": "true",
+  "ioDefs": [
+    {
+      "name": "strokes",
+      "displayName": "Strokes",
+      "ioType": "input",
+      "type": "strokes"
+    },
+    {
+      "name": "sampleSource",
+      "displayName": "sampleSource",
+      "ioType": "input",
+      "type": "texture2D"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "ioType": "input",
+      "type": "texture2D"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "ioType": "output",
+      "type": "texture2D"
+    },
+    {
+      "name": "particleCache",
+      "ioType": "cache"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "color",
+      "displayName": "color",
+      "type": "color4",
+      "defaultValue": "[1,1,1,1]"
+    },
+    {
+      "name": "size",
+      "displayName": "size",
+      "type": "float",
+      "defaultValue": "40",
+      "step": 0.5
+    },
+    {
+      "name": "spacing",
+      "displayName": "spacing",
+      "type": "float",
+      "defaultValue": "0.1",
+      "step": 0.05
+    },
+    {
+      "name": "particleSize",
+      "displayName": "particleSize",
+      "type": "float",
+      "defaultValue": "32",
+      "step": 0.2
+    },
+    {
+      "name": "speed",
+      "displayName": "speed",
+      "type": "float",
+      "defaultValue": "40",
+      "step": 0.5
+    },
+    {
+      "name": "threshold",
+      "displayName": "threshold",
+      "type": "float",
+      "defaultValue": "1024",
+      "step": 0.5
+    }
+  ]
+}

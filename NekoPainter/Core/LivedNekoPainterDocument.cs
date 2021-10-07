@@ -1,10 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using CanvasRendering;
 using NekoPainter.Core.UndoCommand;
-using System.ComponentModel;
 using Vortice.DXGI;
 using NekoPainter.Data;
 using Microsoft.CodeAnalysis.Scripting;
@@ -118,7 +116,7 @@ namespace NekoPainter.Core
         /// </summary>
         public void SetBlendMode(PictureLayout layout, BlendMode blendMode)
         {
-            UndoManager.AddUndoData(new Core.UndoCommand.CMD_BlendModeChange(layout, layout.BlendMode));
+            UndoManager.AddUndoData(new CMD_BlendModeChange(layout, layout.BlendMode));
             layout.BlendMode = blendMode.Guid;
         }
 
@@ -179,9 +177,13 @@ namespace NekoPainter.Core
 
         public readonly DeviceResources DeviceResources;
 
-        public Dictionary<string, string> scripts;
+        public Dictionary<string, string> scripts = new Dictionary<string, string>(System.StringComparer.InvariantCultureIgnoreCase);
 
-        public Dictionary<string, ScriptNodeDef> scriptNodeDefs;
+        public Dictionary<string, ScriptNodeDef> scriptNodeDefs = new Dictionary<string, ScriptNodeDef>(System.StringComparer.InvariantCultureIgnoreCase);
+
+        public Dictionary<string, string> shaders = new Dictionary<string, string>(System.StringComparer.InvariantCultureIgnoreCase);
+
+        public Dictionary<string, ComputeShaderDef> shaderDefs = new Dictionary<string, ComputeShaderDef>(System.StringComparer.InvariantCultureIgnoreCase);
 
         public Dictionary<string, Script<object>> scriptCache = new Dictionary<string, Script<object>>(System.StringComparer.InvariantCultureIgnoreCase);
     }

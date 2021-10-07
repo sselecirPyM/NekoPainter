@@ -13,22 +13,32 @@ static class Modified
     {
         public List<Particle> particles = new List<Particle>();
         public DateTime previous;
-        public ushort[] cacheArray;
+        public Vector4[] cacheArray;
         public float f1;
     }
     public struct Particle
     {
         public Vector2 position;
         public Vector2 speed;
+        public Vector4 color;
         public float life;
         public float lifeRemain;
     }
     static Vector2 GetVector2(Random random)
     {
-        return new Vector2((float)random.NextDouble() - 0.5f, (float)random.NextDouble() - 0.5f);
+        return new Vector2((float)random.NextDouble(), (float)random.NextDouble());
+    }
+    static Vector4 GetVector4(Random random)
+    {
+        return new Vector4((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble());
+    }
+    static Vector4 WithW(Vector4 ori, float w)
+    {
+        return new Vector4(ori.X, ori.Y, ori.Z, w);
     }
     public static void Invoke(Dictionary<string, object> parameters)
     {
+        parameters.TryGetValue("sampleSource", out object psampleSource);
         parameters.TryGetValue("texture2D", out object ptexture2D);
         parameters.TryGetValue("strokes", out object pstrokes);
 
@@ -36,6 +46,7 @@ static class Modified
         HashSet<Int2> covered = new HashSet<Int2>();
 
         Texture2D tex = (Texture2D)ptexture2D;
+        Texture2D tex1 = (Texture2D)psampleSource;
         int width = tex.width;
         int height = tex.height;
 
@@ -58,11 +69,11 @@ static class Modified
         {
             caches = new ParticleCaches();
             caches.previous = dateTime;
-            caches.cacheArray = new ushort[width * height];
+            caches.cacheArray = new Vector4[width * height];
             parameters["particleCache"] = caches;
             caches.f1 = 1;
         }
-        ushort[] powerField = caches.cacheArray;
+        Vector4[] powerField = caches.cacheArray;
         Array.Clear(powerField, 0, powerField.Length);
         var deltaTime = (float)((dateTime - caches.previous).TotalSeconds);
         caches.previous = dateTime;
@@ -126,10 +137,10 @@ static class Modified
                         while (Vector2.Distance(prevPoint, point) > size * spacing)
                         {
                             prevPoint += Vector2.Normalize(point - prevPoint) * size * spacing;
-                            int x1 = ((int)prevPoint.X - (int)(size / 2)) & ~15;
-                            int y1 = ((int)prevPoint.Y - (int)(size / 2)) & ~15;
-                            int x2 = x1 + sizeX1 + 1;
-                            int y2 = y1 + sizeX1 + 1;
+                            int x1 = Math.Max(((int)prevPoint.X - (int)(size / 2)) & ~15, 0);
+                            int y1 = Math.Max(((int)prevPoint.Y - (int)(size / 2)) & ~15, 0);
+                            int x2 = Math.Min(x1 + sizeX1 + 1, width + 1);
+                            int y2 = Math.Min(y1 + sizeX1 + 1, height + 1);
                             for (int y = y1; y < y2; y += 16)
                                 for (int x = x1; x < x2; x += 16)
                                 {
@@ -140,6 +151,8 @@ static class Modified
                     }
                 }
             }
+            var sampleSourceRaw = tex1.GetRawTexture();
+            var rawTex = MemoryMarshal.Cast<byte, Vector4>(rawTex1);
             var covered2 = covered.ToArray();
             var particles = caches.particles;
             while (particles.Count < covered2.Length * 2 && caches.f1 > 0)
@@ -147,8 +160,18 @@ static class Modified
                 int n1 = random.Next(0, covered2.Length);
                 var pos1 = covered2[n1];
                 Vector2 pos2 = new Vector2(pos1.X, pos1.Y);
+                Vector2 pos3 = GetVector2(random) * 16 + pos2;
+                Vector4 colorX = new Vector4(1, 1, 1, 1);
+                int x = (int)pos3.X;
+                int y = (int)pos3.Y;
+                int i = x + y * width;
+                if (i >= 0 && i < sampleSourceRaw.Length)
+                {
+                    colorX = sampleSourceRaw[i];
+                }
+
                 float life = 4.0f + (float)random.NextDouble() * 2;
-                particles.Add(new Particle { speed = GetVector2(random) * speed, position = GetVector2(random) * 16 + pos2, life = life, lifeRemain = life });
+                particles.Add(new Particle { speed = (GetVector2(random) - new Vector2(0.5f, 0.5f)) * speed, position = pos3, life = life, lifeRemain = life, color = colorX });
                 caches.f1 -= 5.0f / covered2.Length;
             }
             for (int i = 0; i < particles.Count; i++)
@@ -167,34 +190,13 @@ static class Modified
                 }
             }
 
-            var rawTex = MemoryMarshal.Cast<byte, Vector4>(rawTex1);
-            //foreach (var point1 in particles)
-            //{
-            //    var point = point1.position;
-            //    int x1 = (int)(point.X - particleSize / 2);
-            //    int y1 = (int)(point.Y - particleSize / 2);
-            //    int x2 = (int)(point.X + particleSize / 2) + 1;
-            //    int y2 = (int)(point.Y + particleSize / 2) + 1;
-            //    for (int y = y1; y <= y2; y++)
-            //        for (int x = x1; x <= x2; x++)
-            //            if (x >= 0 && x < width && y >= 0 && y < height)
-            //            {
-            //                int i = x + y * width;
-            //                if (Vector2.Distance(point, new Vector2(x, y)) < particleSize / 2)
-            //                {
-            //                    float pa = rawTex[i].W;
-            //                    rawTex[i] = rawTex[i] * (1 - color.W) + new Vector4(color.X, color.Y, color.Z, 0.0f) * color.W;
-            //                    rawTex[i] = new Vector4(rawTex[i].X, rawTex[i].Y, rawTex[i].Z, 1 - (1 - pa) * (1 - color.W));
-            //                }
-            //            }
-            //}
             foreach (var point1 in particles)
             {
                 var point = point1.position;
                 int x1 = (int)(point.X - particleSize);
                 int y1 = (int)(point.Y - particleSize);
-                int x2 = (int)(point.X + particleSize) + 1;
-                int y2 = (int)(point.Y + particleSize) + 1;
+                int x2 = (int)(point.X + particleSize);
+                int y2 = (int)(point.Y + particleSize);
                 float c1 = point1.lifeRemain / Math.Max(point1.life, 0.001f);
                 for (int y = y1; y <= y2; y++)
                     for (int x = x1; x <= x2; x++)
@@ -205,9 +207,16 @@ static class Modified
                             {
                                 float ds = Vector2.DistanceSquared(point, new Vector2(x, y));
                                 if (ds > 1)
-                                    powerField[i] = (ushort)Math.Min(Math.Max((int)(65536 / ds * c1), 0) + powerField[i], 65535);
+                                {
+                                    float power0 = powerField[i].W;
+                                    float power1 = Math.Max((65536 / ds * c1), 0);
+                                    float powerSum = power0 + power1;
+                                    powerField[i] = WithW(point1.color * (power1 / powerSum) + powerField[i] * (power0 / powerSum), powerSum);
+                                }
                                 else
-                                    powerField[i] = 65535;
+                                {
+                                    powerField[i] = WithW(point1.color, 65535);
+                                }
                             }
                         }
             }
@@ -217,13 +226,11 @@ static class Modified
                 for (int x = 0; x < width; x++)
                 {
                     int i = x + y * width;
-                    Vector4 color1 = new Vector4(1, 1, 1, 1);
-                    color1.W = (float)Math.Floor(Math.Max(Math.Min(powerField[i] - threshold + 1, 1.0f), 0));
-                    color1 *= color;
+                    Vector4 color1 = WithW(powerField[i], (float)Math.Sign(Math.Max(Math.Min(powerField[i].W - threshold, 1.0f), 0)));
                     if (color1.W <= 0.01f) continue;
-                    float pa = rawTex[i].W;
-                    rawTex[i] = rawTex[i] * (1 - color1.W) + new Vector4(color1.X, color1.Y, color1.Z, 0.0f) * color1.W;
-                    rawTex[i] = new Vector4(rawTex[i].X, rawTex[i].Y, rawTex[i].Z, 1 - (1 - pa) * (1 - color1.W));
+                    Vector4 color2 = rawTex[i];
+                    rawTex[i] = color2 * (1 - color1.W) + color1 * color1.W;
+                    rawTex[i] = WithW(rawTex[i], 1 - (1 - color2.W) * (1 - color1.W));
                 }
             });
 

@@ -26,12 +26,10 @@ namespace NekoPainter
             }
             for (int i = 0; i < 3; i++)
             {
-                _paintingTextures.Add(new Texture2D { _texture = paintingTextures[i], width = doc.Width, height = doc.Height });
+                _paintingTextures.Add(new Texture2D { _texture = paintingTextures[i], });
             }
-            //nodeContext.dispatch = Dispatch;
-            //nodeContext.setTexture = SetTexture;
-            //nodeContext.setComputeShader = SetComputeShader;
-            //nodeContext.setBuffer = SetBuffer;
+            gpuCompute.document = doc;
+            nodeContext.gpuCompute = gpuCompute;
         }
 
         public void RenderAll()
@@ -63,7 +61,8 @@ namespace NekoPainter
                         List<int> executeOrder;
                         foreach (var paintingTexture in paintingTextures)
                             paintingTexture.Clear();
-                        var paintingTexture1 = paintingTextures[0];
+                        //var paintingTexture1 = paintingTextures[0];
+                        TiledTexture finalOutput = null;
                         if (selectedLayout.graph != null)
                         {
                             var graph = selectedLayout.graph;
@@ -77,18 +76,23 @@ namespace NekoPainter
                             {
                                 foreach (var cache1 in cache.outputCache)
                                     if (cache1.Value is TiledTexture t1)
-                                        t1.UnzipToTexture(paintingTexture1);
+                                        //t1.UnzipToTexture(paintingTexture1);
+                                        finalOutput = t1;
                             }
                         }
 
-                        if (selectedLayout.generateCache.SetFalse())
-                        {
-                            if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
-                            var tiledTexture2 = new TiledTexture(paintingTexture1);
+                        //if (selectedLayout.generateCache.SetFalse())
+                        //{
+                        if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
+                        var tiledTexture2 = finalOutput != null ? new TiledTexture(finalOutput) : null;
+                        if (tiledTexture2 != null)
                             livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
-                        }
+                        else
+                            livedDocument.LayoutTex.Remove(selectedLayout.guid);
+                        //}
 
-                        blendMode?.Blend(paintingTexture1, Output, buffer, ofs, 256);
+                        //blendMode?.Blend(paintingTexture1, Output, buffer, ofs, 256);
+                        blendMode?.Blend(tiledTexture2, Output, buffer, ofs, 256);
                     }
                     else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                     {
@@ -169,7 +173,6 @@ namespace NekoPainter
                 }
                 else if (node.scriptNode != null)
                 {
-
                     var nodeDef = livedDocument.scriptNodeDefs[node.GetNodeTypeName()];
 
                     ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>(), context = nodeContext };
@@ -285,6 +288,7 @@ namespace NekoPainter
                             cache.outputCache[ioDef.name] = global.parameters[ioDef.name];
                         }
                     }
+                    gpuCompute.RecycleTemplateTextures();
                 }
             }
         }
@@ -301,6 +305,8 @@ namespace NekoPainter
                 }
             }
         }
+
+        GPUCompute gpuCompute = new GPUCompute();
 
         HashSet<int> gcRemoveNode = new HashSet<int>();
         public void GC(Graph graph)
@@ -329,6 +335,7 @@ namespace NekoPainter
         {
             foreach (var paintingTexture in paintingTextures)
                 paintingTexture.Dispose();
+            gpuCompute.Dispose();
         }
     }
 

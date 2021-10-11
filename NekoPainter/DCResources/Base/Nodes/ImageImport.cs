@@ -28,16 +28,31 @@ static class ImageImport
         if (bytes != null)
         {
             Image<RgbaVector> image = Image.Load<RgbaVector>(bytes);
+            int offsetX = (int)offset.X;
+            int offsetY = (int)offset.Y;
+
+            int left = Math.Max((int)Math.Floor(-offsetX / scale), 0);
+            int top = Math.Max((int)Math.Floor(-offsetY / scale), 0);
+            int sizeX = Math.Max(Math.Min((int)Math.Ceiling(width - (offsetX) / scale), image.Width - left), 1);
+            int sizeY = Math.Max(Math.Min((int)Math.Ceiling(height - (offsetY) / scale), image.Height - top), 1);
+
             int width1 = Math.Max((int)(scale * image.Width), 1);
             int height1 = Math.Max((int)(scale * image.Height), 1);
+            int widthA = Math.Max((int)(scale * sizeX), 1);
+            int heightA = Math.Max((int)(scale * sizeY), 1);
+            bool resized = false;
             if (width1 != image.Width || height1 != image.Height)
-                image.Mutate(x => x.Resize(width1, height1, KnownResamplers.Box));
-            int x1 = (int)offset.X;
-            int y1 = (int)offset.Y;
-            int x2 = Math.Min(x1 + image.Width, width);
-            int y2 = Math.Min(y1 + image.Height, height);
+            {
+                resized = true;
+                image.Mutate(x => x.Crop(new Rectangle(left, top, sizeX, sizeY)));
+                image.Mutate(x => x.Resize(widthA, heightA, KnownResamplers.Box));
+            }
             var rawTex1 = tex.GetRawTexture1();
             var rawTex = MemoryMarshal.Cast<byte, Vector4>(rawTex1);
+            int x1 = offsetX + (resized ? (int)(left * scale) : 0);
+            int y1 = offsetY + (resized ? (int)(top * scale) : 0);
+            int x2 = Math.Min(x1 + image.Width, width);
+            int y2 = Math.Min(y1 + image.Height, height);
             for (int y = y1; y < y2; y++)
                 for (int x = x1; x < x2; x++)
                 {

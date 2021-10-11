@@ -38,7 +38,9 @@ namespace NekoPainter.Data
         public string description;
         public string type;
         public string defaultValue;
+        public string group;
         public float step = 1.0f;
+        public int stride;
         [NonSerialized]
         public object defaultValue1;
     }

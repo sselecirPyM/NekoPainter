@@ -20,21 +20,19 @@ namespace NekoPainter
         public ViewRenderer(LivedNekoPainterDocument doc)
         {
             this.livedDocument = doc;
-            for (int i = 0; i < 3; i++)
-            {
-                paintingTextures.Add(new RenderTexture(doc.DeviceResources, doc.Width, doc.Height, Vortice.DXGI.Format.R32G32B32A32_Float, false));
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                _paintingTextures.Add(new Texture2D { _texture = paintingTextures[i], });
-            }
             gpuCompute.document = doc;
             nodeContext.gpuCompute = gpuCompute;
         }
+        System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        long prevTick = 0;
+        float deltaTime = 0;
 
         public void RenderAll()
         {
             if (ManagedLayout.Count == 0) return;
+
+            deltaTime = Math.Clamp((stopwatch.ElapsedTicks - prevTick) / 1e7f, 0, 1);
+            prevTick = stopwatch.ElapsedTicks;
 
             PrepareRenderData();
             Output.Clear();
@@ -59,9 +57,6 @@ namespace NekoPainter
                     else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
                     {
                         List<int> executeOrder;
-                        foreach (var paintingTexture in paintingTextures)
-                            paintingTexture.Clear();
-                        //var paintingTexture1 = paintingTextures[0];
                         TiledTexture finalOutput = null;
                         if (selectedLayout.graph != null)
                         {
@@ -80,7 +75,7 @@ namespace NekoPainter
                                         finalOutput = t1;
                             }
                         }
-
+                        selectedLayout.generateCache = false;
                         //if (selectedLayout.generateCache.SetFalse())
                         //{
                         if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
@@ -138,8 +133,6 @@ namespace NekoPainter
 
         RenderTexture Output { get { return livedDocument.Output; } }
 
-        List<RenderTexture> paintingTextures = new List<RenderTexture>();
-        List<Texture2D> _paintingTextures = new List<Texture2D>();
         DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
 
@@ -176,11 +169,12 @@ namespace NekoPainter
                     var nodeDef = livedDocument.scriptNodeDefs[node.GetNodeTypeName()];
 
                     ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>(), context = nodeContext };
-
+                    nodeContext.deltaTime = deltaTime;
+                    nodeContext.width = livedDocument.Width;
+                    nodeContext.height = livedDocument.Height;
                     var cache = graph.NodeParamCaches.GetOrCreate(nodeId);
                     cache.valid = true;
 
-                    int countPaintingTexture = 0;
                     //获取输入
                     if (node.Inputs != null)
                         foreach (var input in node.Inputs)
@@ -191,11 +185,9 @@ namespace NekoPainter
                             {
                                 if (obj1 is TiledTexture tex1)
                                 {
-                                    var paintingTexture = paintingTextures[countPaintingTexture];
-                                    paintingTexture.Clear();
-                                    tex1.UnzipToTexture(paintingTexture);
-                                    global.parameters[input.Key] = _paintingTextures[countPaintingTexture];
-                                    countPaintingTexture++;
+                                    var texx = (Texture2D)gpuCompute.GetTemporaryTexture();
+                                    tex1.UnzipToTexture(texx._texture);
+                                    global.parameters[input.Key] = texx;
                                 }
                                 else
                                 {
@@ -210,9 +202,7 @@ namespace NekoPainter
                         {
                             if (!global.parameters.ContainsKey(ioDef.name))
                             {
-                                paintingTextures[countPaintingTexture].Clear();
-                                global.parameters[ioDef.name] = _paintingTextures[countPaintingTexture];
-                                countPaintingTexture++;
+                                global.parameters[ioDef.name] = gpuCompute.GetTemporaryTexture();
                             }
                             else
                             {
@@ -333,8 +323,6 @@ namespace NekoPainter
 
         public void Dispose()
         {
-            foreach (var paintingTexture in paintingTextures)
-                paintingTexture.Dispose();
             gpuCompute.Dispose();
         }
     }

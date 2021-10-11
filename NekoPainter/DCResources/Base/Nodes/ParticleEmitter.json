@@ -1,0 +1,81 @@
+{
+  "language": "CSharpScript",
+  "path": "ParticleEmitter.cs",
+  "name": "ParticleEmitter",
+  "displayName": "Particle Emitter",
+  "animated": "true",
+  "ioDefs": [
+    {
+      "name": "strokes",
+      "displayName": "Strokes",
+      "ioType": "input",
+      "type": "strokes"
+    },
+    {
+      "name": "particles",
+      "displayName": "particles",
+      "ioType": "output",
+      "type": "NPParticles"
+    },
+    {
+      "name": "particleCache",
+      "ioType": "cache"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "color",
+      "displayName": "color",
+      "type": "color4",
+      "defaultValue": "[1,1,1,1]"
+    },
+    {
+      "name": "color2",
+      "displayName": "color2",
+      "type": "color4",
+      "defaultValue": "[1,1,1,1]"
+    },
+    {
+      "name": "strokeSize",
+      "displayName": "strokeSize",
+      "type": "float",
+      "defaultValue": "40",
+      "step": 0.5
+    },
+    {
+      "name": "randomSpeed",
+      "displayName": "RandomSpeed",
+      "type": "float",
+      "defaultValue": "40",
+      "step": 1
+    },
+    {
+      "name": "originSpeed",
+      "displayName": "OriginSpeed",
+      "type": "float3",
+      "defaultValue": "[0,0,0]",
+      "step": 1
+    },
+    {
+      "name": "count",
+      "displayName": "count",
+      "type": "int",
+      "defaultValue": "1000",
+      "step": 1
+    },
+    {
+      "name": "generateSpeed",
+      "displayName": "generateSpeed",
+      "type": "float",
+      "defaultValue": "0.2",
+      "step": 0.05
+    },
+    {
+      "name": "life",
+      "displayName": "life",
+      "type": "float2",
+      "defaultValue": "[4,6]",
+      "step": 0.05
+    }
+  ]
+}

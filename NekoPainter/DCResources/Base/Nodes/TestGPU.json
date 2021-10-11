@@ -12,12 +12,6 @@
       "type": "strokes"
     },
     {
-      "name": "sampleSource",
-      "displayName": "sampleSource",
-      "ioType": "input",
-      "type": "texture2D"
-    },
-    {
       "name": "texture2D",
       "displayName": "Texture2D",
       "ioType": "input",
@@ -42,6 +36,12 @@
       "defaultValue": "[1,1,1,1]"
     },
     {
+      "name": "color2",
+      "displayName": "color2",
+      "type": "color4",
+      "defaultValue": "[0,1,1,1]"
+    },
+    {
       "name": "size",
       "displayName": "size",
       "type": "float",
@@ -52,7 +52,7 @@
       "name": "spacing",
       "displayName": "spacing",
       "type": "float",
-      "defaultValue": "0.1",
+      "defaultValue": "0.2",
       "step": 0.05
     },
     {

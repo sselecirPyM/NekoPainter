@@ -1,0 +1,22 @@
+{
+  "language": "hlsl",
+  "path": "TextureBlendAlpha.hlsl",
+  "name": "TextureBlendAlpha",
+  "displayName": "TextureBlendAlpha",
+  "entry": "task",
+  "parameters": [
+    {
+      "name": "tex0",
+      "type": "RWTexture2D<float4>"
+    },
+    {
+      "name": "tex1",
+      "type": "Texture2D<float4>"
+    },
+    {
+      "name": "color",
+      "type": "float4",
+      "defaultValue": "[1,1,1,1]"
+    }
+  ]
+}

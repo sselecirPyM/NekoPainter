@@ -11,6 +11,17 @@ namespace NekoPainter.Data
         public Dictionary<string, string> CustomData;
         public int width;
         public int height;
+        public int frame;
+        public float frameInterval;
+        public float deltaTime;
+        public float currentTime;
+        public PlayMode playMode;
         public IGPUCompute gpuCompute;
+    }
+    public enum PlayMode
+    {
+        Edit,
+        Play,
+        Record,
     }
 }

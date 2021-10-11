@@ -52,7 +52,7 @@
       "name": "spacing",
       "displayName": "spacing",
       "type": "float",
-      "defaultValue": "0.1",
+      "defaultValue": "0.2",
       "step": 0.05
     },
     {

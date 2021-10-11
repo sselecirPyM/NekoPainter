@@ -45,7 +45,7 @@ namespace NekoPainter.Core
 
         public ComputeBuffer GetComputeBuffer(DeviceResources device, int stride)
         {
-            if (buffer1 == null || buffer1.size != memoryStream.GetBuffer().Length)
+            if (buffer1 == null || buffer1.size != memoryStream.GetBuffer().Length || buffer1.stride != stride)
             {
                 buffer1?.Dispose();
                 buffer1 = new ComputeBuffer(device, memoryStream.GetBuffer().Length, stride);

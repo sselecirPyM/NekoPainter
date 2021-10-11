@@ -289,7 +289,14 @@ namespace NekoPainter.FileFormat
                     }
                 }
             }
-
+            foreach (var shaderDef in livedDocument.shaderDefs)
+            {
+                if (shaderDef.Value.parameters != null)
+                    foreach (var param in shaderDef.Value.parameters)
+                    {
+                        GenerateDefaultVaue(param);
+                    }
+            }
         }
 
         public static void GenerateDefaultVaue(ScriptNodeParamDef paramDef)
@@ -309,6 +316,10 @@ namespace NekoPainter.FileFormat
             if (paramDef.type == "float4" || paramDef.type == "color4")
             {
                 paramDef.defaultValue1 ??= StringConvert.GetFloat4(paramDef.defaultValue);
+            }
+            if (paramDef.type == "int")
+            {
+                paramDef.defaultValue1 ??= StringConvert.GetInt(paramDef.defaultValue);
             }
             if (paramDef.type == "bool")
             {

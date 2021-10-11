@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using NekoPainter.Data;
 using NekoPainter.FileFormat;
 using Newtonsoft.Json;
 
@@ -36,6 +37,30 @@ namespace NekoPainter.Util
         {
             if (input == null) return new Vector4();
             return JsonConvert.DeserializeObject<Vector4>(input, converters);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetInt(string input)
+        {
+            if (input == null) return 0;
+            return int.Parse(input);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int2 GetInt2(string input)
+        {
+            if (input == null) return new Int2();
+            return JsonConvert.DeserializeObject<Int2>(input, converters);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int3 GetInt3(string input)
+        {
+            if (input == null) return new Int3();
+            return JsonConvert.DeserializeObject<Int3>(input, converters);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int4 GetInt4(string input)
+        {
+            if (input == null) return new Int4();
+            return JsonConvert.DeserializeObject<Int4>(input, converters);
         }
     }
 }

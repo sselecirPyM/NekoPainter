@@ -12,8 +12,8 @@ static class Modified
     public class ParticleCaches
     {
         public List<Particle> particles = new List<Particle>();
-        public DateTime previous;
         public ushort[] cacheArray;
+        public Dictionary<Int2, List<int>> cacheD1;
         public float f1;
     }
     public struct Particle
@@ -27,7 +27,7 @@ static class Modified
     {
         return new Vector2((float)random.NextDouble() - 0.5f, (float)random.NextDouble() - 0.5f);
     }
-    public static void Invoke(Dictionary<string, object> parameters)
+    public static void Invoke(Dictionary<string, object> parameters, NodeContext context)
     {
         parameters.TryGetValue("texture2D", out object ptexture2D);
         parameters.TryGetValue("strokes", out object pstrokes);
@@ -50,22 +50,29 @@ static class Modified
         float threshold = Math.Max((float)parameters["threshold"], 0.01f);
 
         ParticleCaches caches;
+        Dictionary<Int2, List<int>> divParticles;
         if (parameters.TryGetValue("particleCache", out object cache1) && cache1 != null)
         {
             caches = (ParticleCaches)cache1;
+            divParticles = caches.cacheD1;
         }
         else
         {
             caches = new ParticleCaches();
-            caches.previous = dateTime;
             caches.cacheArray = new ushort[width * height];
             parameters["particleCache"] = caches;
             caches.f1 = 1;
+            divParticles = new Dictionary<Int2, List<int>>();
+            for (int y = 0; y < height; y += 32)
+                for (int x = 0; x < width; x += 32)
+                {
+                    divParticles[new Int2(x, y)] = new List<int>();
+                }
+            caches.cacheD1 = divParticles;
         }
         ushort[] powerField = caches.cacheArray;
         Array.Clear(powerField, 0, powerField.Length);
-        var deltaTime = (float)((dateTime - caches.previous).TotalSeconds);
-        caches.previous = dateTime;
+        var deltaTime = context.deltaTime;
         caches.f1 += deltaTime;
         caches.f1 = Math.Min(caches.f1, 4);
 
@@ -126,15 +133,14 @@ static class Modified
                         while (Vector2.Distance(prevPoint, point) > size * spacing)
                         {
                             prevPoint += Vector2.Normalize(point - prevPoint) * size * spacing;
-                            int x1 = ((int)prevPoint.X - (int)(size / 2)) & ~15;
-                            int y1 = ((int)prevPoint.Y - (int)(size / 2)) & ~15;
-                            int x2 = x1 + sizeX1 + 1;
-                            int y2 = y1 + sizeX1 + 1;
+                            int x1 = Math.Max(((int)prevPoint.X - (int)(size / 2)) & ~15, 0);
+                            int y1 = Math.Max(((int)prevPoint.Y - (int)(size / 2)) & ~15, 0);
+                            int x2 = Math.Min(x1 + sizeX1 + 1, width);
+                            int y2 = Math.Min(y1 + sizeX1 + 1, height);
                             for (int y = y1; y < y2; y += 16)
                                 for (int x = x1; x < x2; x += 16)
                                 {
-                                    if (x >= 0 && y >= 0)
-                                        covered.Add(new Int2(x, y));
+                                    covered.Add(new Int2(x, y));
                                 }
                         }
                     }
@@ -188,17 +194,65 @@ static class Modified
             //                }
             //            }
             //}
-            foreach (var point1 in particles)
+            //foreach (var point1 in particles)
+            //{
+            //    var point = point1.position;
+            //    int x1 = Math.Max((int)(point.X - particleSize), 0);
+            //    int y1 = Math.Max((int)(point.Y - particleSize), 0);
+            //    int x2 = Math.Min((int)(point.X + particleSize) + 1, width);
+            //    int y2 = Math.Min((int)(point.Y + particleSize) + 1, height);
+            //    float c1 = point1.lifeRemain / Math.Max(point1.life, 0.001f);
+            //    for (int y = y1; y < y2; y++)
+            //        for (int x = x1; x < x2; x++)
+            //        {
+            //            int i = x + y * width;
+            //            if (Vector2.Distance(point, new Vector2(x, y)) < particleSize)
+            //            {
+            //                float ds = Vector2.DistanceSquared(point, new Vector2(x, y));
+            //                if (ds > 1)
+            //                    powerField[i] = (ushort)Math.Min(Math.Max((int)(65536 / ds * c1), 0) + powerField[i], 65535);
+            //                else
+            //                    powerField[i] = 65535;
+            //            }
+            //        }
+            //}
+            for (int i1 = 0; i1 < particles.Count; i1++)
             {
+                Particle point1 = particles[i1];
                 var point = point1.position;
-                int x1 = (int)(point.X - particleSize);
-                int y1 = (int)(point.Y - particleSize);
-                int x2 = (int)(point.X + particleSize) + 1;
-                int y2 = (int)(point.Y + particleSize) + 1;
                 float c1 = point1.lifeRemain / Math.Max(point1.life, 0.001f);
-                for (int y = y1; y <= y2; y++)
-                    for (int x = x1; x <= x2; x++)
-                        if (x >= 0 && x < width && y >= 0 && y < height)
+                float size1 = particleSize * c1;
+                int x1 = Math.Max((int)(point.X - size1), 0);
+                int y1 = Math.Max((int)(point.Y - size1), 0);
+                int x2 = Math.Min((int)(point.X + size1) + 1, width);
+                int y2 = Math.Min((int)(point.Y + size1) + 1, height);
+                for (int y = y1 & ~31; y < y2; y += 32)
+                    for (int x = x1 & ~31; x < x2; x += 32)
+                    {
+                        divParticles[new Int2(x, y)].Add(i1);
+                    }
+            }
+            var p3 = divParticles.Where(u => u.Value.Count > 0);
+            Parallel.ForEach(p3, u =>
+            {
+                int x3 = u.Key.X;
+                int y3 = u.Key.Y;
+                int x4 = Math.Min(x3 + 32, width);
+                int y4 = Math.Min(y3 + 32, height);
+
+                for (int i1 = 0; i1 < u.Value.Count; i1++)
+                {
+                    Particle point1 = particles[u.Value[i1]];
+                    var point = point1.position;
+
+                    float c1 = point1.lifeRemain / Math.Max(point1.life, 0.001f);
+                    float size1 = particleSize * c1;
+                    int x1 = Math.Max((int)(point.X - size1), x3);
+                    int y1 = Math.Max((int)(point.Y - size1), y3);
+                    int x2 = Math.Min((int)(point.X + size1) + 1, x4);
+                    int y2 = Math.Min((int)(point.Y + size1) + 1, y4);
+                    for (int y = y1; y < y2; y++)
+                        for (int x = x1; x < x2; x++)
                         {
                             int i = x + y * width;
                             if (Vector2.Distance(point, new Vector2(x, y)) < particleSize)
@@ -210,7 +264,8 @@ static class Modified
                                     powerField[i] = 65535;
                             }
                         }
-            }
+                }
+            });
             Parallel.For(0, height, (int y) =>
             {
                 var rawTex = MemoryMarshal.Cast<byte, Vector4>(new Span<byte>(rawTex1));
@@ -228,8 +283,12 @@ static class Modified
             });
 
             tex.EndModification();
+            foreach (var pair in divParticles)
+            {
+                pair.Value.Clear();
+            }
         }
     }
 }
-Modified.Invoke(parameters);
+Modified.Invoke(parameters, context);
 

@@ -18,9 +18,9 @@
   <ItemGroup>
     <Compile Remove="DCResources\Base\Nodes\BaseBrush.cs" />
     <Compile Remove="DCResources\Base\Nodes\ImageImport.cs" />
-    <Compile Remove="DCResources\Base\Nodes\TestBrush.cs" />
-    <Compile Remove="DCResources\Base\Nodes\TestBrush2.cs" />
+    <Compile Remove="DCResources\Base\Nodes\ParticleEmitter.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestGPU.cs" />
+    <Compile Remove="DCResources\Base\Nodes\TestGPU2.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestParticle.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestParticle2.cs" />
   </ItemGroup>
@@ -83,23 +83,18 @@
     <None Remove="DCResources\Base\Brushes\DC Brush.dcbf" />
     <None Remove="DCResources\Base\Brushes\DC Eraser.dcbf" />
     <None Remove="DCResources\Base\Shaders\metaballRender.hlsl" />
+    <None Remove="DCResources\Base\Shaders\TextureBlendAlpha.hlsl" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm" />
-    <None Remove="DCResources\Plugin\Brushes\DC Fringe1.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Fringe1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Grid1.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Grid1.png" />
     <None Remove="DCResources\Plugin\Brushes\DC Grid1G.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Hive1.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Hive1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Rhombus1.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Rhombus1.png" />
     <None Remove="DCResources\Plugin\Brushes\DC Rhombus1G.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Ring1.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Ring1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Ring2.dcbf" />
     <None Remove="DCResources\Plugin\Brushes\DC Ring2.png" />
     <None Remove="DCResources\Plugin\Brushes\DC Ring2G.png" />
     <None Remove="Strings\zh-cn\UITranslations.json" />
@@ -165,20 +160,23 @@
     <Content Include="DCResources\Base\BlendModes\sub.dcbm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Brush Ring.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Brush Ring.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Brush Spray.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Brush Spray.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Brush Spray2.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Brush Spray2.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Brush.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Brush.dcbf">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Eraser.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Eraser.dcbf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DCResources\Base\Shaders\TextureBlendAlpha.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Shaders\metaballRender.hlsl">
@@ -196,13 +194,13 @@
     <Content Include="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Fringe1.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Fringe1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Fringe1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Grid1.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Grid1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Grid1.png">
@@ -211,13 +209,13 @@
     <Content Include="DCResources\Base\Brushes\DC Grid1G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Hive1.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Hive1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Hive1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Rhombus1.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Rhombus1.png">
@@ -226,13 +224,13 @@
     <Content Include="DCResources\Base\Brushes\DC Rhombus1G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Ring1.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Ring1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Ring1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Ring2.dcbf">
+    <Content Include="DCResources\Plugin\Brushes\DC Ring2.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Brushes\DC Ring2.png">
@@ -328,14 +326,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DCResources\Plugin\Brushes\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Include="DCResources\Base\Nodes\ParticleEmitter.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DCResources\Base\Nodes\BaseBrush.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="DCResources\Base\Nodes\ImageImport.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="DCResources\Base\Nodes\TestGPU2.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="DCResources\Base\Nodes\TestGPU.cs">
@@ -345,12 +345,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="DCResources\Base\Nodes\TestParticle.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="DCResources\Base\Nodes\TestBrush2.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="DCResources\Base\Nodes\TestBrush.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -371,22 +365,28 @@
     <None Update="DCResources\Base\Brushes\BaseBrush.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="DCResources\Base\Brushes\TestGPU2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Brushes\TestGPU.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="DCResources\Base\Brushes\TestBrushParticle2.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Brushes\TestBrushParticle.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="DCResources\Base\Brushes\TestBrush2.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="DCResources\Base\Brushes\TestBrush.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="DCResources\Base\Nodes\ParticleEmitter.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\ImageImport.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\BaseBrush.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Nodes\TestGPU2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\TestGPU.json">
@@ -398,10 +398,7 @@
     <None Update="DCResources\Base\Nodes\TestParticle.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DCResources\Base\Nodes\TestBrush2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DCResources\Base\Nodes\TestBrush.json">
+    <None Update="DCResources\Base\Shaders\TextureBlendAlpha.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\metaballRender.json">

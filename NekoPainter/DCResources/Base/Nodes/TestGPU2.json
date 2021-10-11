@@ -1,0 +1,42 @@
+{
+  "language": "CSharpScript",
+  "path": "TestGPU2.cs",
+  "name": "TestGPU2",
+  "displayName": "TestGPU2",
+  "ioDefs": [
+    {
+      "name": "particles",
+      "displayName": "Particles",
+      "ioType": "input",
+      "type": "NPParticles"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "ioType": "input",
+      "type": "texture2D"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "ioType": "output",
+      "type": "texture2D"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "particleSize",
+      "displayName": "particleSize",
+      "type": "float",
+      "defaultValue": "32",
+      "step": 0.2
+    },
+    {
+      "name": "threshold",
+      "displayName": "threshold",
+      "type": "float",
+      "defaultValue": "1024",
+      "step": 0.5
+    }
+  ]
+}

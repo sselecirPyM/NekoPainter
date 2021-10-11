@@ -1,6 +1,6 @@
 {
-  "name": "TestParticle",
-  "displayName": "TestParticle",
+  "name": "TestGPU",
+  "displayName": "TestGPU",
   "parameters": [
     {
       "name": "size",
@@ -16,6 +16,13 @@
       "description": "description1",
       "type": "color4",
       "defaultValue": "[1.0,1.0,1.0,1.0]"
+    },
+    {
+      "name": "color2",
+      "displayName": "color2",
+      "description": "description1",
+      "type": "color4",
+      "defaultValue": "[1.0,0.0,0.0,1.0]"
     },
     {
       "name": "spacing",
@@ -38,6 +45,13 @@
       "type": "float",
       "defaultValue": "40",
       "step": 0.5
+    },
+    {
+      "name": "threshold",
+      "displayName": "threshold",
+      "type": "float",
+      "defaultValue": "1024",
+      "step": 1
     }
   ],
   "nodes": [
@@ -49,11 +63,15 @@
       ]
     },
     {
-      "name": "TestParticle.json",
+      "name": "TestGPU.json",
       "parameters": [
         {
           "name": "color",
           "from": "color"
+        },
+        {
+          "name": "color2",
+          "from": "color2"
         },
         {
           "name": "size",
@@ -70,6 +88,10 @@
         {
           "name": "speed",
           "from": "speed"
+        },
+        {
+          "name": "threshold",
+          "from": "threshold"
         }
       ],
       "offset": [

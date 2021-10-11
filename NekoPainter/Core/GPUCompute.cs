@@ -19,6 +19,8 @@ namespace NekoPainter.Core
         int dtexCount = 0;
         public List<RenderTexture> _texture2Ds = new List<RenderTexture>();
         public List<Texture2D> texture2Ds = new List<Texture2D>();
+        int dtbufCount = 0;
+        public List<StreamedBuffer> tbuffers = new List<StreamedBuffer>();
 
         public Dictionary<string, ComputeShdaerCache> shaderCaches = new Dictionary<string, ComputeShdaerCache>();
         public Dictionary<string, object> shaderParameter = new Dictionary<string, object>();
@@ -133,7 +135,9 @@ namespace NekoPainter.Core
                         shader.SetSRV(tex2d._texture, paramdef.Value);
                     else if (srv1 is byte[] bbuffer)
                     {
-
+                        int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
+                        var buf = GetBuffer(bbuffer, stride);
+                        shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
                     }
                 }
             }
@@ -162,50 +166,68 @@ namespace NekoPainter.Core
             }
             foreach (var paramdef in shaderCache.cbv0)
             {
+                bool a = shaderParameter.TryGetValue(paramdef.name, out object param1);
                 if (paramdef.type == "float")
                 {
                     GetSpacing(4);
-                    writer.Write((float)shaderParameter[paramdef.name]);
+                    writer.Write((float)(a ? param1 : paramdef.defaultValue1));
                 }
                 else if (paramdef.type == "float2")
                 {
                     GetSpacing(8);
-                    writer.Write((Vector2)shaderParameter[paramdef.name]);
+                    writer.Write((Vector2)(a ? param1 : paramdef.defaultValue1));
                 }
                 else if (paramdef.type == "float3")
                 {
                     GetSpacing(12);
-                    writer.Write((Vector3)shaderParameter[paramdef.name]);
+                    writer.Write((Vector3)(a ? param1 : paramdef.defaultValue1));
                 }
                 else if (paramdef.type == "float4")
                 {
                     GetSpacing(16);
-                    writer.Write((Vector4)shaderParameter[paramdef.name]);
+                    writer.Write((Vector4)(a ? param1 : paramdef.defaultValue1));
                 }
                 if (paramdef.type == "int")
                 {
                     GetSpacing(4);
-                    writer.Write((int)shaderParameter[paramdef.name]);
+                    writer.Write((int)(a ? param1 : paramdef.defaultValue1));
                 }
                 else if (paramdef.type == "int2")
                 {
                     GetSpacing(8);
-                    writer.Write((Int2)shaderParameter[paramdef.name]);
+                    writer.Write((Int2)(a ? param1 : paramdef.defaultValue1));
                 }
                 else if (paramdef.type == "int3")
                 {
                     GetSpacing(12);
-                    writer.Write((Int3)shaderParameter[paramdef.name]);
+                    writer.Write((Int3)(a ? param1 : paramdef.defaultValue1));
                 }
                 else if (paramdef.type == "int4")
                 {
                     GetSpacing(16);
-                    writer.Write((Int4)shaderParameter[paramdef.name]);
+                    writer.Write((Int4)(a ? param1 : paramdef.defaultValue1));
                 }
             }
             shader.SetCBV(cbv0Buffer.GetBuffer(deviceResources), 0);
             Int3 nts = shaderCache.numthreads;
             shader.Dispatch((x + nts.X - 1) / nts.X, (y + nts.Y - 1) / nts.Y, (z + nts.Z - 1) / nts.Z);
+        }
+
+        public StreamedBuffer GetBuffer(byte[] data, int stride)
+        {
+            StreamedBuffer buffer = null;
+            if (dtbufCount < tbuffers.Count)
+            {
+                buffer = tbuffers[dtbufCount];
+            }
+            else
+            {
+                buffer = new StreamedBuffer();
+            }
+            dtbufCount++;
+            var writer = buffer.Begin();
+            writer.Write(data);
+            return buffer;
         }
 
         public ITexture2D GetTemporaryTexture()
@@ -230,6 +252,7 @@ namespace NekoPainter.Core
         internal void RecycleTemplateTextures()
         {
             dtexCount = 0;
+            dtbufCount = 0;
             shaderParameter.Clear();
         }
 

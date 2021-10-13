@@ -105,7 +105,7 @@ static class Modified
                                 }
                                 else
                                 {
-                                    powerField[i] = WithW(particles.color[index1] * 65536, 65536);
+                                    powerField[i] = WithW(particles.color[index1] * 65536 + powerField[i], 65536 + powerField[i].W);
                                 }
                             }
                         }

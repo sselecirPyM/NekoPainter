@@ -43,7 +43,20 @@ namespace NekoPainter.Nodes
         public virtual Node Clone()
         {
             Node clone = (Node)MemberwiseClone();
+            clone.fParams = GetClone(clone.fParams);
+            clone.iParams = GetClone(clone.iParams);
+            clone.f2Params = GetClone(clone.f2Params);
+            clone.f3Params = GetClone(clone.f3Params);
+            clone.f4Params = GetClone(clone.f4Params);
+            clone.bParams = GetClone(clone.bParams);
+
             return clone;
+        }
+
+        static Dictionary<string, T> GetClone<T>(Dictionary<string, T> a)
+        {
+            if (a != null) return new Dictionary<string, T>(a);
+            else return null;
         }
     }
 }

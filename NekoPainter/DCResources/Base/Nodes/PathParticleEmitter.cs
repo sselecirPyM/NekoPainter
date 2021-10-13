@@ -57,6 +57,10 @@ static class Modified
     {
         return x * (1 - v) + y * v;
     }
+    static Vector3 Lerp(Vector3 x, Vector3 y, float v)
+    {
+        return x * (1 - v) + y * v;
+    }
     static bool BoxBox1Collision(Vector2 position1, Vector2 position2, float width0, float x, float y, float width, float height)
     {
         Vector2 dir1 = position2 - position1;
@@ -90,7 +94,6 @@ static class Modified
         parameters.TryGetValue("strokes", out object pstrokes);
 
         IList<Stroke> strokes = (IList<Stroke>)pstrokes;
-        HashSet<Int2> covered = new HashSet<Int2>();
         float strokeSize = Math.Max((float)parameters["strokeSize"], 0.001f);
         float randomSpeed = Math.Max((float)parameters["randomSpeed"], 0);
         float generateSpeed = Math.Max((float)parameters["generateSpeed"], 0);
@@ -116,6 +119,9 @@ static class Modified
         caches.t1 += context.deltaTime;
         if (strokes != null)
         {
+            List<Vector3> points = new List<Vector3>();
+            List<float> findValue = new List<float>();
+            float totalLength = 0;
             foreach (var stroke in strokes)
             {
                 for (int i = 0; i < stroke.position.Count; i++)
@@ -125,33 +131,31 @@ static class Modified
                         var point = stroke.position[i];
                         var point2 = stroke.position[i - 1];
                         if (Vector2.Distance(point, point2) < 0.5f) continue;
-                        Vector2 r1 = point - point2;
-                        Vector2 r2 = Vector2.Normalize(new Vector2(-r1.Y, r1.X)) * strokeSize;
-
-
-                        int x1 = Math.Max((int)(Math.Min(point.X, point2.X) - strokeSize) & ~15, 0);
-                        int y1 = Math.Max((int)(Math.Min(point.Y, point2.Y) - strokeSize) & ~15, 0);
-                        int x2 = Math.Min(((int)(Math.Max(point.X, point2.X) + strokeSize) + 1) & ~15, width);
-                        int y2 = Math.Min(((int)(Math.Max(point.Y, point2.Y) + strokeSize) + 1) & ~15, height);
-                        for (int y = y1; y < y2; y += 16)
-                            for (int x = x1; x < x2; x += 16)
-                            {
-                                if (BoxCircleCollision(point, strokeSize / 2, x, y, 16, 16) || BoxCircleCollision(point2, strokeSize / 2, x, y, 16, 16) ||
-                                    BoxBox1Collision(point, point2, strokeSize, x, y, 16, 16))
-                                    covered.Add(new Int2(x, y));
-                            }
+                        totalLength += Vector2.Distance(point, point2);
                     }
                 }
+                float tl1 = 0;
+                for (int i = 0; i < stroke.position.Count; i++)
+                {
+                    var point = stroke.position[i];
+                    if (i > 0)
+                    {
+                        var point2 = stroke.position[i - 1];
+                        if (Vector2.Distance(point, point2) < 0.5f) continue;
+                        tl1 += Vector2.Distance(point, point2);
+                    }
+                    points.Add(new Vector3(point, 0));
+                    findValue.Add(tl1 / totalLength);
+                }
+
                 particles.speed ??= new List<Vector3>();
                 particles.life ??= new List<float>();
                 particles.lifeRemain ??= new List<float>();
                 particles.color ??= new List<Vector4>();
 
-                var covered2 = covered.ToArray();
-                while (covered2.Length > 0 && particles.position.Count < maxCount && caches.t1 > 0)
+                while (particles.position.Count < maxCount && caches.t1 > 0)
                 {
-                    int n1 = random.Next(0, covered2.Length);
-                    var pos1 = covered2[n1];
+                    var pos1 = stroke.position[0];
                     Vector3 pos3 = GetRandomVector3(random) * 16 + new Vector3(pos1.X, pos1.Y, 0);
                     Vector4 colorX = color;
 
@@ -161,15 +165,22 @@ static class Modified
                     particles.life.Add(life);
                     particles.lifeRemain.Add(life);
                     particles.color.Add(colorX);
-                    caches.t1 -= 1.0f / covered2.Length / generateSpeed;
+                    caches.t1 -= 1.0f / Math.Max(generateSpeed, 0.05f);
                 }
-                covered.Clear();
             }
             for (int i = 0; i < particles.position.Count; i++)
             {
-                particles.position[i] += particles.speed[i] * context.deltaTime;
-                particles.lifeRemain[i] -= context.deltaTime;
+                //particles.position[i] += particles.speed[i] * context.deltaTime;
                 float inter = particles.lifeRemain[i] / particles.life[i];
+                int indexY = findValue.BinarySearch(1 - inter);
+                if (indexY < 0) indexY = ~indexY;
+                indexY = Math.Min(indexY, findValue.Count - 1);
+                int indexX = Math.Clamp(indexY - 1, 0, findValue.Count - 1);
+                particles.position[i] = Lerp(points[indexX], points[indexY], (1 - inter - findValue[indexX]) / Math.Max(findValue[indexY] - findValue[indexX], 0.0005f)) + particles.speed[i];
+                //particles.position[i] = points[indexY];
+
+
+                particles.lifeRemain[i] -= context.deltaTime;
                 particles.color[i] = color * inter + color2 * (1 - inter);
             }
             for (int i = 0; i < particles.position.Count; i++)

@@ -1,8 +1,8 @@
 {
   "language": "CSharpScript",
-  "path": "ParticleEmitter.cs",
-  "name": "ParticleEmitter",
-  "displayName": "Particle Emitter",
+  "path": "PathParticleEmitter.cs",
+  "name": "PathParticleEmitter",
+  "displayName": "Path Particle Emitter",
   "animated": "true",
   "ioDefs": [
     {
@@ -67,7 +67,7 @@
       "name": "generateSpeed",
       "displayName": "generateSpeed",
       "type": "float",
-      "defaultValue": "0.2",
+      "defaultValue": "1",
       "step": 0.05
     },
     {

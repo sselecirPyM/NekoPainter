@@ -655,6 +655,15 @@ namespace NekoPainter.UI
                             changed = true;
                         }
                     }
+                    else if (param.type == "int")
+                    {
+                        int v = selectedNode.iParams.GetOrDefault(param.name, (int)(param.defaultValue1));
+                        if (ImGui.DragInt(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            DictionaryExt.SetAndCreate(ref selectedNode.iParams, param.name, v);
+                            changed = true;
+                        }
+                    }
                     else if (param.type == "bool")
                     {
                         bool v = selectedNode.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));

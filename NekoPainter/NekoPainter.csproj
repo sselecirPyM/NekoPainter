@@ -19,6 +19,7 @@
     <Compile Remove="DCResources\Base\Nodes\BaseBrush.cs" />
     <Compile Remove="DCResources\Base\Nodes\ImageImport.cs" />
     <Compile Remove="DCResources\Base\Nodes\ParticleEmitter.cs" />
+    <Compile Remove="DCResources\Base\Nodes\PathParticleEmitter.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestGPU.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestGPU2.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestParticle.cs" />
@@ -326,6 +327,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="DCResources\Base\Nodes\PathParticleEmitter.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DCResources\Base\Nodes\ParticleEmitter.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -376,6 +380,9 @@
     </None>
     <None Update="DCResources\Base\Brushes\TestBrushParticle.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Nodes\PathParticleEmitter.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\ParticleEmitter.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

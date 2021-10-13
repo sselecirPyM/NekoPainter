@@ -235,6 +235,10 @@ namespace NekoPainter
                             {
                                 global.parameters[param.name] = node.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
                             }
+                            if (param.type == "int")
+                            {
+                                global.parameters[param.name] = node.iParams.GetOrDefault(param.name, (int)(param.defaultValue1));
+                            }
                             if (param.type == "bool")
                             {
                                 global.parameters[param.name] = node.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));

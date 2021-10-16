@@ -60,7 +60,7 @@ namespace NekoPainter.UI
                     saveFile = new FileInfo(fileDialog.file);
                 }
             }
-            if (selectOpenFile.SetFalse())
+            if (selectOpenFile.SetFalse() && AppController.Instance.CurrentDCDocument != null)
             {
                 FileOpenDialog fileDialog = new FileOpenDialog()
                 {

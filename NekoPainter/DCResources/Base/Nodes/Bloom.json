@@ -1,0 +1,44 @@
+{
+  "language": "CSharpScript",
+  "path": "Bloom.cs",
+  "name": "Bloom",
+  "displayName": "Bloom",
+  "ioDefs": [
+    {
+      "name": "texture2D",
+      "ioType": "input"
+    },
+    {
+      "name": "texture2D",
+      "ioType": "output"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "type": "texture2D"
+    },
+    {
+      "name": "threshold",
+      "displayName": "Threshold",
+      "type": "float",
+      "defaultValue": "0.8",
+      "step": 0.01
+    },
+    {
+      "name": "intensity",
+      "displayName": "intensity",
+      "type": "float",
+      "defaultValue": "1",
+      "step": 0.01
+    },
+    {
+      "name": "radius",
+      "displayName": "Radius",
+      "type": "int",
+      "defaultValue": "32",
+      "step": 1
+    }
+  ]
+}

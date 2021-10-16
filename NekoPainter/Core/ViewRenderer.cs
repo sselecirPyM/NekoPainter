@@ -198,7 +198,8 @@ namespace NekoPainter
                     //检查null输入
                     foreach (var ioDef in nodeDef.ioDefs)
                     {
-                        if (ioDef.type == "texture2D" && ioDef.ioType == "input")
+                        var param = nodeDef.parameters.Find(u => u.name == ioDef.name);
+                        if (param.type == "texture2D" && ioDef.ioType == "input")
                         {
                             if (!global.parameters.ContainsKey(ioDef.name))
                             {
@@ -261,9 +262,10 @@ namespace NekoPainter
                     //缓存输出
                     foreach (var ioDef in nodeDef.ioDefs)
                     {
+                        var param = nodeDef.parameters.Find(u => u.name == ioDef.name);
                         if (ioDef.ioType == "output")
                         {
-                            if (ioDef.type == "texture2D" && global.parameters.ContainsKey(ioDef.name))
+                            if (param.type == "texture2D" && global.parameters.ContainsKey(ioDef.name))
                             {
                                 Texture2D tex = (Texture2D)global.parameters[ioDef.name];
                                 if (cache.outputCache.TryGetValue(ioDef.name, out var _tex1))
@@ -341,7 +343,6 @@ namespace NekoPainter
     {
         public int frame;
         public float frameInterval;
-
     }
 }
 

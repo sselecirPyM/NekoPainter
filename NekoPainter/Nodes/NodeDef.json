@@ -6,8 +6,13 @@
     "ioDefs": [
       {
         "name": "bytes",
-        "displayName": "bytes",
-        "ioType": "output",
+        "ioType": "output"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "bytes",
+        "displayName": "Bytes",
         "type": "bytes"
       }
     ]
@@ -19,8 +24,13 @@
     "ioDefs": [
       {
         "name": "strokes",
-        "displayName": "Stroke",
-        "ioType": "output",
+        "ioType": "output"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "strokes",
+        "displayName": "Strokes",
         "type": "strokes"
       }
     ]

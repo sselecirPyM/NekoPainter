@@ -7,21 +7,15 @@
   "ioDefs": [
     {
       "name": "strokes",
-      "displayName": "Strokes",
-      "ioType": "input",
-      "type": "strokes"
+      "ioType": "input"
     },
     {
       "name": "texture2D",
-      "displayName": "Texture2D",
-      "ioType": "input",
-      "type": "texture2D"
+      "ioType": "input"
     },
     {
       "name": "texture2D",
-      "displayName": "Texture2D",
-      "ioType": "output",
-      "type": "texture2D"
+      "ioType": "output"
     },
     {
       "name": "particleCache",
@@ -29,6 +23,19 @@
     }
   ],
   "parameters": [
+    {
+      "name": "strokes",
+      "displayName": "Strokes",
+      "type": "strokes"
+    },
+    {
+      "name": "texture2D",
+      "displayName": "Texture2D",
+      "type": "texture2D"
+    },
+    {
+      "name": "particleCache"
+    },
     {
       "name": "color",
       "displayName": "color",

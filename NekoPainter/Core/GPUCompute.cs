@@ -36,7 +36,7 @@ namespace NekoPainter.Core
             shaderParameter[name] = texture;
         }
 
-        public void SetBuffer(string name, byte[] buffer)
+        public void SetBuffer<T>(string name, T[] buffer) where T : unmanaged
         {
             shaderParameter[name] = buffer;
         }
@@ -44,6 +44,11 @@ namespace NekoPainter.Core
         public void SetParameter(string name, object parameter)
         {
             shaderParameter[name] = parameter;
+        }
+
+        public void Copy(ITexture2D target, ITexture2D source)
+        {
+            ((Texture2D)source)._texture.CopyTo(((Texture2D)target)._texture);
         }
 
         public void For(int xFrom, int xTo)
@@ -77,37 +82,43 @@ namespace NekoPainter.Core
                 int dSrv = 0;
                 for (int i = 0; i < shaderDef.parameters.Count; i++)
                 {
-                    var param = shaderDef.parameters[i];
-                    if (param.type.Contains("RWTexture2D"))
+                    var paramDef = shaderDef.parameters[i];
+                    if (paramDef.type.Contains("RWTexture2D"))
                     {
-                        shaderCache1.uav[param.name] = dUav;
-                        code1.Append(param.type);
+                        shaderCache1.uav[paramDef.name] = dUav;
+                        code1.Append(paramDef.type);
                         code1.Append(' ');
-                        code1.Append(param.name);
+                        code1.Append(paramDef.name);
                         code1.Append(":register(u");
                         code1.Append(dUav);
                         code1.Append(");\n");
+                        shaderParams.Append("int4 _NP_DIMENSIONS_");
+                        shaderParams.Append(paramDef.name);
+                        shaderParams.Append(";\n");
                         dUav++;
                     }
-                    else if (param.type.Contains("Texture2D") || param.type.Contains("StructuredBuffer"))
+                    else if (paramDef.type.Contains("Texture2D") || paramDef.type.Contains("StructuredBuffer"))
                     {
-                        shaderCache1.srv[param.name] = dSrv;
-                        code1.Append(param.type);
+                        shaderCache1.srv[paramDef.name] = dSrv;
+                        code1.Append(paramDef.type);
                         code1.Append(' ');
-                        code1.Append(param.name);
+                        code1.Append(paramDef.name);
                         code1.Append(":register(t");
                         code1.Append(dSrv);
                         code1.Append(");\n");
+                        shaderParams.Append("int4 _NP_DIMENSIONS_");
+                        shaderParams.Append(paramDef.name);
+                        shaderParams.Append(";\n");
                         dSrv++;
                     }
-                    else if (param.type == "float" || param.type == "float2" || param.type == "float3" || param.type == "float4" ||
-                    param.type == "int" || param.type == "int2" || param.type == "int3" || param.type == "int4")
+                    else if (paramDef.type == "float" || paramDef.type == "float2" || paramDef.type == "float3" || paramDef.type == "float4" ||
+                    paramDef.type == "int" || paramDef.type == "int2" || paramDef.type == "int3" || paramDef.type == "int4")
                     {
-                        shaderParams.Append(param.type);
+                        shaderParams.Append(paramDef.type);
                         shaderParams.Append(' ');
-                        shaderParams.Append(param.name);
+                        shaderParams.Append(paramDef.name);
                         shaderParams.Append(";\n");
-                        shaderCache1.cbv0.Add(param);
+                        //shaderCache1.cbv0.Add(paramDef);
                     }
                 }
                 shaderParams.Append("\n}\n");
@@ -139,6 +150,18 @@ namespace NekoPainter.Core
                         var buf = GetBuffer(bbuffer, stride);
                         shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
                     }
+                    else if (srv1 is float[] fbuffer)
+                    {
+                        int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
+                        var buf = GetBuffer(fbuffer, stride);
+                        shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
+                    }
+                    else if (srv1 is int[] ibuffer)
+                    {
+                        int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
+                        var buf = GetBuffer(ibuffer, stride);
+                        shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
+                    }
                 }
             }
             var cbv0Buffer = shaderCache.cbv0Buffer;
@@ -164,10 +187,26 @@ namespace NekoPainter.Core
                 }
                 currentOffset += sizeX;
             }
-            foreach (var paramdef in shaderCache.cbv0)
+            foreach (var paramdef in shaderDef.parameters)
             {
                 bool a = shaderParameter.TryGetValue(paramdef.name, out object param1);
-                if (paramdef.type == "float")
+                if (paramdef.type.Contains("Texture2D"))
+                {
+                    GetSpacing(16);
+                    writer.Write(((ITexture2D)param1).width);
+                    writer.Write(((ITexture2D)param1).height);
+                    writer.Write((int)1);
+                    writer.Write((int)1);
+                }
+                else if (paramdef.type.Contains("StructuredBuffer"))
+                {
+                    GetSpacing(16);
+                    writer.Write((int)1);
+                    writer.Write((int)1);
+                    writer.Write((int)1);
+                    writer.Write((int)1);
+                }
+                else if (paramdef.type == "float")
                 {
                     GetSpacing(4);
                     writer.Write((float)(a ? param1 : paramdef.defaultValue1));
@@ -187,7 +226,7 @@ namespace NekoPainter.Core
                     GetSpacing(16);
                     writer.Write((Vector4)(a ? param1 : paramdef.defaultValue1));
                 }
-                if (paramdef.type == "int")
+                else if (paramdef.type == "int")
                 {
                     GetSpacing(4);
                     writer.Write((int)(a ? param1 : paramdef.defaultValue1));
@@ -213,7 +252,7 @@ namespace NekoPainter.Core
             shader.Dispatch((x + nts.X - 1) / nts.X, (y + nts.Y - 1) / nts.Y, (z + nts.Z - 1) / nts.Z);
         }
 
-        public StreamedBuffer GetBuffer(byte[] data, int stride)
+        public StreamedBuffer GetBuffer<T>(T[] data, int stride)where T : unmanaged
         {
             StreamedBuffer buffer = null;
             if (dtbufCount < tbuffers.Count)
@@ -270,7 +309,7 @@ namespace NekoPainter.Core
         public Dictionary<string, int> uav = new Dictionary<string, int>();
         public Dictionary<string, int> cbv = new Dictionary<string, int>();
         public ComputeShader shader;
-        public List<ScriptNodeParamDef> cbv0 = new List<ScriptNodeParamDef>();
+        //public List<ScriptNodeParamDef> cbv0 = new List<ScriptNodeParamDef>();
         public StreamedBuffer cbv0Buffer = new StreamedBuffer();
     }
 }

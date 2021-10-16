@@ -1,0 +1,27 @@
+{
+  "language": "hlsl",
+  "path": "GaussianBlur.hlsl",
+  "name": "GaussianBlur",
+  "displayName": "GaussianBlur",
+  "entry": "horizontal",
+  "parameters": [
+    {
+      "name": "tex0",
+      "type": "RWTexture2D<float4>"
+    },
+    {
+      "name": "tex1",
+      "type": "Texture2D<float4>"
+    },
+    {
+      "name": "weights",
+      "stride": 4,
+      "type": "StructuredBuffer<float>"
+    },
+    {
+      "name": "radius",
+      "type": "int",
+      "defaultValue": "0"
+    }
+  ]
+}

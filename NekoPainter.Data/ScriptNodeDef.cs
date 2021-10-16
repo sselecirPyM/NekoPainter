@@ -22,8 +22,8 @@ namespace NekoPainter.Data
     {
         public string ioType;
         public string name;
-        public string displayName;
-        public string type;
+        //public string displayName;
+        //public string type;
 
         public ScriptNodeIODef Clone()
         {

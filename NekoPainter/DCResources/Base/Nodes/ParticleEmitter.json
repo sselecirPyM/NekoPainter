@@ -7,15 +7,11 @@
   "ioDefs": [
     {
       "name": "strokes",
-      "displayName": "Strokes",
-      "ioType": "input",
-      "type": "strokes"
+      "ioType": "input"
     },
     {
       "name": "particles",
-      "displayName": "particles",
-      "ioType": "output",
-      "type": "NPParticles"
+      "ioType": "output"
     },
     {
       "name": "particleCache",
@@ -23,6 +19,19 @@
     }
   ],
   "parameters": [
+    {
+      "name": "strokes",
+      "displayName": "Strokes",
+      "type": "strokes"
+    },
+    {
+      "name": "particles",
+      "displayName": "particles",
+      "type": "NPParticles"
+    },
+    {
+      "name": "particleCache"
+    },
     {
       "name": "color",
       "displayName": "color",

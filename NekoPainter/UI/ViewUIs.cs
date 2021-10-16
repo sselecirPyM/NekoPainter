@@ -405,17 +405,18 @@ namespace NekoPainter.UI
                         {
                             foreach (var socket in nodeDef.ioDefs)
                             {
+                                var param = nodeDef.parameters.Find(u => u.name == socket.name);
                                 if (socket.ioType == "input")
                                 {
                                     imnodes.BeginInputAttribute(socket2Node.Count);
-                                    ImGuiExt.Text(socket.displayName);
+                                    ImGuiExt.Text(param.displayName);
                                     imnodes.EndInputAttribute();
                                     socket2Node.Add(node.Key);
                                 }
                                 else if (socket.ioType == "output")
                                 {
                                     imnodes.BeginOutputAttribute(socket2Node.Count);
-                                    ImGuiExt.Text(socket.displayName);
+                                    ImGuiExt.Text(param.displayName);
                                     imnodes.EndOutputAttribute();
                                     socket2Node.Add(node.Key);
                                 }

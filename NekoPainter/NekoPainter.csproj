@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <Compile Remove="DCResources\Base\Nodes\BaseBrush.cs" />
+    <Compile Remove="DCResources\Base\Nodes\Bloom.cs" />
+    <Compile Remove="DCResources\Base\Nodes\GaussianBlur.cs" />
     <Compile Remove="DCResources\Base\Nodes\ImageImport.cs" />
     <Compile Remove="DCResources\Base\Nodes\ParticleEmitter.cs" />
     <Compile Remove="DCResources\Base\Nodes\PathParticleEmitter.cs" />
@@ -83,21 +85,14 @@
     <None Remove="DCResources\Base\Brushes\DC Brush Spray2.dcbf" />
     <None Remove="DCResources\Base\Brushes\DC Brush.dcbf" />
     <None Remove="DCResources\Base\Brushes\DC Eraser.dcbf" />
+    <None Remove="DCResources\Base\Shaders\Bloom.hlsl" />
+    <None Remove="DCResources\Base\Shaders\GaussianBlur.hlsl" />
     <None Remove="DCResources\Base\Shaders\metaballRender.hlsl" />
     <None Remove="DCResources\Base\Shaders\TextureBlendAlpha.hlsl" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm" />
-    <None Remove="DCResources\Plugin\Brushes\DC Fringe1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Grid1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Grid1G.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Hive1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Rhombus1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Rhombus1G.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Ring1.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Ring2.png" />
-    <None Remove="DCResources\Plugin\Brushes\DC Ring2G.png" />
     <None Remove="Strings\zh-cn\UITranslations.json" />
   </ItemGroup>
 
@@ -161,6 +156,12 @@
     <Content Include="DCResources\Base\BlendModes\sub.dcbm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="DCResources\Base\Shaders\Bloom.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DCResources\Base\Shaders\GaussianBlur.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Brush Ring.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -198,46 +199,46 @@
     <Content Include="DCResources\Plugin\Brushes\DC Fringe1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Fringe1.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Fringe1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Grid1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Grid1.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Grid1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Grid1G.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Grid1G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Hive1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Hive1.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Hive1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Rhombus1.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Rhombus1G.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Rhombus1G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Ring1.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Ring1.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Ring1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Ring2.dcbf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Ring2.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Ring2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="DCResources\Base\Brushes\DC Ring2G.png">
+    <Content Include="DCResources\Plugin\Brushes\DC Ring2G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\Basic\CExport.hlsl">
@@ -327,6 +328,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="DCResources\Base\Nodes\Bloom.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DCResources\Base\Nodes\PathParticleEmitter.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -337,6 +341,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="DCResources\Base\Nodes\ImageImport.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="DCResources\Base\Nodes\GaussianBlur.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="DCResources\Base\Nodes\TestGPU2.cs">
@@ -381,6 +388,9 @@
     <None Update="DCResources\Base\Brushes\TestBrushParticle.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="DCResources\Base\Nodes\Bloom.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="DCResources\Base\Nodes\PathParticleEmitter.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -393,6 +403,9 @@
     <None Update="DCResources\Base\Nodes\BaseBrush.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="DCResources\Base\Nodes\GaussianBlur.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="DCResources\Base\Nodes\TestGPU2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -403,6 +416,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Nodes\TestParticle.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\BloomV.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\BloomH.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\GaussianBlurH.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\GaussianBlurV.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\TextureBlendAlpha.json">

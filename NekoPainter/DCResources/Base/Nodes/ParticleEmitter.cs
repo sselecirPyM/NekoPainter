@@ -93,7 +93,7 @@ static class Modified
         HashSet<Int2> covered = new HashSet<Int2>();
         float strokeSize = Math.Max((float)parameters["strokeSize"], 0.001f);
         float randomSpeed = Math.Max((float)parameters["randomSpeed"], 0);
-        float generateSpeed = Math.Max((float)parameters["generateSpeed"], 0);
+        float generateSpeed = Math.Max((float)parameters["generateSpeed"], 0.01f);
         Vector3 originSpeed = (Vector3)parameters["originSpeed"];
         Vector4 color = (Vector4)parameters["color"];
         Vector4 color2 = (Vector4)parameters["color2"];
@@ -116,6 +116,10 @@ static class Modified
         caches.t1 += context.deltaTime;
         if (strokes != null)
         {
+            if (caches.t1 < -1.0f / generateSpeed)
+            {
+                caches.t1 = 0;
+            }
             foreach (var stroke in strokes)
             {
                 for (int i = 0; i < stroke.position.Count; i++)
@@ -146,24 +150,22 @@ static class Modified
                 particles.life ??= new List<float>();
                 particles.lifeRemain ??= new List<float>();
                 particles.color ??= new List<Vector4>();
+            }
+            var covered2 = covered.ToArray();
+            while (covered2.Length > 0 && particles.position.Count < maxCount && caches.t1 > 0)
+            {
+                int n1 = random.Next(0, covered2.Length);
+                var pos1 = covered2[n1];
+                Vector3 pos3 = GetRandomVector3(random) * 16 + new Vector3(pos1.X, pos1.Y, 0);
+                Vector4 colorX = color;
 
-                var covered2 = covered.ToArray();
-                while (covered2.Length > 0 && particles.position.Count < maxCount && caches.t1 > 0)
-                {
-                    int n1 = random.Next(0, covered2.Length);
-                    var pos1 = covered2[n1];
-                    Vector3 pos3 = GetRandomVector3(random) * 16 + new Vector3(pos1.X, pos1.Y, 0);
-                    Vector4 colorX = color;
-
-                    float life = lifeMinMax.X + (float)random.NextDouble() * (lifeMinMax.Y - lifeMinMax.X);
-                    particles.position.Add(pos3);
-                    particles.speed.Add((GetRandomVector3(random) - new Vector3(0.5f, 0.5f, 0.5f)) * randomSpeed + originSpeed);
-                    particles.life.Add(life);
-                    particles.lifeRemain.Add(life);
-                    particles.color.Add(colorX);
-                    caches.t1 -= 1.0f / covered2.Length / generateSpeed;
-                }
-                covered.Clear();
+                float life = lifeMinMax.X + (float)random.NextDouble() * (lifeMinMax.Y - lifeMinMax.X);
+                particles.position.Add(pos3);
+                particles.speed.Add((GetRandomVector3(random) - new Vector3(0.5f, 0.5f, 0.5f)) * randomSpeed + originSpeed);
+                particles.life.Add(life);
+                particles.lifeRemain.Add(life);
+                particles.color.Add(colorX);
+                caches.t1 -= 1.0f / covered2.Length / generateSpeed;
             }
             for (int i = 0; i < particles.position.Count; i++)
             {

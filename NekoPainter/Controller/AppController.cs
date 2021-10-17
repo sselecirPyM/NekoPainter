@@ -152,7 +152,6 @@ namespace NekoPainter.Controller
         #region Resources
         void LoadResources()
         {
-            BlendMode.LoadStaticResources();
             LoadVS("default2DVertexShader", "Shaders\\Basic\\default2DVertexShader.hlsl");
             LoadVS("VSImgui", "Shaders\\Basic\\VSImgui.hlsl");
             LoadPS("PSImgui", "Shaders\\Basic\\PSImgui.hlsl");

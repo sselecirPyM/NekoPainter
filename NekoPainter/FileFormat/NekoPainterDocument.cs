@@ -86,24 +86,7 @@ namespace NekoPainter.FileFormat
 
             Stream layoutsInfoStream = new FileStream(Folder + "/Layouts.json", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
-            List<_PictureLayoutSave> layoutInfos = new List<_PictureLayoutSave>();
-            foreach (PictureLayout layout in livedDocument.Layouts)
-            {
-                layoutInfos.Add(new _PictureLayoutSave()
-                {
-                    Alpha = layout.Alpha,
-                    BlendMode = layout.BlendMode,
-                    Color = layout.Color,
-                    DataSource = layout.DataSource,
-                    graph = layout.graph,
-                    Guid = layout.guid,
-                    Hidden = layout.Hidden,
-                    Name = layout.Name,
-                    Parameters = layout.parameters.Count > 0 ? new List<Core.ParameterN>(layout.parameters.Values) : null,
-                });
-            }
-
-            WriteJsonStream(layoutsInfoStream, layoutInfos);
+            WriteJsonStream(layoutsInfoStream, livedDocument.Layouts);
             layoutsInfoStream.Dispose();
 
             foreach (var layout in livedDocument.Layouts)
@@ -166,34 +149,10 @@ namespace NekoPainter.FileFormat
             FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
-            List<_PictureLayoutSave> layouts = ReadJsonStream<List<_PictureLayoutSave>>(settingsStream);
-
+            List<PictureLayout> layouts = ReadJsonStream<List<PictureLayout>>(settingsStream);
+            livedDocument.Layouts = layouts;
             settingsStream.Dispose();
 
-            if (layouts != null)
-            {
-                foreach (var layout in layouts)
-                {
-                    PictureLayout pictureLayout = new PictureLayout
-                    {
-                        Alpha = layout.Alpha,
-                        BlendMode = layout.BlendMode,
-                        Color = layout.Color,
-                        DataSource = layout.DataSource,
-                        graph = layout.graph,
-                        guid = layout.Guid,
-                        Hidden = layout.Hidden,
-                        Name = layout.Name,
-                        saved = true,
-                    };
-                    if (layout.Parameters != null)
-                        foreach (var parameter in layout.Parameters)
-                        {
-                            pictureLayout.parameters[parameter.Name] = parameter;
-                        }
-                    livedDocument.Layouts.Add(pictureLayout);
-                }
-            }
             foreach (var layout in livedDocument.Layouts)
             {
                 if (!livedDocument.LayoutTex.ContainsKey(layout.guid))
@@ -207,13 +166,25 @@ namespace NekoPainter.FileFormat
         private void LoadBlendmodes()
         {
             var BlendmodeFiles = blendModesFolder.GetFiles();
-            var blendmodesMap = livedDocument.blendmodesMap;
-            foreach (FileInfo blendmodeFile in BlendmodeFiles)
+            var blendModesMap = livedDocument.blendModesMap;
+            foreach (FileInfo file in BlendmodeFiles)
             {
-                if (!".dcbm".Equals(blendmodeFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                var blendmode = Core.BlendMode.LoadFromFile(blendmodeFile.FullName);
-                blendmodesMap.Add(blendmode.Guid, blendmode);
-                livedDocument.blendModes.Add(blendmode);
+                string relatePath = Path.GetRelativePath(blendModesFolder.FullName, file.FullName);
+                if (".cs".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    livedDocument.scripts[relatePath] = File.ReadAllText(file.FullName);
+                }
+                if (".json".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var blendMode = ReadJsonStream<BlendMode>(file.OpenRead());
+                    blendModesMap.Add(blendMode.guid, blendMode);
+                    livedDocument.blendModes.Add(blendMode);
+                }
+            }
+
+            foreach (var blendModeDef in livedDocument.blendModes)
+            {
+                GenerateDefaultVaue(blendModeDef.parameters);
             }
         }
 
@@ -221,22 +192,18 @@ namespace NekoPainter.FileFormat
         {
             var brushFiles = brushesFolder.GetFiles();
 
-            foreach (var brushFile in brushFiles)
+            foreach (var file in brushFiles)
             {
-                if (".json".Equals(brushFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                if (".json".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var brush1 = ReadJsonStream<Brush>(brushFile.OpenRead());
-                    livedDocument.brushes[brushFile.FullName] = brush1;
+                    var brush1 = ReadJsonStream<Brush>(file.OpenRead());
+                    livedDocument.brushes[file.FullName] = brush1;
                 }
             }
             livedDocument.PaintAgent.brushes = new List<Brush>(livedDocument.brushes.Values);
             foreach (var nodeDef in livedDocument.PaintAgent.brushes)
             {
-                if (nodeDef.parameters != null)
-                    foreach (var param in nodeDef.parameters)
-                    {
-                        GenerateDefaultVaue(param);
-                    }
+                GenerateDefaultVaue(nodeDef.parameters);
             }
 
         }
@@ -245,16 +212,16 @@ namespace NekoPainter.FileFormat
         {
             var nodeFiles = nodeFolder.GetFiles();
 
-            foreach (var nodeFile in nodeFiles)
+            foreach (var file in nodeFiles)
             {
-                string relatePath = Path.GetRelativePath(nodeFolder.FullName, nodeFile.FullName);
-                if (".cs".Equals(nodeFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                string relatePath = Path.GetRelativePath(nodeFolder.FullName, file.FullName);
+                if (".cs".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    livedDocument.scripts[relatePath] = File.ReadAllText(nodeFile.FullName);
+                    livedDocument.scripts[relatePath] = File.ReadAllText(file.FullName);
                 }
-                if (".json".Equals(nodeFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                if (".json".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    using (var filestream = nodeFile.OpenRead())
+                    using (var filestream = file.OpenRead())
                     {
                         livedDocument.scriptNodeDefs[relatePath] = ReadJsonStream<ScriptNodeDef>(filestream);
                     }
@@ -263,27 +230,23 @@ namespace NekoPainter.FileFormat
 
             foreach (var nodeDef in livedDocument.scriptNodeDefs)
             {
-                if (nodeDef.Value.parameters != null)
-                    foreach (var param in nodeDef.Value.parameters)
-                    {
-                        GenerateDefaultVaue(param);
-                    }
+                GenerateDefaultVaue(nodeDef.Value.parameters);
             }
         }
 
         private void LoadShaderDefs()
         {
             var shaderFiles = shadersFolder.GetFiles();
-            foreach (var shaderFile in shaderFiles)
+            foreach (var file in shaderFiles)
             {
-                string relatePath = Path.GetRelativePath(shadersFolder.FullName, shaderFile.FullName);
-                if (".hlsl".Equals(shaderFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                string relatePath = Path.GetRelativePath(shadersFolder.FullName, file.FullName);
+                if (".hlsl".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    livedDocument.shaders[relatePath] = File.ReadAllText(shaderFile.FullName);
+                    livedDocument.shaders[relatePath] = File.ReadAllText(file.FullName);
                 }
-                if (".json".Equals(shaderFile.Extension, StringComparison.CurrentCultureIgnoreCase))
+                if (".json".Equals(file.Extension, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    using (var filestream = shaderFile.OpenRead())
+                    using (var filestream = file.OpenRead())
                     {
                         livedDocument.shaderDefs[relatePath] = ReadJsonStream<ComputeShaderDef>(filestream);
                     }
@@ -297,6 +260,15 @@ namespace NekoPainter.FileFormat
                         GenerateDefaultVaue(param);
                     }
             }
+        }
+
+        public static void GenerateDefaultVaue(List<ScriptNodeParamDef> paramDefs)
+        {
+            if (paramDefs != null)
+                foreach (var param in paramDefs)
+                {
+                    GenerateDefaultVaue(param);
+                }
         }
 
         public static void GenerateDefaultVaue(ScriptNodeParamDef paramDef)
@@ -324,6 +296,10 @@ namespace NekoPainter.FileFormat
             if (paramDef.type == "bool")
             {
                 paramDef.defaultValue1 ??= bool.Parse(paramDef.defaultValue);
+            }
+            if (paramDef.type == "string")
+            {
+                paramDef.defaultValue1 ??= paramDef.defaultValue;
             }
         }
 
@@ -408,26 +384,5 @@ namespace NekoPainter.FileFormat
         public int Width;
         public int Height;
         public Guid DefaultBlendMode;
-    }
-
-    public class _PictureLayoutSave
-    {
-        public string Name = "";
-
-        public Guid Guid;
-
-        public Guid BlendMode;
-        [DefaultValue(false)]
-        public bool Hidden;
-        [DefaultValue(1.0f)]
-        public float Alpha = 1.0f;
-        [DefaultValue(LayoutDataSource.Default)]
-        public LayoutDataSource DataSource;
-
-        public Vector4 Color;
-
-        public Graph graph;
-
-        public List<Core.ParameterN> Parameters;
     }
 }

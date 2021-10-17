@@ -95,11 +95,11 @@ namespace NekoPainter.UI
                         for (int i = 0; i < document.blendModes.Count; i++)
                         {
                             Core.BlendMode blendMode = document.blendModes[i];
-                            bool selected = blendMode.Guid == document.SelectedLayout.BlendMode;
-                            ImGui.Selectable(string.Format("{0}###{1}", blendMode.Name, blendMode.Guid), ref selected);
+                            bool selected = blendMode.guid == document.SelectedLayout.BlendMode;
+                            ImGui.Selectable(string.Format("{0}###{1}", blendMode.name, blendMode.guid), ref selected);
                             if (ImGui.IsItemHovered())
-                                ImGui.SetTooltip(blendMode.Description);
-                            if (blendMode.Guid != document.SelectedLayout.BlendMode && selected)
+                                ImGui.SetTooltip(blendMode.description);
+                            if (blendMode.guid != document.SelectedLayout.BlendMode && selected)
                             {
                                 document.SetBlendMode(document.SelectedLayout, blendMode);
                             }
@@ -205,28 +205,11 @@ namespace NekoPainter.UI
             if (ImGui.Begin("图层信息") && document.SelectedLayout != null)
             {
                 var layout = document.SelectedLayout;
-                ImGui.SliderFloat("Alpha", ref layout.Alpha, 0, 1);
-                ImGuiExt.ColorEdit4("Color", ref layout.Color);
-                ImGuiExt.ComboBox("DataSource", ref layout.DataSource);
                 ImGuiExt.Checkbox("Hidden", ref layout.Hidden);
 
-                if (document.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
+                if (document.blendModesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.parameters != null)
                 {
-                    for (int i = 0; i < blendMode.Paramerters.Length; i++)
-                    {
-                        layout.parameters.TryGetValue(blendMode.Paramerters[i].Name, out var parameter);
-                        float f1 = (float)parameter.X;
-                        parameter.Name = blendMode.Paramerters[i].Name;
-                        if (ImGui.DragFloat(string.Format("{0}###{1}", blendMode.Paramerters[i].Name, i), ref f1))
-                        {
-                            parameter.X = f1;
-                            layout.parameters[blendMode.Paramerters[i].Name] = parameter;
-                        }
-                        if (ImGui.IsItemHovered())
-                        {
-                            ImGui.SetTooltip(blendMode.Paramerters[i].Description);
-                        }
-                    }
+                    ShowLayoutParams(blendMode, layout);
                 }
             }
             ImGui.End();
@@ -359,7 +342,7 @@ namespace NekoPainter.UI
             int numSelectedLinks = 0;
 
             ImGui.SetNextWindowSize(new Vector2(400, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(200, 400), ImGuiCond.FirstUseEver);
             bool deleteNodes = false;
             bool setOutputNode = false;
             if (ImGui.Begin("节点编辑器"))
@@ -552,6 +535,8 @@ namespace NekoPainter.UI
                 }
             }
             ImGui.End();
+            ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(600, 400), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("节点属性"))
             {
                 if (numSelectedNodes > 0 && graph != null && graph.Nodes.TryGetValue(selectednodes[0], out var selectedNode))
@@ -568,6 +553,8 @@ namespace NekoPainter.UI
                 }
             }
             ImGui.End();
+            ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(800, 400), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("节点") && document != null)
             {
                 foreach (var n in document.scriptNodeDefs)
@@ -674,6 +661,135 @@ namespace NekoPainter.UI
                             changed = true;
                         }
                     }
+                    else if (param.type == "string")
+                    {
+                        string v = selectedNode.sParams.GetOrDefault(param.name, (string)(param.defaultValue1));
+                        if (param.enums == null)
+                        {
+                            if (ImGui.InputText(param.displayName ?? param.name, ref v, 256))
+                            {
+                                DictionaryExt.SetAndCreate(ref selectedNode.sParams, param.name, v);
+                                changed = true;
+                            }
+                        }
+                        else
+                        {
+                            int current = Array.IndexOf(param.enums, v);
+                            if (ImGui.Combo(param.displayName ?? param.name, ref current, param.enums, param.enums.Length))
+                            {
+                                v = param.enums[current];
+                                DictionaryExt.SetAndCreate(ref selectedNode.sParams, param.name, v);
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            return changed;
+        }
+
+        static bool ShowLayoutParams(BlendMode blendMode, PictureLayout layout)
+        {
+            bool changed = false;
+            if (blendMode.parameters != null)
+            {
+                ImGuiExt.Text(blendMode.displayName);
+                foreach (var param in blendMode.parameters)
+                {
+                    if (param.type == "float")
+                    {
+                        float v = layout.fParams.GetOrDefault(param.name, (float)(param.defaultValue1));
+                        if (ImGui.DragFloat(param.displayName ?? param.name, ref v, param.step, param.step))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.fParams, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "float2")
+                    {
+                        Vector2 v = layout.f2Params.GetOrDefault(param.name, (Vector2)(param.defaultValue1));
+                        if (ImGui.DragFloat2(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.f2Params, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "float3")
+                    {
+                        Vector3 v = layout.f3Params.GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                        if (ImGui.DragFloat3(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.f3Params, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "float4")
+                    {
+                        Vector4 v = layout.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                        if (ImGui.DragFloat4(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.f4Params, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "color3")
+                    {
+                        Vector3 v = layout.f3Params.GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                        if (ImGui.ColorEdit3(param.displayName ?? param.name, ref v))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.f3Params, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "color4")
+                    {
+                        Vector4 v = layout.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                        if (ImGui.ColorEdit4(param.displayName ?? param.name, ref v))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.f4Params, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "int")
+                    {
+                        int v = layout.iParams.GetOrDefault(param.name, (int)(param.defaultValue1));
+                        if (ImGui.DragInt(param.displayName ?? param.name, ref v, param.step))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.iParams, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "bool")
+                    {
+                        bool v = layout.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));
+                        if (ImGui.Checkbox(param.displayName ?? param.name, ref v))
+                        {
+                            DictionaryExt.SetAndCreate(ref layout.bParams, param.name, v);
+                            changed = true;
+                        }
+                    }
+                    else if (param.type == "string")
+                    {
+                        string v = layout.sParams.GetOrDefault(param.name, (string)(param.defaultValue1));
+                        if (param.enums == null)
+                        {
+                            if (ImGui.InputText(param.displayName ?? param.name, ref v, 256))
+                            {
+                                DictionaryExt.SetAndCreate(ref layout.sParams, param.name, v);
+                                changed = true;
+                            }
+                        }
+                        else
+                        {
+                            int current = Array.IndexOf(param.enums, v);
+                            if (ImGui.Combo(param.displayName ?? param.name, ref current, param.enums, param.enums.Length))
+                            {
+                                v = param.enums[current];
+                                DictionaryExt.SetAndCreate(ref layout.sParams, param.name, v);
+                                changed = true;
+                            }
+                        }
+                    }
                 }
             }
             return changed;
@@ -686,6 +802,10 @@ namespace NekoPainter.UI
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("笔刷参数"))
             {
+                if (paintAgent.currentBrush != null)
+                {
+                    ImGuiExt.ComboBox("笔刷模式", ref paintAgent.drawMode);
+                }
                 if (paintAgent.currentBrush?.parameters != null)
                     foreach (var param in paintAgent.currentBrush.parameters)
                     {

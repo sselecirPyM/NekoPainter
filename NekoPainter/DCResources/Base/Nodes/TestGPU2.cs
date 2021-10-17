@@ -69,7 +69,7 @@ static class Modified
                         divParticles[new Int2(x, y)].Add(i1);
                     }
             }
-            var p3 = divParticles.Where(u => u.Value.Count > 0);
+            var p3 = divParticles.Where(u => u.Value.Count > 0).ToArray();
             Parallel.ForEach(p3, u =>
             {
                 int x3 = u.Key.X;

@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DCResources\Base\BlendModes\Tradition.cs" />
     <Compile Remove="DCResources\Base\Nodes\BaseBrush.cs" />
     <Compile Remove="DCResources\Base\Nodes\Bloom.cs" />
     <Compile Remove="DCResources\Base\Nodes\GaussianBlur.cs" />
@@ -76,10 +77,6 @@
     <None Remove="Assets\Wide310x150Logo.scale-150.png" />
     <None Remove="Assets\Wide310x150Logo.scale-200.png" />
     <None Remove="Assets\Wide310x150Logo.scale-400.png" />
-    <None Remove="DCResources\Base\BlendModes\add.dcbm" />
-    <None Remove="DCResources\Base\BlendModes\alpha.dcbm" />
-    <None Remove="DCResources\Base\BlendModes\multiple.dcbm" />
-    <None Remove="DCResources\Base\BlendModes\sub.dcbm" />
     <None Remove="DCResources\Base\Brushes\DC Brush Ring.dcbf" />
     <None Remove="DCResources\Base\Brushes\DC Brush Spray.dcbf" />
     <None Remove="DCResources\Base\Brushes\DC Brush Spray2.dcbf" />
@@ -88,6 +85,7 @@
     <None Remove="DCResources\Base\Shaders\Bloom.hlsl" />
     <None Remove="DCResources\Base\Shaders\GaussianBlur.hlsl" />
     <None Remove="DCResources\Base\Shaders\metaballRender.hlsl" />
+    <None Remove="DCResources\Base\Shaders\TextureBlendAdd.hlsl" />
     <None Remove="DCResources\Base\Shaders\TextureBlendAlpha.hlsl" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
@@ -144,22 +142,13 @@
     <Content Include="Assets\Wide310x150Logo.scale-150.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
-    <Content Include="DCResources\Base\BlendModes\add.dcbm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DCResources\Base\BlendModes\alpha.dcbm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DCResources\Base\BlendModes\multiple.dcbm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="DCResources\Base\BlendModes\sub.dcbm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="DCResources\Base\Shaders\Bloom.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Shaders\GaussianBlur.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DCResources\Base\Shaders\TextureBlendAdd.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Plugin\Brushes\DC Brush Ring.dcbf">
@@ -328,6 +317,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="DCResources\Base\BlendModes\Tradition.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DCResources\Base\Nodes\Bloom.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -372,6 +364,9 @@
     </None>
     <None Update="cimplot.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\BlendModes\Tradition.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Brushes\BaseBrush.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -428,6 +423,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\GaussianBlurV.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\TextureBlendAdd.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\TextureBlendAlpha.json">

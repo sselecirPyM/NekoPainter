@@ -16,7 +16,6 @@ namespace NekoPainter.Data
         public string language;
         public bool hidden;
         public bool animated;
-        public ScriptNodeIOFlag flags;
     }
     public class ScriptNodeIODef
     {
@@ -41,6 +40,7 @@ namespace NekoPainter.Data
         public string group;
         public float step = 1.0f;
         public int stride;
+        public string[] enums;
         [NonSerialized]
         public object defaultValue1;
     }

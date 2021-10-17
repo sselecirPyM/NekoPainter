@@ -60,6 +60,29 @@ namespace NekoPainter.Nodes
             return idAllocated - 1;
         }
 
+        public Node GetLastNode(string name)
+        {
+            if (!Nodes.TryGetValue(outputNode, out var outputNode1)) return null;
+            Queue<int> bfsqueue = new Queue<int>();
+            HashSet<int> dd = new HashSet<int>();
+            bfsqueue.Enqueue(outputNode);
+            dd.Add(outputNode);
+            while (bfsqueue.Count > 0)
+            {
+                int nodeId = bfsqueue.Dequeue();
+                var node = Nodes[nodeId];
+                if (node.GetNodeTypeName() == name) return node;
+                if (node.Inputs != null)
+                    foreach (var input in node.Inputs)
+                    {
+                        if (dd.Contains(input.Value.targetUid)) continue;
+                        dd.Add(input.Value.targetUid);
+                        bfsqueue.Enqueue(input.Value.targetUid);
+                    }
+            }
+            return null;
+        }
+
         public LinkDesc DisconnectLink(int inputNode, string inputSocketName)
         {
             var inputNode1 = Nodes[inputNode];

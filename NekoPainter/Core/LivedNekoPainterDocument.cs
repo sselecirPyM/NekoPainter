@@ -19,7 +19,8 @@ namespace NekoPainter.Core
             SizeChange(width, height);
 
             UndoManager = new UndoManager();
-            PaintAgent = new PaintAgent(this);
+            PaintAgent = new PaintAgent();
+            PaintAgent.document = this;
             PaintAgent.UndoManager = UndoManager;
 
             Layouts = new List<PictureLayout>();
@@ -117,7 +118,7 @@ namespace NekoPainter.Core
         public void SetBlendMode(PictureLayout layout, BlendMode blendMode)
         {
             UndoManager.AddUndoData(new CMD_BlendModeChange(layout, layout.BlendMode));
-            layout.BlendMode = blendMode.Guid;
+            layout.BlendMode = blendMode.guid;
         }
 
         public void Dispose()
@@ -133,7 +134,7 @@ namespace NekoPainter.Core
         #region Members
         public int Width { get; private set; }
         public int Height { get; private set; }
-        public readonly List<PictureLayout> Layouts;
+        public List<PictureLayout> Layouts;
         //public readonly Dictionary<System.Guid, PictureLayout> LayoutsMap = new Dictionary<System.Guid, PictureLayout>();
         public readonly Dictionary<System.Guid, TiledTexture> LayoutTex = new Dictionary<System.Guid, TiledTexture>();
         /// <summary>
@@ -165,7 +166,7 @@ namespace NekoPainter.Core
         public string Path = "";
 
         public readonly List<BlendMode> blendModes = new List<BlendMode>();
-        public Dictionary<System.Guid, BlendMode> blendmodesMap = new Dictionary<System.Guid, BlendMode>();
+        public Dictionary<System.Guid, BlendMode> blendModesMap = new Dictionary<System.Guid, BlendMode>();
 
         public Dictionary<string, Brush> brushes = new Dictionary<string, Brush>();
 

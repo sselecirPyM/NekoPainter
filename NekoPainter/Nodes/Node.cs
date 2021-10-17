@@ -31,6 +31,7 @@ namespace NekoPainter.Nodes
         public Dictionary<string, Vector3> f3Params;
         public Dictionary<string, Vector4> f4Params;
         public Dictionary<string, bool> bParams;
+        public Dictionary<string, string> sParams;
 
         public string GetNodeTypeName()
         {
@@ -49,6 +50,7 @@ namespace NekoPainter.Nodes
             clone.f3Params = GetClone(clone.f3Params);
             clone.f4Params = GetClone(clone.f4Params);
             clone.bParams = GetClone(clone.bParams);
+            clone.sParams = GetClone(clone.sParams);
 
             return clone;
         }

@@ -15,13 +15,6 @@ namespace NekoPainter
     public class PaintAgent
     {
         /// <summary>
-        /// 对接UI
-        /// </summary>
-        public PaintAgent(LivedNekoPainterDocument document)
-        {
-            this.document = document;
-        }
-        /// <summary>
         /// 设置当前使用的笔刷。
         /// </summary>
         public void SetBrush(Brush brush)
@@ -53,6 +46,7 @@ namespace NekoPainter
                         presure = new List<float>(),
                         startTime = DateTime.Now
                     };
+                    stroke.deltaTime.Add(0);
                     if (CurrentLayout.graph == null)
                     {
                         CurrentLayout.graph = new Graph();
@@ -62,66 +56,80 @@ namespace NekoPainter
 
                     int startOutput = graph.outputNode;
                     int startIndex = graph.idAllocated;
-                    foreach (var node in currentBrush.nodes)
+                    Node lastStrokeNode = null;
+                    var drawMode1 = drawMode;
+                    if (drawMode == DrawMode.Append)
                     {
-                        if (node.name == "stroke")
+                        lastStrokeNode = graph.GetLastNode("strokeNode");
+                        if (lastStrokeNode == null) drawMode1 = DrawMode.None;
+                    }
+                    if (drawMode1 == DrawMode.None)
+                    {
+                        foreach (var node in currentBrush.nodes)
                         {
-                            StrokeNode strokeNode = new StrokeNode();
-                            strokeNode.stroke = stroke;
-                            var strokeNode1 = new Node { strokeNode = strokeNode };
-                            strokeNode1.creationTime = DateTime.Now;
-                            graph.AddNodeToEnd(strokeNode1, node.offset);
+                            if (node.name == "stroke")
+                            {
+                                StrokeNode strokeNode = new StrokeNode();
+                                strokeNode.strokes = new List<Stroke> { stroke };
+                                var strokeNode1 = new Node { strokeNode = strokeNode };
+                                strokeNode1.creationTime = DateTime.Now;
+                                graph.AddNodeToEnd(strokeNode1, node.offset);
+                            }
+                            else
+                            {
+                                ScriptNode scriptNode = new ScriptNode();
+                                scriptNode.nodeName = node.name;
+                                strokeNode1 = new Node { scriptNode = scriptNode };
+                                strokeNode1.creationTime = DateTime.Now;
+                                if (node.parameters != null)
+                                    foreach (var param in node.parameters)
+                                    {
+                                        var param1 = currentBrush.parameters.Find(u => u.name == param.from);
+                                        if (param1.type == "float")
+                                        {
+                                            (strokeNode1.fParams ??= new Dictionary<string, float>())[param.name] = (float)(param1.defaultValue1 ?? 0.0f);
+                                        }
+                                        if (param1.type == "float2")
+                                        {
+                                            (strokeNode1.f2Params ??= new Dictionary<string, Vector2>())[param.name] = (Vector2)(param1.defaultValue1 ?? new Vector2());
+                                        }
+                                        if (param1.type == "float3" || param1.type == "color3")
+                                        {
+                                            (strokeNode1.f3Params ??= new Dictionary<string, Vector3>())[param.name] = (Vector3)(param1.defaultValue1 ?? new Vector3());
+                                        }
+                                        if (param1.type == "float4" || param1.type == "color4")
+                                        {
+                                            (strokeNode1.f4Params ??= new Dictionary<string, Vector4>())[param.name] = (Vector4)(param1.defaultValue1 ?? new Vector4());
+                                        }
+                                    }
+                                graph.AddNodeToEnd(strokeNode1, node.offset);
+                            }
                         }
-                        else
+                        foreach (var link in currentBrush.links)
                         {
-                            ScriptNode scriptNode = new ScriptNode();
-                            scriptNode.nodeName = node.name;
-                            strokeNode1 = new Node { scriptNode = scriptNode };
-                            strokeNode1.creationTime = DateTime.Now;
-                            if (node.parameters != null)
-                                foreach (var param in node.parameters)
-                                {
-                                    var param1 = currentBrush.parameters.Find(u => u.name == param.from);
-                                    if (param1.type == "float")
-                                    {
-                                        (strokeNode1.fParams ??= new Dictionary<string, float>())[param.name] = (float)(param1.defaultValue1 ?? 0.0f);
-                                    }
-                                    if (param1.type == "float2")
-                                    {
-                                        (strokeNode1.f2Params ??= new Dictionary<string, Vector2>())[param.name] = (Vector2)(param1.defaultValue1 ?? new Vector2());
-                                    }
-                                    if (param1.type == "float3" || param1.type == "color3")
-                                    {
-                                        (strokeNode1.f3Params ??= new Dictionary<string, Vector3>())[param.name] = (Vector3)(param1.defaultValue1 ?? new Vector3());
-                                    }
-                                    if (param1.type == "float4" || param1.type == "color4")
-                                    {
-                                        (strokeNode1.f4Params ??= new Dictionary<string, Vector4>())[param.name] = (Vector4)(param1.defaultValue1 ?? new Vector4());
-                                    }
-                                }
-                            graph.AddNodeToEnd(strokeNode1, node.offset);
+                            graph.Link(link.outputNode + startIndex, link.outputName, link.inputNode + startIndex, link.inputName);
                         }
+                        foreach (var link in currentBrush.attachLinks)
+                        {
+                            if (graph.Nodes.ContainsKey(graph.outputNode))
+                                graph.Link(startOutput, link.outputName, link.inputNode + startIndex, link.inputName);
+                        }
+                        List<int> removeNodeList = new List<int>();
+                        for (int i = 0; i < currentBrush.nodes.Count; i++)
+                        {
+                            removeNodeList.Add(startIndex + i);
+                        }
+                        var removeNode = new CMD_Remove_RecoverNodes();
+                        removeNode.BuildRemoveNodes(document, CurrentLayout.graph, removeNodeList, CurrentLayout.guid);
+                        UndoManager.AddUndoData(removeNode);
+                        graph.outputNode = currentBrush.outputNode + startIndex;
                     }
-                    foreach (var link in currentBrush.links)
+                    else
                     {
-                        graph.Link(link.outputNode + startIndex, link.outputName, link.inputNode + startIndex, link.inputName);
+                        UndoManager.AddUndoData(new CMD_Remove_AddStroke(graph, lastStrokeNode, null, lastStrokeNode.strokeNode.strokes.Count));
+                        lastStrokeNode.strokeNode.strokes.Add(stroke);
+                        strokeNode1 = lastStrokeNode;
                     }
-                    foreach (var link in currentBrush.attachLinks)
-                    {
-                        if (graph.Nodes.ContainsKey(graph.outputNode))
-                            graph.Link(startOutput, link.outputName, link.inputNode + startIndex, link.inputName);
-                    }
-                    List<int> removeNodeList = new List<int>();
-                    for (int i = 0; i < currentBrush.nodes.Count; i++)
-                    {
-                        removeNodeList.Add(startIndex + i);
-                    }
-                    var removeNode = new CMD_Remove_RecoverNodes();
-                    removeNode.BuildRemoveNodes(document, CurrentLayout.graph, removeNodeList, CurrentLayout.guid);
-                    UndoManager.AddUndoData(removeNode);
-
-                    graph.outputNode = currentBrush.outputNode + startIndex;
-                    stroke.deltaTime.Add(0);
                     previousStopWatchValue = stopwatch.ElapsedTicks / 1e7;
                 }
                 else
@@ -149,6 +157,7 @@ namespace NekoPainter
             }
         }
 
+        public DrawMode drawMode;
         public LivedNekoPainterDocument document;
         /// <summary>
         /// 当前要画的图层
@@ -192,8 +201,6 @@ namespace NekoPainter
             }
             return pointerData;
         }
-
-        public bool UseSelection = false;
     }
     public struct InputPointerData
     {
@@ -214,5 +221,10 @@ namespace NekoPainter
         public float Orientation;
         public float ZDistance;
         public Vector2 Preserved;
+    }
+    public enum DrawMode
+    {
+        None = 0,
+        Append = 1,
     }
 }

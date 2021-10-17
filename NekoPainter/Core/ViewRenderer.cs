@@ -34,10 +34,8 @@ namespace NekoPainter
             deltaTime = Math.Clamp((stopwatch.ElapsedTicks - prevTick) / 1e7f, 0, 1);
             prevTick = stopwatch.ElapsedTicks;
 
-            PrepareRenderData();
             Output.Clear();
             int ofs = 0;
-            var buffer = constantBuffer1.GetBuffer(DeviceResources);
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
                 PictureLayout selectedLayout = ManagedLayout[i];
@@ -48,13 +46,14 @@ namespace NekoPainter
                 }
 
                 livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
-                if (livedDocument.blendmodesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode))
+                if (livedDocument.blendModesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode1))
                 {
-                    if (selectedLayout.DataSource == LayoutDataSource.Color)
-                    {
-                        blendMode?.BlendPure(Output, buffer, ofs, 256);
-                    }
-                    else if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
+                    //if (selectedLayout.DataSource == LayoutDataSource.Color)
+                    //{
+                    //    blendMode?.BlendPure(Output, buffer, ofs, 256);
+                    //}
+                    //else
+                    if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
                     {
                         List<int> executeOrder;
                         TiledTexture finalOutput = null;
@@ -86,50 +85,27 @@ namespace NekoPainter
                             livedDocument.LayoutTex.Remove(selectedLayout.guid);
                         //}
 
-                        //blendMode?.Blend(paintingTexture1, Output, buffer, ofs, 256);
-                        blendMode?.Blend(tiledTexture2, Output, buffer, ofs, 256);
+                        if (tiledTexture2 != null)
+                        {
+                            var texture1 = gpuCompute.GetTemporaryTexture();
+                            tiledTexture2.UnzipToTexture(((Texture2D)texture1)._texture);
+                            BlendMode(blendMode1, selectedLayout, texture1);
+                            gpuCompute.RecycleTemplateTextures();
+                        }
                     }
                     else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                     {
-                        blendMode?.Blend(tiledTexture, Output, buffer, ofs, 256);
+                        var texture1 = gpuCompute.GetTemporaryTexture();
+                        tiledTexture.UnzipToTexture(((Texture2D)texture1)._texture);
+                        BlendMode(blendMode1, selectedLayout, texture1);
+                        gpuCompute.RecycleTemplateTextures();
+                        //blendMode?.Blend(tiledTexture, Output, buffer, ofs, 256);
                     }
                 }
                 ofs += 256;
             }
         }
 
-        void PrepareRenderData()
-        {
-            var writer = constantBuffer1.Begin();
-            int ofs = 0;
-            for (int i = ManagedLayout.Count - 1; i >= 0; i--)
-            {
-                writer.Seek(ofs, SeekOrigin.Begin);
-                Vector4 color = ManagedLayout[i].Color;
-                writer.Write(color);
-
-                GetData(ManagedLayout[i], writer);
-                ofs += 256;
-            }
-        }
-
-        public void GetData(PictureLayout layout, BinaryWriterPlus writer)
-        {
-            if (livedDocument.blendmodesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.Paramerters != null)
-            {
-                for (int i = 0; i < blendMode.Paramerters.Length; i++)
-                {
-                    if (layout.parameters.TryGetValue(blendMode.Paramerters[i].Name, out var value))
-                    {
-                        writer.Write((float)value.X);
-                    }
-                    else
-                    {
-                        writer.Write(0.0f);
-                    }
-                }
-            }
-        }
 
         RenderTexture Output { get { return livedDocument.Output; } }
 
@@ -140,8 +116,6 @@ namespace NekoPainter
 
         public readonly LivedNekoPainterDocument livedDocument;
 
-        StreamedBuffer constantBuffer1 = new StreamedBuffer();
-
         public void ExecuteNodes(Graph graph, List<int> executeOrder)
         {
             GC(graph);
@@ -151,7 +125,7 @@ namespace NekoPainter
                 if (node.strokeNode != null)
                 {
                     var cache = graph.NodeParamCaches.GetOrCreate(node.Luid);
-                    cache.outputCache["strokes"] = new Stroke[] { node.strokeNode.stroke };
+                    cache.outputCache["strokes"] = node.strokeNode.strokes;
                     cache.valid = true;
                 }
                 else if (node.fileNode != null)
@@ -244,21 +218,15 @@ namespace NekoPainter
                             {
                                 global.parameters[param.name] = node.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));
                             }
+                            if (param.type == "string")
+                            {
+                                global.parameters[param.name] = node.sParams.GetOrDefault(param.name, (string)(param.defaultValue1));
+                            }
                         }
                     }
                     //编译、运行脚本
-                    {
-                        string path = nodeDef.path;
-                        var script = livedDocument.scriptCache.GetOrCreate(path, () =>
-                        {
-                            ScriptOptions options = ScriptOptions.Default
-                            .WithReferences(typeof(Texture2D).Assembly, typeof(SixLabors.ImageSharp.Image).Assembly, typeof(SixLabors.ImageSharp.Drawing.Path).Assembly)
-                            .WithImports("NekoPainter.Data");
+                    RunScript(nodeDef.path, global);
 
-                            return CSharpScript.Create(livedDocument.scripts[path], options, typeof(ScriptGlobal));
-                        });
-                        var state = script.RunAsync(global).Result;
-                    }
                     //缓存输出
                     foreach (var ioDef in nodeDef.ioDefs)
                     {
@@ -302,6 +270,19 @@ namespace NekoPainter
             }
         }
 
+        public void RunScript(string path, ScriptGlobal global)
+        {
+            var script = livedDocument.scriptCache.GetOrCreate(path, () =>
+            {
+                ScriptOptions options = ScriptOptions.Default
+                .WithReferences(typeof(Texture2D).Assembly, typeof(SixLabors.ImageSharp.Image).Assembly, typeof(SixLabors.ImageSharp.Drawing.Path).Assembly)
+                .WithImports("NekoPainter.Data").WithOptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel.Release);
+
+                return CSharpScript.Create(livedDocument.scripts[path], options, typeof(ScriptGlobal));
+            });
+            var state = script.RunAsync(global).Result;
+        }
+
         GPUCompute gpuCompute = new GPUCompute();
 
         HashSet<int> gcRemoveNode = new HashSet<int>();
@@ -325,6 +306,53 @@ namespace NekoPainter
             }
             foreach (var key in gcRemoveNode)
                 graph.NodeParamCaches.Remove(key);
+        }
+
+        public void BlendMode(BlendMode blendMode, PictureLayout layout, ITexture2D tex1)
+        {
+            ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>(), context = nodeContext };
+            Texture2D tex0 = new Texture2D() { _texture = Output };
+            global.parameters["tex0"] = tex0;
+            global.parameters["tex1"] = tex1;
+
+            var node = layout;
+            var parameters = blendMode.parameters;
+            if (parameters != null)
+            {
+                foreach (var param in parameters)
+                {
+                    if (param.type == "float")
+                    {
+                        global.parameters[param.name] = node.fParams.GetOrDefault(param.name, (float)(param.defaultValue1));
+                    }
+                    if (param.type == "float2")
+                    {
+                        global.parameters[param.name] = node.f2Params.GetOrDefault(param.name, (Vector2)(param.defaultValue1));
+                    }
+                    if (param.type == "float3" || param.type == "color3")
+                    {
+                        global.parameters[param.name] = node.f3Params.GetOrDefault(param.name, (Vector3)(param.defaultValue1));
+                    }
+                    if (param.type == "float4" || param.type == "color4")
+                    {
+                        global.parameters[param.name] = node.f4Params.GetOrDefault(param.name, (Vector4)(param.defaultValue1));
+                    }
+                    if (param.type == "int")
+                    {
+                        global.parameters[param.name] = node.iParams.GetOrDefault(param.name, (int)(param.defaultValue1));
+                    }
+                    if (param.type == "bool")
+                    {
+                        global.parameters[param.name] = node.bParams.GetOrDefault(param.name, (bool)(param.defaultValue1));
+                    }
+                    if (param.type == "string")
+                    {
+                        global.parameters[param.name] = node.sParams.GetOrDefault(param.name, (string)(param.defaultValue1));
+                    }
+                }
+            }
+
+            RunScript(blendMode.script, global);
         }
 
         public void Dispose()

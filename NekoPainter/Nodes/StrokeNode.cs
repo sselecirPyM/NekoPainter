@@ -9,6 +9,6 @@ namespace NekoPainter.Nodes
 {
     public class StrokeNode
     {
-        public Stroke stroke;
+        public List<Stroke> strokes;
     }
 }

@@ -1,0 +1,37 @@
+{
+  "name": "Tradition",
+  "displayName": "Tradition",
+  "description": "Tradition",
+  "guid": "9c9f90ac-752c-4db5-bcb5-0880c35c50bf",
+  "script": "Tradition.cs",
+  "parameters": [
+    {
+      "name": "tex0",
+      "displayName": "tex0",
+      "type": "texture2D"
+    },
+    {
+      "name": "tex1",
+      "displayName": "tex1",
+      "type": "texture2D"
+    },
+    {
+      "name": "blendMode",
+      "displayName": "blendMode",
+      "type": "string",
+      "defaultValue": "Alpha",
+      "enums": [
+        "Alpha",
+        "Add",
+        "Sub",
+        "Mul"
+      ]
+    },
+    {
+      "name": "color",
+      "displayName": "color",
+      "type": "color4",
+      "defaultValue": "[1,1,1,1]"
+    }
+  ]
+}

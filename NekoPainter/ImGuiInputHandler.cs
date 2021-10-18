@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using System.Collections.Concurrent;
 using NekoPainter.Interoperation;
+using System.Threading;
 
 namespace NekoPainter
 {
@@ -10,6 +13,21 @@ namespace NekoPainter
     {
         public IntPtr hwnd;
         ImGuiMouseCursor lastCursor;
+        public bool mouseDrawCursor;
+        public bool wantSetMouseCursor;
+        public bool isForegroundWindow;
+        public bool isAnyMouseDown { get => mouseDown.All(u => u); }
+        public bool[] mouseDown = new bool[5];
+        public bool mouseInRect;
+        public System.Numerics.Vector2 mousePos;
+        public System.Numerics.Vector2 setMousePos;
+        public SystemCursor cursor = SystemCursor.IDC_ARROW;
+        public short[] keyState = new short[256];
+        public bool[] keydown = new bool[256];
+        public ConcurrentQueue<uint> inputChars = new ConcurrentQueue<uint>();
+
+        int mouseWheelH;
+        int mouseWheelV;
 
         public ImGuiInputHandler()
         {
@@ -46,10 +64,33 @@ namespace NekoPainter
 
         public void Update()
         {
-            UpdateKeyModifiers();
-            UpdateMousePosition();
+            var io = ImGui.GetIO();
+            for (int i = 0; i < 5; i++)
+                io.MouseDown[i] = mouseDown[i];
+            for (int i = 0; i < 256; i++)
+            {
+                io.KeysDown[i] = keydown[i];
+            }
+            while (inputChars.TryDequeue(out uint char1))
+                io.AddInputCharacter(char1);
 
-            var mouseCursor = ImGui.GetIO().MouseDrawCursor ? ImGuiMouseCursor.None : ImGui.GetMouseCursor();
+            io.MouseWheel += Interlocked.Exchange(ref mouseWheelV, 0);
+            io.MouseWheelH += Interlocked.Exchange(ref mouseWheelH, 0);
+
+            io.KeyCtrl = (keyState[(int)VK.CONTROL] & 0x8000) != 0;
+            io.KeyShift = (keyState[(int)VK.SHIFT] & 0x8000) != 0;
+            io.KeyAlt = (keyState[(int)VK.MENU] & 0x8000) != 0;
+            io.KeySuper = false;
+
+            wantSetMouseCursor = io.WantSetMousePos;
+            if (wantSetMouseCursor)
+                setMousePos = io.MousePos;
+            //io.MousePos = new System.Numerics.Vector2(-FLT_MAX, -FLT_MAX);
+
+            if (isForegroundWindow)
+                io.MousePos = mousePos;
+            mouseDrawCursor = ImGui.GetIO().MouseDrawCursor;
+            var mouseCursor = mouseDrawCursor ? ImGuiMouseCursor.None : ImGui.GetMouseCursor();
             if (mouseCursor != lastCursor)
             {
                 lastCursor = mouseCursor;
@@ -57,27 +98,18 @@ namespace NekoPainter
             }
         }
 
-        void UpdateKeyModifiers()
-        {
-            var io = ImGui.GetIO();
-            io.KeyCtrl = (User32.GetKeyState(VK.CONTROL) & 0x8000) != 0;
-            io.KeyShift = (User32.GetKeyState(VK.SHIFT) & 0x8000) != 0;
-            io.KeyAlt = (User32.GetKeyState(VK.MENU) & 0x8000) != 0;
-            io.KeySuper = false;
-        }
-
-        public bool UpdateMouseCursor()
+        bool UpdateMouseCursor()
         {
             var io = ImGui.GetIO();
             if ((io.ConfigFlags & ImGuiConfigFlags.NoMouseCursorChange) != 0)
                 return false;
 
             var requestedcursor = ImGui.GetMouseCursor();
-            if (requestedcursor == ImGuiMouseCursor.None || io.MouseDrawCursor)
-                User32.SetCursor(IntPtr.Zero);
+            if (requestedcursor == ImGuiMouseCursor.None || mouseDrawCursor)
+                cursor = 0;
             else
             {
-                var cursor = SystemCursor.IDC_ARROW;
+                cursor = SystemCursor.IDC_ARROW;
                 switch (requestedcursor)
                 {
                     case ImGuiMouseCursor.Arrow: cursor = SystemCursor.IDC_ARROW; break;
@@ -90,40 +122,12 @@ namespace NekoPainter
                     case ImGuiMouseCursor.Hand: cursor = SystemCursor.IDC_HAND; break;
                     case ImGuiMouseCursor.NotAllowed: cursor = SystemCursor.IDC_NO; break;
                 }
-                User32.SetCursor(User32.LoadCursor(IntPtr.Zero, cursor));
             }
-
             return true;
-        }
-
-        void UpdateMousePosition()
-        {
-            var io = ImGui.GetIO();
-
-            if (io.WantSetMousePos)
-            {
-                var pos = new POINT((int)io.MousePos.X, (int)io.MousePos.Y);
-                User32.ClientToScreen(hwnd, ref pos);
-                User32.SetCursorPos(pos.X, pos.Y);
-            }
-
-            //io.MousePos = new System.Numerics.Vector2(-FLT_MAX, -FLT_MAX);
-
-            var foregroundWindow = User32.GetForegroundWindow();
-            if (foregroundWindow == hwnd || User32.IsChild(foregroundWindow, hwnd))
-            {
-                POINT pos;
-                if (User32.GetCursorPos(out pos) && User32.ScreenToClient(hwnd, ref pos))
-                    io.MousePos = new System.Numerics.Vector2(pos.X, pos.Y);
-            }
         }
 
         public bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
         {
-            if (ImGui.GetCurrentContext() == IntPtr.Zero)
-                return false;
-
-            var io = ImGui.GetIO();
             switch (msg)
             {
                 case WindowMessage.LButtonDown:
@@ -140,9 +144,12 @@ namespace NekoPainter
                         if (msg == WindowMessage.RButtonDown || msg == WindowMessage.RButtonDoubleClick) { button = 1; }
                         if (msg == WindowMessage.MButtonDown || msg == WindowMessage.MButtonDoubleClick) { button = 2; }
                         if (msg == WindowMessage.XButtonDown || msg == WindowMessage.XButtonDoubleClick) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
-                        if (!ImGui.IsAnyMouseDown() && User32.GetCapture() == IntPtr.Zero)
-                            User32.SetCapture(hwnd);
-                        io.MouseDown[button] = true;
+                        if (mouseInRect || isAnyMouseDown)
+                        {
+                            if (!isAnyMouseDown && User32.GetCapture() == IntPtr.Zero)
+                                User32.SetCapture(hwnd);
+                            mouseDown[button] = true;
+                        }
                         return false;
                     }
                 case WindowMessage.LButtonUp:
@@ -155,32 +162,36 @@ namespace NekoPainter
                         if (msg == WindowMessage.RButtonUp) { button = 1; }
                         if (msg == WindowMessage.MButtonUp) { button = 2; }
                         if (msg == WindowMessage.XButtonUp) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
-                        io.MouseDown[button] = false;
-                        if (!ImGui.IsAnyMouseDown() && User32.GetCapture() == hwnd)
+                        mouseDown[button] = false;
+                        if (!isAnyMouseDown && User32.GetCapture() == hwnd)
                             User32.ReleaseCapture();
                         return false;
                     }
                 case WindowMessage.MouseWheel:
-                    io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+                    mouseWheelV += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
                     return false;
                 case WindowMessage.MouseHWheel:
-                    io.MouseWheelH += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+                    mouseWheelH += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
                     return false;
                 case WindowMessage.KeyDown:
                 case WindowMessage.SysKeyDown:
                     if ((ulong)wParam < 256)
-                        io.KeysDown[(int)wParam] = true;
+                    {
+                        keydown[(int)wParam] = true;
+                    }
                     return false;
                 case WindowMessage.KeyUp:
                 case WindowMessage.SysKeyUp:
                     if ((ulong)wParam < 256)
-                        io.KeysDown[(int)wParam] = false;
+                    {
+                        keydown[(int)wParam] = false;
+                    }
                     return false;
                 case WindowMessage.Char:
-                    io.AddInputCharacter((uint)wParam);
+                    inputChars.Enqueue((uint)wParam);
                     return false;
                 case WindowMessage.SetCursor:
-                    if (Utils.Loword((int)(long)lParam) == 1 && UpdateMouseCursor())
+                    if (Utils.Loword((int)(long)lParam) == 1 && mouseInRect)
                         return true;
                     return false;
             }

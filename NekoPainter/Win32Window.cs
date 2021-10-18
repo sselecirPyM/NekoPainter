@@ -6,6 +6,8 @@ using System.Drawing;
 using NekoPainter.Controller;
 using NekoPainter.UI;
 using System.Numerics;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace NekoPainter
 {
@@ -14,11 +16,12 @@ namespace NekoPainter
         public string Title;
         public int Width;
         public int Height;
-        public IntPtr Handle;
+        public IntPtr hwnd;
         public bool IsMinimized;
         ImGuiInputHandler imguiInputHandler;
         AppController appController;
         System.Diagnostics.Stopwatch stopwatch;
+        CancellationTokenSource cancellationTokenSource;
         long lastTime;
 
         public Win32Window(string wndClass, string title, int width, int height)
@@ -41,40 +44,98 @@ namespace NekoPainter
             var windowWidth = windowRect.Right - windowRect.Left;
             var windowHeight = windowRect.Bottom - windowRect.Top;
 
-            var hwnd = CreateWindowEx(
+            this.hwnd = CreateWindowEx(
                 (int)styleEx, wndClass, Title, (int)style,
                 x, y, windowWidth, windowHeight,
                 IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
-            Handle = hwnd;
         }
-
         public void Initialize()
         {
+            cancellationTokenSource = new CancellationTokenSource();
+            Task.Run(anotherThreadTask, cancellationTokenSource.Token);
+        }
+
+        public void anotherThreadTask()
+        {
+            Initialize1();
+            while (!cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                if (!IsMinimized)
+                    Task1();
+                else
+                    Thread.Sleep(1);
+            }
+        }
+
+        public void Initialize1()
+        {
             appController = new AppController();
-            appController.graphicsContext.DeviceResources.SetSwapChainPanel(Handle, new Vector2(Width, Height));
+            appController.graphicsContext.DeviceResources.SetSwapChainPanel(hwnd, new Vector2(Width, Height));
             appController.graphicsContext.SetClearColor(new Vector4(0.2f, 0.2f, 0.2f, 1));
             appController.graphicsContext.ClearScreen();
             appController.graphicsContext.Present();
             ViewUIs.Initialize();
             imguiInputHandler = new ImGuiInputHandler();
-            imguiInputHandler.hwnd = Handle;
+            imguiInputHandler.hwnd = hwnd;
+
             stopwatch = Stopwatch.StartNew();
+        }
+
+        public void Task1()
+        {
+            var graphicsDevice = appController.graphicsContext.DeviceResources;
+            if (graphicsDevice.m_outputSize != new Vector2(Width, Height))
+                graphicsDevice.SetLogicalSize(new Vector2(Width, Height));
+            long current = stopwatch.ElapsedTicks;
+            long delta = current - lastTime;
+            lastTime = current;
+            ImGuiNET.ImGui.GetIO().DeltaTime = delta / 10000000.0f;
+            imguiInputHandler.Update();
+            appController.CanvasRender();
         }
 
         public void Update()
         {
-            long current = stopwatch.ElapsedTicks;
-            long delta = current - lastTime;
-            lastTime = current;
-            var graphicsDevice = appController.graphicsContext.DeviceResources;
-            if (graphicsDevice.m_outputSize != new Vector2(Width, Height))
-                graphicsDevice.SetLogicalSize(new Vector2(Width, Height));
-            ImGuiNET.ImGui.GetIO().DeltaTime = delta / 10000000.0f;
-            imguiInputHandler.Update();
+            if (imguiInputHandler == null) return;
+            if (imguiInputHandler.cursor != 0)
+                User32.SetCursor(User32.LoadCursor(IntPtr.Zero, imguiInputHandler.cursor));
+            else
+                User32.SetCursor(IntPtr.Zero);
+
+            imguiInputHandler.keyState[(int)VK.CONTROL] = User32.GetKeyState(VK.CONTROL);
+            imguiInputHandler.keyState[(int)VK.SHIFT] = User32.GetKeyState(VK.SHIFT);
+            imguiInputHandler.keyState[(int)VK.MENU] = User32.GetKeyState(VK.MENU);
+
+            if (imguiInputHandler.wantSetMouseCursor)
+            {
+                imguiInputHandler.wantSetMouseCursor = false;
+                var pos = new POINT((int)imguiInputHandler.setMousePos.X, (int)imguiInputHandler.setMousePos.Y);
+                User32.ClientToScreen(hwnd, ref pos);
+                User32.SetCursorPos(pos.X, pos.Y);
+            }
+
+            var foregroundWindow = User32.GetForegroundWindow();
+            imguiInputHandler.isForegroundWindow = foregroundWindow == hwnd || User32.IsChild(foregroundWindow, hwnd);
+
+            if (imguiInputHandler.isForegroundWindow)
+            {
+                POINT pos;
+                if (User32.GetCursorPos(out pos) && User32.ScreenToClient(hwnd, ref pos))
+                {
+                    imguiInputHandler.mousePos = new System.Numerics.Vector2(pos.X, pos.Y);
+                }
+                var pos1 = imguiInputHandler.mousePos;
+                if (pos1.X > 0 && pos1.Y > 0 && pos1.X < Width && pos1.Y < Height)
+                    imguiInputHandler.mouseInRect = true;
+                else
+                    imguiInputHandler.mouseInRect = false;
+            }
+            else
+                imguiInputHandler.mouseInRect = false;
+
             UIHelper.OnFrame();
-            appController.CanvasRender();
-            if(UIHelper.quit)
+            if (UIHelper.quit)
             {
                 PostQuitMessage(0);
             }
@@ -136,10 +197,11 @@ namespace NekoPainter
 
         public void Destroy()
         {
-            if (Handle != IntPtr.Zero)
+            if (hwnd != IntPtr.Zero)
             {
-                DestroyWindow(Handle);
-                Handle = IntPtr.Zero;
+                cancellationTokenSource?.Cancel();
+                DestroyWindow(hwnd);
+                hwnd = IntPtr.Zero;
             }
         }
 

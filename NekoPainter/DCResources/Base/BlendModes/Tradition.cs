@@ -24,6 +24,12 @@ static class Modified
             case "Add":
                 gpuCompute.SetComputeShader("TextureBlendAdd.json");
                 break;
+            case "Mul":
+                gpuCompute.SetComputeShader("TextureBlendMul.json");
+                break;
+            case "Sub":
+                gpuCompute.SetComputeShader("TextureBlendSub.json");
+                break;
             case "Alpha":
             default:
                 gpuCompute.SetComputeShader("TextureBlendAlpha.json");

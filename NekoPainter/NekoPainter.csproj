@@ -87,6 +87,8 @@
     <None Remove="DCResources\Base\Shaders\metaballRender.hlsl" />
     <None Remove="DCResources\Base\Shaders\TextureBlendAdd.hlsl" />
     <None Remove="DCResources\Base\Shaders\TextureBlendAlpha.hlsl" />
+    <None Remove="DCResources\Base\Shaders\TextureBlendMul.hlsl" />
+    <None Remove="DCResources\Base\Shaders\TextureBlendSub.hlsl" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
@@ -146,6 +148,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Shaders\GaussianBlur.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DCResources\Base\Shaders\TextureBlendSub.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DCResources\Base\Shaders\TextureBlendMul.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Shaders\TextureBlendAdd.hlsl">
@@ -423,6 +431,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\GaussianBlurV.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\TextureBlendSub.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\TextureBlendMul.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\TextureBlendAdd.json">

@@ -30,21 +30,35 @@ namespace NekoPainter
 
             RegisterClassEx(ref wndClass);
             Win32Window window1 = new Win32Window(wndClass.ClassName, "NekoPainter", 1024, 768);
-            windows.Add(window1.Handle, window1);
-            User32.ShowWindow(window1.Handle, ShowWindowCommand.Normal);
+            windows.Add(window1.hwnd, window1);
+            User32.ShowWindow(window1.hwnd, ShowWindowCommand.Normal);
             window1.Initialize();
             while (!quitRequested)
             {
-                while (!quitRequested && PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
-                {
-                    TranslateMessage(ref msg);
-                    DispatchMessage(ref msg);
+                //while (!quitRequested && PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+                //{
+                //    TranslateMessage(ref msg);
+                //    DispatchMessage(ref msg);
 
-                    if (msg.Value == (uint)WindowMessage.Quit)
-                    {
-                        quitRequested = true;
-                        goto lable_stop;
-                    }
+                //    if (msg.Value == (uint)WindowMessage.Quit)
+                //    {
+                //        quitRequested = true;
+                //        goto lable_stop;
+                //    }
+                //}
+                int hr = GetMessage(out var msg, IntPtr.Zero, 0, 0);
+                if (hr <= 0)
+                {
+                    quitRequested = true;
+                    break;
+                }
+                TranslateMessage(ref msg);
+                DispatchMessage(ref msg);
+
+                if (msg.Value == (uint)WindowMessage.Quit)
+                {
+                    quitRequested = true;
+                    goto lable_stop;
                 }
 
                 foreach (var window in windows.Values)

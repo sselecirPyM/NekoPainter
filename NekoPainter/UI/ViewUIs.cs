@@ -86,28 +86,6 @@ namespace NekoPainter.UI
             {
                 LayoutsPanel();
 
-                ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
-                ImGui.SetNextWindowPos(new Vector2(200, 20), ImGuiCond.FirstUseEver);
-                if (ImGui.Begin("混合模式"))
-                {
-                    if (document.SelectedLayout != null)
-                    {
-                        for (int i = 0; i < document.blendModes.Count; i++)
-                        {
-                            Core.BlendMode blendMode = document.blendModes[i];
-                            bool selected = blendMode.guid == document.SelectedLayout.BlendMode;
-                            ImGui.Selectable(string.Format("{0}###{1}", blendMode.name, blendMode.guid), ref selected);
-                            if (ImGui.IsItemHovered())
-                                ImGui.SetTooltip(blendMode.description);
-                            if (blendMode.guid != document.SelectedLayout.BlendMode && selected)
-                            {
-                                document.SetBlendMode(document.SelectedLayout, blendMode);
-                            }
-                        }
-                    }
-                }
-                ImGui.End();
-
                 LayoutInfoPanel();
                 BrushPanel(appController);
                 BrushParametersPanel(appController);
@@ -199,15 +177,32 @@ namespace NekoPainter.UI
         static void LayoutInfoPanel()
         {
             var document = AppController.Instance?.CurrentLivedDocument;
-            ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(200, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(200, 20), ImGuiCond.FirstUseEver);
 
             if (ImGui.Begin("图层信息") && document.SelectedLayout != null)
             {
                 var layout = document.SelectedLayout;
+                bool hasBlendMode = document.blendModesMap.TryGetValue(layout.BlendMode, out var blendMode);
+                if (ImGui.BeginCombo("BlendMode", blendMode.displayName))
+                {
+                    for (int i = 0; i < document.blendModes.Count; i++)
+                    {
+                        Core.BlendMode blendMode1 = document.blendModes[i];
+                        bool selected = blendMode1.guid == document.SelectedLayout.BlendMode;
+                        ImGui.Selectable(string.Format("{0}###{1}", blendMode1.name, blendMode1.guid), ref selected);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip(blendMode1.description);
+                        if (blendMode1.guid != document.SelectedLayout.BlendMode && selected)
+                        {
+                            document.SetBlendMode(document.SelectedLayout, blendMode1);
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
                 ImGuiExt.Checkbox("Hidden", ref layout.Hidden);
 
-                if (document.blendModesMap.TryGetValue(layout.BlendMode, out var blendMode) && blendMode.parameters != null)
+                if (hasBlendMode && blendMode.parameters != null)
                 {
                     ShowLayoutParams(blendMode, layout);
                 }
@@ -799,7 +794,7 @@ namespace NekoPainter.UI
         {
             var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("笔刷参数"))
             {
                 if (paintAgent.currentBrush != null)
@@ -875,7 +870,7 @@ namespace NekoPainter.UI
             var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(new Vector2(0, 400), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
             if (ImGuiExt.Begin("Brushes"))
             {
                 var brushes = paintAgent.brushes;

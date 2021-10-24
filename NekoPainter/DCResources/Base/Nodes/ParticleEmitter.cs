@@ -95,6 +95,7 @@ static class Modified
         float randomSpeed = Math.Max((float)parameters["randomSpeed"], 0);
         float generateSpeed = Math.Max((float)parameters["generateSpeed"], 0.01f);
         Vector3 originSpeed = (Vector3)parameters["originSpeed"];
+        Vector3 acceleration = (Vector3)parameters["acceleration"];
         Vector4 color = (Vector4)parameters["color"];
         Vector4 color2 = (Vector4)parameters["color2"];
         Vector2 lifeMinMax = (Vector2)parameters["life"];
@@ -167,8 +168,10 @@ static class Modified
                 particles.color.Add(colorX);
                 caches.t1 -= 1.0f / covered2.Length / generateSpeed;
             }
+            Vector3 dAcceleration = acceleration * context.deltaTime;
             for (int i = 0; i < particles.position.Count; i++)
             {
+                particles.speed[i] += dAcceleration;
                 particles.position[i] += particles.speed[i] * context.deltaTime;
                 particles.lifeRemain[i] -= context.deltaTime;
                 float inter = particles.lifeRemain[i] / particles.life[i];

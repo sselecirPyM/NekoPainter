@@ -66,6 +66,13 @@
       "step": 1
     },
     {
+      "name": "acceleration",
+      "displayName": "Acceleration",
+      "type": "float3",
+      "defaultValue": "[0,0,0]",
+      "step": 1
+    },
+    {
       "name": "maxCount",
       "displayName": "maxCount",
       "type": "int",

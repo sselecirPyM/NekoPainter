@@ -10,7 +10,6 @@ using NekoPainter.FileFormat;
 using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Runtime.InteropServices;
 using NekoPainter.UI;
 using System.Threading;
 
@@ -152,18 +151,14 @@ namespace NekoPainter.Controller
         #region Resources
         void LoadResources()
         {
-            LoadVS("default2DVertexShader", "Shaders\\Basic\\default2DVertexShader.hlsl");
             LoadVS("VSImgui", "Shaders\\Basic\\VSImgui.hlsl");
             LoadPS("PSImgui", "Shaders\\Basic\\PSImgui.hlsl");
-            LoadPS("PS2DTex1", "Shaders\\Basic\\PS2DTex1.hlsl");
             LoadCS("Texture2TT", "Shaders\\Basic\\Texture2TT.hlsl");
             LoadCS("TextureEmptyTest", "Shaders\\Basic\\TextureEmptyTest.hlsl");
             LoadCS("TT2Texture", "Shaders\\Basic\\TT2Texture.hlsl");
             LoadCS("TTPartCopy", "Shaders\\Basic\\TTPartCopy.hlsl");
             LoadCS("TTReplace", "Shaders\\Basic\\TTReplace.hlsl");
             LoadCS("TexturePartClear", "Shaders\\Basic\\TexturePartClear.hlsl");
-            LoadCS("CExport", "Shaders\\Basic\\CExport.hlsl");
-            LoadCS("CImport", "Shaders\\Basic\\CImport.hlsl");
         }
 
         void LoadVS(string name, string path)

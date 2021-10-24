@@ -30,7 +30,7 @@ static class Modified
         NPParticles particles = (NPParticles)pparticles;
         HashSet<Int2> covered = new HashSet<Int2>();
 
-        Texture2D tex = (Texture2D)ptexture2D;
+        ITexture2D tex = (ITexture2D)ptexture2D;
         //Texture2D tex1 = (Texture2D)psampleSource;
         int width = tex.width;
         int height = tex.height;

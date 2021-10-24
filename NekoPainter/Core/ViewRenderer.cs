@@ -48,37 +48,48 @@ namespace NekoPainter
                 livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture);
                 if (livedDocument.blendModesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode1))
                 {
-                    //if (selectedLayout.DataSource == LayoutDataSource.Color)
-                    //{
-                    //    blendMode?.BlendPure(Output, buffer, ofs, 256);
-                    //}
-                    //else
+                    int executeCount = 0;
                     if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
                     {
                         List<int> executeOrder;
                         TiledTexture finalOutput = null;
-                        if (selectedLayout.graph != null)
+                        var graph = selectedLayout.graph;
+                        if (graph != null)
                         {
-                            var graph = selectedLayout.graph;
                             if (graph.Nodes.Count > 0)
                             {
                                 SetAnimateNodeCacheInvalid(graph);
                                 executeOrder = graph.GetUpdateList(graph.outputNode);
                                 ExecuteNodes(graph, executeOrder);
+                                executeCount = executeOrder.Count;
                             }
                             if (graph.NodeParamCaches != null && graph.NodeParamCaches.TryGetValue(graph.outputNode, out var cache))
                             {
                                 foreach (var cache1 in cache.outputCache)
                                     if (cache1.Value is TiledTexture t1)
-                                        //t1.UnzipToTexture(paintingTexture1);
                                         finalOutput = t1;
                             }
                         }
                         selectedLayout.generateCache = false;
                         //if (selectedLayout.generateCache.SetFalse())
                         //{
-                        if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1)) tiledTexture1.Dispose();
-                        var tiledTexture2 = finalOutput != null ? new TiledTexture(finalOutput) : null;
+                        TiledTexture tiledTexture2 = null;
+                        if (livedDocument.LayoutTex.TryGetValue(selectedLayout.guid, out var tiledTexture1))
+                        {
+                            if (graph != null && graph.cacheParams.TryGetValue("outputNode", out int outputNode1) && outputNode1 == graph.outputNode && executeCount == 0)
+                            {
+                                tiledTexture2 = tiledTexture1;
+                            }
+                            else
+                            {
+                                tiledTexture1.Dispose();
+                                tiledTexture2 = finalOutput != null ? new TiledTexture(finalOutput) : null;
+                            }
+                        }
+                        else
+                        {
+                            tiledTexture2 = finalOutput != null ? new TiledTexture(finalOutput) : null;
+                        }
                         if (tiledTexture2 != null)
                             livedDocument.LayoutTex[selectedLayout.guid] = tiledTexture2;
                         else
@@ -92,6 +103,8 @@ namespace NekoPainter
                             BlendMode(blendMode1, selectedLayout, texture1);
                             gpuCompute.RecycleTemplateTextures();
                         }
+                        if (graph != null)
+                            graph.cacheParams["outputNode"] = graph.outputNode;
                     }
                     else if (tiledTexture != null && tiledTexture.tilesCount != 0)
                     {
@@ -99,7 +112,6 @@ namespace NekoPainter
                         tiledTexture.UnzipToTexture(((Texture2D)texture1)._texture);
                         BlendMode(blendMode1, selectedLayout, texture1);
                         gpuCompute.RecycleTemplateTextures();
-                        //blendMode?.Blend(tiledTexture, Output, buffer, ofs, 256);
                     }
                 }
                 ofs += 256;
@@ -112,7 +124,7 @@ namespace NekoPainter
         DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
 
-        NodeContext nodeContext = new NodeContext();
+        public NodeContext nodeContext = new NodeContext();
 
         public readonly LivedNekoPainterDocument livedDocument;
 

@@ -15,7 +15,7 @@ static class Modified
         parameters.TryGetValue("strokes", out object pstrokes);
 
         IList<Stroke> strokes = (IList<Stroke>)pstrokes;
-        Texture2D tex = (Texture2D)ptexture2D;
+        ITexture2D tex = (ITexture2D)ptexture2D;
         Vector4 color = (Vector4)parameters["color"];
         float size = Math.Max((float)parameters["size"], 1);
         float spacing = Math.Max((float)parameters["spacing"], 0.01f);

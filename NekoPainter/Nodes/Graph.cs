@@ -13,6 +13,8 @@ namespace NekoPainter.Nodes
         public Dictionary<int, Node> Nodes;
         [NonSerialized]
         public Dictionary<int, NodeParamCache> NodeParamCaches = new Dictionary<int, NodeParamCache>();
+        [NonSerialized]
+        public Dictionary<string, int> cacheParams = new Dictionary<string, int>();
 
         public int outputNode;
         public int idAllocated;
@@ -283,6 +285,12 @@ namespace NekoPainter.Nodes
                 }
             }
             return inputSet;
+        }
+
+        public void ClearCache()
+        {
+            NodeParamCaches.Clear();
+            cacheParams.Clear();
         }
 
         public Graph Clone()

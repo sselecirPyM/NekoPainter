@@ -184,6 +184,10 @@ namespace NekoPainter.UI
             {
                 var layout = document.SelectedLayout;
                 bool hasBlendMode = document.blendModesMap.TryGetValue(layout.BlendMode, out var blendMode);
+                if (ImGui.Button("清除缓存"))
+                {
+                    layout.graph?.ClearCache();
+                }
                 if (ImGui.BeginCombo("BlendMode", blendMode.displayName))
                 {
                     for (int i = 0; i < document.blendModes.Count; i++)
@@ -258,6 +262,11 @@ namespace NekoPainter.UI
                 {
                     controller.CurrentDCDocument = controller.documents[path];
                     controller.CurrentLivedDocument = controller.livedDocuments[path];
+
+                    for (int i = 0; i < 256; i++)
+                    {
+                        controller.CurrentLivedDocument.ViewRenderer.nodeContext.keyDown[i] = io.KeysDown[i];
+                    }
                 }
                 controller.AddTexture(string.Format("{0}/Canvas", path), controller.livedDocuments[path].Output);
                 string texPath = string.Format("{0}/Canvas", path);
@@ -292,16 +301,10 @@ namespace NekoPainter.UI
                         }
                     }
                 }
-
-                //if (ImGui.IsItemHovered())
-                //{
-                //    Vector2 uv0 = (io.MousePos - pos) / imageSize - new Vector2(100, 100) / new Vector2(tex.width, tex.height);
-                //    Vector2 uv1 = uv0 + new Vector2(200, 200) / new Vector2(tex.width, tex.height);
-
-                //    ImGui.BeginTooltip();
-                //    ImGui.Image(imageId, new Vector2(100, 100), uv0, uv1);
-                //    ImGui.EndTooltip();
-                //}
+                if (ImGui.IsItemHovered())
+                {
+                    controller.CurrentLivedDocument.ViewRenderer.nodeContext.mousePosition = (io.MousePos - pos) /  factor;
+                }
             }
             ImGui.End();
         }

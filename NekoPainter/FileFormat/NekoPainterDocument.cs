@@ -339,7 +339,6 @@ namespace NekoPainter.FileFormat
             var blendModes = new DirectoryInfo("DCResources\\Base\\BlendModes");
             var nodes = new DirectoryInfo("DCResources\\Base\\Nodes");
             var shaders = new DirectoryInfo("DCResources\\Base\\Shaders");
-
             foreach (var file in brushes.GetFiles())
                 file.CopyTo(brushesFolder.FullName + "/" + file.Name);
             foreach (var file in blendModes.GetFiles())
@@ -348,6 +347,33 @@ namespace NekoPainter.FileFormat
                 file.CopyTo(nodeFolder.FullName + "/" + file.Name);
             foreach (var file in shaders.GetFiles())
                 file.CopyTo(shadersFolder.FullName + "/" + file.Name);
+
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NekoPainter/CustomData");
+            CopyDir(path, Folder.FullName);//Be careful,it may cause security problem.
+        }
+
+        void CopyDir(string source, string targetDir)
+        {
+            var info = new DirectoryInfo(source);
+            var targetInfo = new DirectoryInfo(targetDir);
+            if (!targetInfo.Exists)
+            {
+                targetInfo.Create();
+            }
+            if (info.Exists)
+            {
+                foreach (var file in info.GetFiles())
+                {
+                    var relatePath = Path.GetRelativePath(source, file.FullName);
+                    var target = Path.Combine(targetDir, relatePath);
+                    System.IO.File.Copy(file.FullName, target);
+                }
+                foreach (var folder in info.GetDirectories())
+                {
+                    var targetPath = Path.Combine(targetDir, folder.Name);
+                    CopyDir(folder.FullName, targetPath);
+                }
+            }
         }
 
         public static T ReadJsonStream<T>(Stream stream)

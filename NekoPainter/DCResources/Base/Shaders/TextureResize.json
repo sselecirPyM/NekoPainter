@@ -1,0 +1,31 @@
+{
+  "language": "hlsl",
+  "path": "TextureResize.hlsl",
+  "name": "TextureResize",
+  "displayName": "TextureResize",
+  "entry": "task",
+  "parameters": [
+    {
+      "name": "tex0",
+      "type": "RWTexture2D<float4>"
+    },
+    {
+      "name": "tex1",
+      "type": "Texture2D<float4>"
+    },
+    {
+      "name": "sourceRect",
+      "type": "float4",
+      "defaultValue": "[0,0,0,0]"
+    },
+    {
+      "name": "targetRect",
+      "type": "float4",
+      "defaultValue": "[0,0,0,0]"
+    },
+    {
+      "name": "sampler1",
+      "type": "SamplerState"
+    }
+  ]
+}

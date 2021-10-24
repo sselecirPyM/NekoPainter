@@ -9,6 +9,7 @@ namespace NekoPainter.Data
     public interface IGPUCompute
     {
         public ITexture2D GetTemporaryTexture();
+        public ITexture2D GetTemporaryTexture(int width,int height);
         public void SetComputeShader(string name);
         public void SetParameter(string name, object parameter);
         public void SetBuffer<T>(string name, T[] buffer) where T : unmanaged;

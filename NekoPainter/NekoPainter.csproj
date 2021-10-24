@@ -25,8 +25,6 @@
     <Compile Remove="DCResources\Base\Nodes\PathParticleEmitter.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestGPU.cs" />
     <Compile Remove="DCResources\Base\Nodes\TestGPU2.cs" />
-    <Compile Remove="DCResources\Base\Nodes\TestParticle.cs" />
-    <Compile Remove="DCResources\Base\Nodes\TestParticle2.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,6 +87,7 @@
     <None Remove="DCResources\Base\Shaders\TextureBlendAlpha.hlsl" />
     <None Remove="DCResources\Base\Shaders\TextureBlendMul.hlsl" />
     <None Remove="DCResources\Base\Shaders\TextureBlendSub.hlsl" />
+    <None Remove="DCResources\Base\Shaders\TextureResize.hlsl" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormal.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
@@ -145,6 +144,9 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
     <Content Include="DCResources\Base\Shaders\Bloom.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DCResources\Base\Shaders\TextureResize.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="DCResources\Base\Shaders\GaussianBlur.hlsl">
@@ -238,21 +240,6 @@
     <Content Include="DCResources\Plugin\Brushes\DC Ring2G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Shaders\Basic\CExport.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Basic\CImport.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Basic\Default2DPixelShader.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Basic\Default2DVertexShader.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Basic\PS2DTex1.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Shaders\Basic\PSImgui.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -275,24 +262,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\Basic\VSImgui.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\blendmode_c1.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\blendmode_c2.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\blendmode_c3.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\blendmode_c4.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\blendmode_c5.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\blendmode_c6.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Strings\zh-cn\UITranslations.json">
@@ -352,12 +321,6 @@
     <None Include="DCResources\Base\Nodes\TestGPU.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="DCResources\Base\Nodes\TestParticle2.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="DCResources\Base\Nodes\TestParticle.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -385,12 +348,6 @@
     <None Update="DCResources\Base\Brushes\TestGPU.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="DCResources\Base\Brushes\TestBrushParticle2.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="DCResources\Base\Brushes\TestBrushParticle.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="DCResources\Base\Nodes\Bloom.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -415,16 +372,13 @@
     <None Update="DCResources\Base\Nodes\TestGPU.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="DCResources\Base\Nodes\TestParticle2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DCResources\Base\Nodes\TestParticle.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="DCResources\Base\Shaders\BloomV.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\BloomH.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="DCResources\Base\Shaders\TextureResize.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="DCResources\Base\Shaders\GaussianBlurH.json">

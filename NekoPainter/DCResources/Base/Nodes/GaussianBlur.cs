@@ -21,7 +21,7 @@ static class Modified
         HashSet<Int2> covered = new HashSet<Int2>();
 
         int radius = Math.Clamp((int)parameters["radius"], 1, 500);
-        Texture2D tex = (Texture2D)ptexture2D;
+        ITexture2D tex = (ITexture2D)ptexture2D;
         int width = tex.width;
         int height = tex.height;
 

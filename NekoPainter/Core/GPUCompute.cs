@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Vortice.Direct3D11;
 
 namespace NekoPainter.Core
 {
@@ -16,14 +17,13 @@ namespace NekoPainter.Core
 
         public DeviceResources deviceResources { get => document.DeviceResources; }
 
-        int dtexCount = 0;
-        public List<RenderTexture> _texture2Ds = new List<RenderTexture>();
-        public List<Texture2D> texture2Ds = new List<Texture2D>();
-        int dtbufCount = 0;
-        public List<StreamedBuffer> tbuffers = new List<StreamedBuffer>();
+        public LinearPool<StreamedBuffer> tbuffers = new LinearPool<StreamedBuffer>();
+
+        public Dictionary<Int2, LinearPool<Texture2D>> texture2Ds2 = new Dictionary<Int2, LinearPool<Texture2D>>();
 
         public Dictionary<string, ComputeShdaerCache> shaderCaches = new Dictionary<string, ComputeShdaerCache>();
         public Dictionary<string, object> shaderParameter = new Dictionary<string, object>();
+        public Dictionary<SamplerStateDef, ID3D11SamplerState> samplers = new Dictionary<SamplerStateDef, ID3D11SamplerState>();
         public string computeShaderName;
 
         public void SetComputeShader(string name)
@@ -63,6 +63,10 @@ namespace NekoPainter.Core
 
         public void For(int xFrom, int xTo, int yFrom, int yTo, int zFrom, int zTo)
         {
+            if (xFrom >= xTo || yFrom >= yTo || zFrom >= zTo)
+            {
+                return;
+            }
             var shaderDef = document.shaderDefs[computeShaderName];
             string shaderCode = document.shaders[shaderDef.path];
 
@@ -80,6 +84,7 @@ namespace NekoPainter.Core
                 StringBuilder code1 = new StringBuilder();
                 int dUav = 0;
                 int dSrv = 0;
+                int dSampler = 0;
                 for (int i = 0; i < shaderDef.parameters.Count; i++)
                 {
                     var paramDef = shaderDef.parameters[i];
@@ -110,6 +115,17 @@ namespace NekoPainter.Core
                         shaderParams.Append(paramDef.name);
                         shaderParams.Append(";\n");
                         dSrv++;
+                    }
+                    else if (paramDef.type == "SamplerState")
+                    {
+                        shaderCache1.sampler[paramDef.name] = dSampler;
+                        code1.Append(paramDef.type);
+                        code1.Append(' ');
+                        code1.Append(paramDef.name);
+                        code1.Append(":register(s");
+                        code1.Append(dSampler);
+                        code1.Append(");\n");
+                        dSampler++;
                     }
                     else if (paramDef.type == "float" || paramDef.type == "float2" || paramDef.type == "float3" || paramDef.type == "float4" ||
                     paramDef.type == "int" || paramDef.type == "int2" || paramDef.type == "int3" || paramDef.type == "int4")
@@ -163,6 +179,16 @@ namespace NekoPainter.Core
                         shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
                     }
                 }
+            }
+            foreach (var paramdef in shaderCache.sampler)
+            {
+                SamplerStateDef samplerStateDef = new SamplerStateDef();
+                if (shaderParameter.TryGetValue(paramdef.Key, out object sampler1))
+                {
+                    samplerStateDef = (SamplerStateDef)sampler1;
+                }
+                var samplerState1 = GetSampler(samplerStateDef);
+                deviceResources.d3dContext.CSSetSampler(paramdef.Value, samplerState1);
             }
             var cbv0Buffer = shaderCache.cbv0Buffer;
             var writer = cbv0Buffer.Begin();
@@ -252,18 +278,12 @@ namespace NekoPainter.Core
             shader.Dispatch((x + nts.X - 1) / nts.X, (y + nts.Y - 1) / nts.Y, (z + nts.Z - 1) / nts.Z);
         }
 
-        public StreamedBuffer GetBuffer<T>(T[] data, int stride)where T : unmanaged
+        public StreamedBuffer GetBuffer<T>(T[] data, int stride) where T : unmanaged
         {
-            StreamedBuffer buffer = null;
-            if (dtbufCount < tbuffers.Count)
+            StreamedBuffer buffer = tbuffers.Get(() =>
             {
-                buffer = tbuffers[dtbufCount];
-            }
-            else
-            {
-                buffer = new StreamedBuffer();
-            }
-            dtbufCount++;
+                return new StreamedBuffer();
+            });
             var writer = buffer.Begin();
             writer.Write(data);
             return buffer;
@@ -271,33 +291,55 @@ namespace NekoPainter.Core
 
         public ITexture2D GetTemporaryTexture()
         {
-            Texture2D tex = null;
-            if (dtexCount < texture2Ds.Count)
+            return GetTemporaryTexture(document.Width, document.Height);
+        }
+
+        public ITexture2D GetTemporaryTexture(int width, int height)
+        {
+            var pool = texture2Ds2.GetOrCreate(new Int2(width, height));
+            Texture2D tex = pool.Get(() =>
             {
-                tex = texture2Ds[dtexCount];
-            }
-            else
-            {
-                RenderTexture _tex = new RenderTexture(deviceResources, document.Width, document.Height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
-                _texture2Ds.Add(_tex);
-                texture2Ds.Add(new Texture2D() { _texture = _tex, });
-                tex = texture2Ds[dtexCount];
-            }
+                RenderTexture _tex = new RenderTexture(deviceResources, width, height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
+                return new Texture2D() { _texture = _tex, };
+            });
             tex._texture.Clear();
-            dtexCount++;
             return tex;
+        }
+
+        internal ID3D11SamplerState GetSampler(SamplerStateDef samplerStateDef)
+        {
+            return samplers.GetOrCreate(samplerStateDef, u =>
+            {
+                var state = deviceResources.device.CreateSamplerState(new SamplerDescription((Filter)u.filter, (TextureAddressMode)u.AddressU, (TextureAddressMode)u.AddressV, (TextureAddressMode)u.AddressW));
+                return state;
+            });
         }
 
         internal void RecycleTemplateTextures()
         {
-            dtexCount = 0;
-            dtbufCount = 0;
+            tbuffers.Reset();
             shaderParameter.Clear();
+            foreach (var texPool in texture2Ds2)
+            {
+                texPool.Value.Reset();
+            }
         }
 
         public void Dispose()
         {
-
+            foreach (var texPool in texture2Ds2)
+            {
+                foreach (var tex in texPool.Value.list1)
+                {
+                    tex._texture.Dispose();
+                }
+            }
+            texture2Ds2.Clear();
+            foreach (var state in samplers)
+            {
+                state.Value.Dispose();
+            }
+            samplers.Clear();
         }
     }
 
@@ -308,6 +350,7 @@ namespace NekoPainter.Core
         public Dictionary<string, int> srv = new Dictionary<string, int>();
         public Dictionary<string, int> uav = new Dictionary<string, int>();
         public Dictionary<string, int> cbv = new Dictionary<string, int>();
+        public Dictionary<string, int> sampler = new Dictionary<string, int>();
         public ComputeShader shader;
         //public List<ScriptNodeParamDef> cbv0 = new List<ScriptNodeParamDef>();
         public StreamedBuffer cbv0Buffer = new StreamedBuffer();

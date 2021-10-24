@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using NekoPainter.Data;
 
-namespace NekoPainter.Data
+namespace NekoPainter.Core
 {
     public class Texture2D : ITexture2D
     {
@@ -17,29 +18,17 @@ namespace NekoPainter.Data
         [NonSerialized]
         public byte[] data;
 
-        //[NonSerialized]
-        //bool startModified;
         [NonSerialized]
         public CanvasRendering.RenderTexture _texture;
 
         public Span<Vector4> GetRawTexture()
         {
-            //if (!startModified)
-            //{
-            //    data = _texture.GetData();
-            //    startModified = true;
-            //}
             data = _texture.GetData();
             return MemoryMarshal.Cast<byte, Vector4>(data);
         }
 
         public byte[] GetRawTexture1()
         {
-            //if (!startModified)
-            //{
-            //    data = _texture.GetData();
-            //    startModified = true;
-            //}
             data = _texture.GetData();
             return data;
         }
@@ -53,14 +42,5 @@ namespace NekoPainter.Data
         {
             _texture.UpdateTexture<T>(data);
         }
-
-        //public void BeginGpu()
-        //{
-        //    if (startModified)
-        //    {
-        //        startModified = false;
-        //        _texture.UpdateTexture<byte>(data);
-        //    }
-        //}
     }
 }

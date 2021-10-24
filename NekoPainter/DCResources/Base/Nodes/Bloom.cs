@@ -23,7 +23,7 @@ static class Modified
         int radius = Math.Clamp((int)parameters["radius"], 1, 500);
         float threshold = (float)parameters["threshold"];
         float intensity = (float)parameters["intensity"];
-        Texture2D tex = (Texture2D)ptexture2D;
+        ITexture2D tex = (ITexture2D)ptexture2D;
         int width = tex.width;
         int height = tex.height;
 

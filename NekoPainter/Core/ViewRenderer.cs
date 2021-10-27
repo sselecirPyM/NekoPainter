@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using NekoPainter.Core;
-using NekoPainter.Util;
-using NekoPainter.Nodes;
+using NekoPainter.Core.Util;
+using NekoPainter.FileFormat;
 using CanvasRendering;
 using System.Numerics;
 using System.IO;
@@ -12,15 +12,18 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using NekoPainter.Data;
+using NekoPainter.Core.Nodes;
 
 namespace NekoPainter
 {
     public class ViewRenderer : IDisposable
     {
-        public ViewRenderer(LivedNekoPainterDocument doc)
+        public ViewRenderer(NekoPainterDocument doc)
         {
-            this.livedDocument = doc;
-            gpuCompute.document = doc;
+            this.nekoPainterDocument = doc;
+            this.livedDocument = doc.livedDocument;
+            gpuCompute.document = doc.livedDocument;
+            gpuCompute.deviceResources = nekoPainterDocument.DeviceResources;
             nodeContext.gpuCompute = gpuCompute;
         }
         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -49,7 +52,7 @@ namespace NekoPainter
                 if (livedDocument.blendModesMap.TryGetValue(selectedLayout.BlendMode, out var blendMode1))
                 {
                     int executeCount = 0;
-                    if (livedDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
+                    if (nekoPainterDocument.PaintAgent.CurrentLayout == selectedLayout || selectedLayout.generateCache)
                     {
                         List<int> executeOrder;
                         TiledTexture finalOutput = null;
@@ -119,13 +122,13 @@ namespace NekoPainter
         }
 
 
-        RenderTexture Output { get { return livedDocument.Output; } }
+        RenderTexture Output { get { return nekoPainterDocument.Output; } }
 
-        DeviceResources DeviceResources { get { return livedDocument.DeviceResources; } }
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
 
         public NodeContext nodeContext = new NodeContext();
 
+        public readonly NekoPainterDocument nekoPainterDocument;
         public readonly LivedNekoPainterDocument livedDocument;
 
         public void ExecuteNodes(Graph graph, List<int> executeOrder)
@@ -377,12 +380,6 @@ namespace NekoPainter
     {
         public Dictionary<string, object> parameters;
         public NodeContext context;
-    }
-
-    public class LayoutRenderConfig
-    {
-        public int frame;
-        public float frameInterval;
     }
 }
 

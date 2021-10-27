@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NekoPainter.Nodes
+namespace NekoPainter.Core.Nodes
 {
     public class StrokeNode
     {

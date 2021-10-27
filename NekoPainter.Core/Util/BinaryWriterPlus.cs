@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NekoPainter.Util
+namespace NekoPainter.Core.Util
 {
     public class BinaryWriterPlus : BinaryWriter
     {

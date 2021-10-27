@@ -10,9 +10,9 @@ using imnodesNET;
 using System.Numerics;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
-using NekoPainter.Util;
+using NekoPainter.Core.Util;
+using NekoPainter.Core.Nodes;
 using NekoPainter.Core;
-using NekoPainter.Nodes;
 
 namespace NekoPainter.UI
 {
@@ -105,6 +105,7 @@ namespace NekoPainter.UI
         static void LayoutsPanel()
         {
             var document = AppController.Instance?.CurrentLivedDocument;
+            var document1 = AppController.Instance?.CurrentDCDocument;
             ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 20), ImGuiCond.FirstUseEver);
             if (ImGuiExt.Begin("Layouts"))
@@ -113,11 +114,11 @@ namespace NekoPainter.UI
                 {
                     if (selectedIndex != -1)
                     {
-                        document.NewStandardLayout(selectedIndex);
+                        document1.NewLayout(selectedIndex);
                     }
                     else if (document != null)
                     {
-                        document.NewStandardLayout(0);
+                        document1.NewLayout(0);
                     }
                 }
 
@@ -127,13 +128,13 @@ namespace NekoPainter.UI
                 if (ImGuiExt.Button("Copy"))
                 {
                     if (selectedIndex != -1)
-                        document.CopyLayout(selectedIndex);
+                        document1.CopyLayout(selectedIndex);
                 }
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Delete"))
                 {
                     if (selectedIndex != -1)
-                        document.DeleteLayout(selectedIndex);
+                        document1.DeleteLayout(selectedIndex);
                 }
 
                 if (document != null)
@@ -152,7 +153,7 @@ namespace NekoPainter.UI
                         if (selected)
                         {
                             if (layout != document.SelectedLayout)
-                                document.SetActivatedLayout(layout);
+                                document1.SetActivatedLayout(layout);
                             document.SelectedLayout = layout;
                             selectedIndex = i;
                         }
@@ -164,7 +165,7 @@ namespace NekoPainter.UI
                                 layouts[i] = layouts[n_next];
                                 layouts[n_next] = layout;
                                 ImGui.ResetMouseDragDelta();
-                                document.UndoManager.AddUndoData(new Core.UndoCommand.CMD_MoveLayout(document, i, n_next));
+                                document1.UndoManager.AddUndoData(new Core.UndoCommand.CMD_MoveLayout(document, i, n_next));
                             }
                         }
                     }
@@ -177,6 +178,7 @@ namespace NekoPainter.UI
         static void LayoutInfoPanel()
         {
             var document = AppController.Instance?.CurrentLivedDocument;
+            var document1 = AppController.Instance?.CurrentDCDocument;
             ImGui.SetNextWindowSize(new Vector2(200, 180), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(200, 20), ImGuiCond.FirstUseEver);
 
@@ -199,7 +201,7 @@ namespace NekoPainter.UI
                             ImGui.SetTooltip(blendMode1.description);
                         if (blendMode1.guid != document.SelectedLayout.BlendMode && selected)
                         {
-                            document.SetBlendMode(document.SelectedLayout, blendMode1);
+                            document1.SetBlendMode(document.SelectedLayout, blendMode1);
                         }
                     }
                     ImGui.EndCombo();
@@ -222,8 +224,9 @@ namespace NekoPainter.UI
             var controller = AppController.Instance;
             if (ImGuiExt.Begin("Thumbnail"))
             {
-                controller.AddTexture(string.Format("{0}/Canvas", controller.CurrentLivedDocument.Path), controller.CurrentLivedDocument.Output);
-                string texPath = string.Format("{0}/Canvas", controller.CurrentLivedDocument.Path);
+                string path = controller.CurrentDCDocument.Folder.ToString();
+                controller.AddTexture(string.Format("{0}/Canvas", path), controller.CurrentDCDocument.Output);
+                string texPath = string.Format("{0}/Canvas", path);
                 IntPtr imageId = new IntPtr(controller.GetId(texPath));
                 Vector2 pos = ImGui.GetCursorScreenPos();
                 var tex = controller.GetTexture(texPath);
@@ -253,7 +256,7 @@ namespace NekoPainter.UI
         {
             var io = ImGui.GetIO();
             var controller = AppController.Instance;
-            var paintAgent = controller.CurrentLivedDocument?.PaintAgent;
+            var paintAgent = controller.CurrentDCDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(400, 0), ImGuiCond.FirstUseEver);
             if (ImGui.Begin(string.Format("画布 {0}###{1}", document.Name, path)))
@@ -265,10 +268,10 @@ namespace NekoPainter.UI
 
                     for (int i = 0; i < 256; i++)
                     {
-                        controller.CurrentLivedDocument.ViewRenderer.nodeContext.keyDown[i] = io.KeysDown[i];
+                        controller.CurrentDCDocument.ViewRenderer.nodeContext.keyDown[i] = io.KeysDown[i];
                     }
                 }
-                controller.AddTexture(string.Format("{0}/Canvas", path), controller.livedDocuments[path].Output);
+                controller.AddTexture(string.Format("{0}/Canvas", path), controller.documents[path].Output);
                 string texPath = string.Format("{0}/Canvas", path);
                 IntPtr imageId = new IntPtr(controller.GetId(texPath));
                 Vector2 pos = ImGui.GetCursorScreenPos();
@@ -303,7 +306,7 @@ namespace NekoPainter.UI
                 }
                 if (ImGui.IsItemHovered())
                 {
-                    controller.CurrentLivedDocument.ViewRenderer.nodeContext.mousePosition = (io.MousePos - pos) /  factor;
+                    controller.CurrentDCDocument.ViewRenderer.nodeContext.mousePosition = (io.MousePos - pos) /  factor;
                 }
             }
             ImGui.End();
@@ -321,6 +324,7 @@ namespace NekoPainter.UI
         {
             var currentLayout = AppController.Instance.CurrentLivedDocument?.ActivatedLayout;
             var document = AppController.Instance.CurrentLivedDocument;
+            var document1 = AppController.Instance?.CurrentDCDocument;
             var graph = currentLayout?.graph;
             if (currentLayout == null)
             {
@@ -453,7 +457,7 @@ namespace NekoPainter.UI
                         var removeNode = new Core.UndoCommand.CMD_Remove_RecoverNodes();
                         removeNode.BuildRemoveNodes(document, currentLayout.graph, new List<int>(selectednodes), currentLayout.guid);
                         var undoRemoveNode = removeNode.Execute();
-                        document.UndoManager.AddUndoData(undoRemoveNode);
+                        document1.UndoManager.AddUndoData(undoRemoveNode);
                     }
                     if (setOutputNode)
                     {
@@ -483,7 +487,7 @@ namespace NekoPainter.UI
                             var iodef = document.scriptNodeDefs[graph.Nodes[nodeId].GetNodeTypeName()].ioDefs[socketIndex];
                             removeLink.connectLinks.Add(graph.DisconnectLink(nodeId, iodef.name));
                         }
-                        document.UndoManager.AddUndoData(removeLink);
+                        document1.UndoManager.AddUndoData(removeLink);
                     }
                 }
                 imnodes.EndNodeEditor();
@@ -513,7 +517,7 @@ namespace NekoPainter.UI
                     undoCmd.layoutGuid = currentLayout.guid;
                     undoCmd.document = document;
                     if (graph.NoCycleCheck())
-                        document.UndoManager.AddUndoData(undoCmd);
+                        document1.UndoManager.AddUndoData(undoCmd);
                     else
                         undoCmd.Execute();
                 }
@@ -572,7 +576,7 @@ namespace NekoPainter.UI
                         graph.AddNodeToEnd(node, new Vector2(100, 0));
                         var undocmd = new Core.UndoCommand.CMD_Remove_RecoverNodes();
                         undocmd.BuildRemoveNodes(document, graph, new List<int>() { node.Luid }, currentLayout.guid);
-                        document.UndoManager.AddUndoData(undocmd);
+                        document1.UndoManager.AddUndoData(undocmd);
                     }
                 }
             }
@@ -795,7 +799,7 @@ namespace NekoPainter.UI
 
         static void BrushParametersPanel(AppController appController)
         {
-            var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
+            var paintAgent = appController?.CurrentDCDocument?.PaintAgent;
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("笔刷参数"))
@@ -870,7 +874,7 @@ namespace NekoPainter.UI
 
         static void BrushPanel(AppController appController)
         {
-            var paintAgent = appController?.CurrentLivedDocument?.PaintAgent;
+            var paintAgent = appController?.CurrentDCDocument?.PaintAgent;
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
@@ -907,11 +911,12 @@ namespace NekoPainter.UI
         static void MainMenuBar()
         {
             var document = AppController.Instance?.CurrentLivedDocument;
+            var document1 = AppController.Instance?.CurrentDCDocument;
             bool canUndo = false;
             bool canRedo = false;
-            if (document?.UndoManager.UndoStackIsNotEmpty == true)
+            if (document1?.UndoManager.UndoStackIsNotEmpty == true)
                 canUndo = true;
-            if (document?.UndoManager.RedoStackIsNotEmpty == true)
+            if (document1?.UndoManager.RedoStackIsNotEmpty == true)
                 canRedo = true;
 
             var io = ImGui.GetIO();
@@ -951,11 +956,11 @@ namespace NekoPainter.UI
             {
                 if (ImGuiExt.MenuItem("Undo", "CTRL+Z", false, canUndo))
                 {
-                    document.UndoManager.Undo();
+                    document1.UndoManager.Undo();
                 }
                 if (ImGuiExt.MenuItem("Redo", "CTRL+Y", false, canRedo))
                 {
-                    document.UndoManager.Redo();
+                    document1.UndoManager.Redo();
                 }
 
                 ImGui.Separator();
@@ -978,11 +983,11 @@ namespace NekoPainter.UI
             {
                 if (canUndo && io.KeyCtrl && ImGui.IsKeyPressed('Z'))
                 {
-                    document.UndoManager.Undo();
+                    document1.UndoManager.Undo();
                 }
                 if (canRedo && io.KeyCtrl && ImGui.IsKeyPressed('Y'))
                 {
-                    document.UndoManager.Redo();
+                    document1.UndoManager.Redo();
                 }
                 if (io.KeyCtrl && ImGui.IsKeyPressed('S'))
                 {

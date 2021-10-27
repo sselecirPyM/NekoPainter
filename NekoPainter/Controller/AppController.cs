@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CanvasRendering;
 using NekoPainter.Core;
+using NekoPainter.Core.Nodes;
 using NekoPainter.Core.UndoCommand;
 using NekoPainter.FileFormat;
 using System.IO;
@@ -63,16 +64,16 @@ namespace NekoPainter.Controller
             var layout = CurrentLivedDocument.ActivatedLayout;
             if (layout.graph == null)
             {
-                layout.graph = new Nodes.Graph();
+                layout.graph = new Graph();
                 layout.graph.Initialize();
             }
-            var fileNode = new Nodes.Node();
-            fileNode.fileNode = new Nodes.FileNode()
+            var fileNode = new Node();
+            fileNode.fileNode = new FileNode()
             {
                 path = path
             };
-            var scriptNode = new Nodes.Node();
-            scriptNode.scriptNode = new Nodes.ScriptNode();
+            var scriptNode = new Node();
+            scriptNode.scriptNode = new ScriptNode();
             scriptNode.scriptNode.nodeName = "ImageImport.json";
 
             layout.graph.AddNodeToEnd(fileNode, new System.Numerics.Vector2(10, -20));
@@ -80,11 +81,11 @@ namespace NekoPainter.Controller
             layout.graph.Link(fileNode.Luid, "bytes", scriptNode.Luid, "file");
             CMD_Remove_RecoverNodes cmd = new CMD_Remove_RecoverNodes();
             cmd.BuildRemoveNodes(CurrentLivedDocument, layout.graph, new List<int>() { fileNode.Luid, scriptNode.Luid }, layout.guid);
-            CurrentLivedDocument.UndoManager.AddUndoData(cmd);
+            CurrentDCDocument.UndoManager.AddUndoData(cmd);
         }
         public void ExportDocument(string path)
         {
-            var output = CurrentLivedDocument.Output;
+            var output = CurrentDCDocument.Output;
             var rawdata = output.GetData();
             Image<RgbaVector> image = Image.WrapMemory<RgbaVector>(rawdata, output.width, output.height);
             for (int y = 0; y < image.Height; y++)
@@ -127,10 +128,10 @@ namespace NekoPainter.Controller
             ViewUIs.InputProcess();
             ViewUIs.Draw();
 
-            foreach (var livedDocument in livedDocuments.Values)
+            foreach (var document in documents.Values)
             {
-                livedDocument.PaintAgent.Process();
-                livedDocument.ViewRenderer.RenderAll();
+                document.PaintAgent.Process();
+                document.ViewRenderer.RenderAll();
             }
 
             graphicsContext.ClearScreen();

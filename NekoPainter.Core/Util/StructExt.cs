@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NekoPainter.Util
+namespace NekoPainter.Core.Util
 {
     public static class StructExt
     {

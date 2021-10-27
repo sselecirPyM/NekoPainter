@@ -4,9 +4,9 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using NekoPainter.Util;
+using NekoPainter.Core.Util;
 
-namespace NekoPainter.Nodes
+namespace NekoPainter.Core.Nodes
 {
     public class Graph
     {
@@ -129,7 +129,7 @@ namespace NekoPainter.Nodes
                     {
                         foreach (var link in links.Value)
                         {
-                            if (this.Nodes.TryGetValue(link.targetUid, out var targetNode) && !nodes.Any(u => u.Luid == targetNode.Luid))
+                            if (Nodes.TryGetValue(link.targetUid, out var targetNode) && !nodes.Any(u => u.Luid == targetNode.Luid))
                             {
                                 targetNode.Inputs.Remove(link.targetSocket);
                                 SetNodeCacheInvalid(link.targetUid);
@@ -139,7 +139,7 @@ namespace NekoPainter.Nodes
             }
             foreach (var node in nodes)
             {
-                this.Nodes.Remove(node.Luid);
+                Nodes.Remove(node.Luid);
             }
         }
 

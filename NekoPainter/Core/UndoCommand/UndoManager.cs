@@ -1,8 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using NekoPainter.Core.UndoCommand;
 
-namespace NekoPainter
+namespace NekoPainter.Core.UndoCommand
 {
     public class UndoManager : System.IDisposable
     {

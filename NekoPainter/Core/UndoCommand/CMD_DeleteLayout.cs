@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using NekoPainter.FileFormat;
 
 namespace NekoPainter.Core.UndoCommand
 {
@@ -7,13 +8,15 @@ namespace NekoPainter.Core.UndoCommand
     {
         readonly public PictureLayout layout;
         readonly LivedNekoPainterDocument document;
+        readonly NekoPainterDocument document1;
         readonly int atIndex;
 
-        public CMD_DeleteLayout(PictureLayout layout, LivedNekoPainterDocument case1, int atIndex)
+        public CMD_DeleteLayout(PictureLayout layout, LivedNekoPainterDocument case1, NekoPainterDocument document1, int atIndex)
         {
             this.layout = layout;
             document = case1;
             this.atIndex = atIndex;
+            this.document1 = document1;
         }
         public void Dispose()
         {
@@ -24,10 +27,10 @@ namespace NekoPainter.Core.UndoCommand
         {
             if (document.ActivatedLayout == document.Layouts[atIndex])
             {
-                document.SetActivatedLayout(-1);
+                document1.SetActivatedLayout(-1);
             }
             document.Layouts.RemoveAt(atIndex);
-            return new CMD_RecoverLayout(layout, document, atIndex);
+            return new CMD_RecoverLayout(layout, document,document1, atIndex);
         }
     }
 }

@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NekoPainter.Nodes
+namespace NekoPainter.Core.Nodes
 {
-    public class FileNode
+    public class ScriptNode
     {
-        public string path;
+        public string nodeName;
     }
 }

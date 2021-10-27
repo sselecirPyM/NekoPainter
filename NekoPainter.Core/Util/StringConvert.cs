@@ -6,10 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using NekoPainter.Data;
-using NekoPainter.FileFormat;
 using Newtonsoft.Json;
 
-namespace NekoPainter.Util
+namespace NekoPainter.Core.Util
 {
     public static class StringConvert
     {

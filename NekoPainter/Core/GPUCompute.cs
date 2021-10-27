@@ -1,6 +1,6 @@
 ﻿using CanvasRendering;
 using NekoPainter.Data;
-using NekoPainter.Util;
+using NekoPainter.Core.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace NekoPainter.Core
     {
         public LivedNekoPainterDocument document;
 
-        public DeviceResources deviceResources { get => document.DeviceResources; }
+        public DeviceResources deviceResources;
 
         public LinearPool<StreamedBuffer> tbuffers = new LinearPool<StreamedBuffer>();
 

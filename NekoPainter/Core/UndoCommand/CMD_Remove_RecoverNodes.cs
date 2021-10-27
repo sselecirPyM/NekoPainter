@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NekoPainter.Nodes;
-using NekoPainter.Util;
+using NekoPainter.Core.Nodes;
+using NekoPainter.Core.Util;
 
 namespace NekoPainter.Core.UndoCommand
 {

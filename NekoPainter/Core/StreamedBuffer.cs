@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CanvasRendering;
-using NekoPainter.Util;
 using System.IO;
+using NekoPainter.Core.Util;
 
 namespace NekoPainter.Core
 {

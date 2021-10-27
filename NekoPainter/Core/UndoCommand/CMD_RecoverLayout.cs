@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using NekoPainter.FileFormat;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace NekoPainter.Core.UndoCommand
@@ -8,16 +9,17 @@ namespace NekoPainter.Core.UndoCommand
         public readonly PictureLayout layout;
         readonly int insertIndex;
         readonly LivedNekoPainterDocument document;
+        readonly NekoPainterDocument document1;
 
-        public CMD_RecoverLayout(PictureLayout layout, LivedNekoPainterDocument document, int insertIndex)
+        public CMD_RecoverLayout(PictureLayout layout, LivedNekoPainterDocument document, NekoPainterDocument document1, int insertIndex)
         {
             this.layout = layout;
             this.insertIndex = insertIndex;
             this.document = document;
+            this.document1 = document1;
         }
         public void Delete()
         {
-            layout.Dispose();
             document.LayoutTex.Remove(layout.guid, out TiledTexture tiledTexture);
             tiledTexture?.Dispose();
         }
@@ -30,7 +32,7 @@ namespace NekoPainter.Core.UndoCommand
         public IUndoCommand Execute()
         {
             document.Layouts.Insert(insertIndex, layout);
-            return new CMD_DeleteLayout(layout, document, insertIndex);
+            return new CMD_DeleteLayout(layout, document, document1, insertIndex);
         }
     }
 }

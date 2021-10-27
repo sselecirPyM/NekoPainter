@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NekoPainter.Util;
+using NekoPainter.Core.Util;
 using NekoPainter.Controller;
 using System.IO;
 using System.Runtime.InteropServices;

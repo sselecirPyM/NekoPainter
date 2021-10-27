@@ -7,7 +7,7 @@ using System.Numerics;
 using Newtonsoft.Json;
 using NekoPainter.Data;
 
-namespace NekoPainter.FileFormat
+namespace NekoPainter.Core.Util
 {
     public class VectorConverter : JsonConverter
     {

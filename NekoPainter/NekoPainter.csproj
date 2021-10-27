@@ -274,7 +274,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.11.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
     <PackageReference Include="Vortice.Mathematics" Version="1.3.21" />
@@ -290,6 +289,7 @@
     <ProjectReference Include="..\ImGuizmo.NET\ImGuizmo.NET.csproj" />
     <ProjectReference Include="..\ImNodes.NET\ImNodes.NET.csproj" />
     <ProjectReference Include="..\ImPlot.NET\ImPlot.NET.csproj" />
+    <ProjectReference Include="..\NekoPainter.Core\NekoPainter.Core.csproj" />
     <ProjectReference Include="..\NekoPainter.Data\NekoPainter.Data.csproj" />
   </ItemGroup>
 
@@ -401,9 +401,6 @@
     </None>
     <None Update="DCResources\Base\Shaders\metaballRender.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Nodes\NodeDef.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

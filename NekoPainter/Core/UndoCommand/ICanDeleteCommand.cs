@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-namespace NekoPainter
+namespace NekoPainter.Core.UndoCommand
 {
     public interface ICanDeleteCommand
     {

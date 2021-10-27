@@ -1,11 +1,10 @@
-﻿using NekoPainter.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NekoPainter.Nodes
+namespace NekoPainter.Core.Nodes
 {
     public class NodeParamCache
     {

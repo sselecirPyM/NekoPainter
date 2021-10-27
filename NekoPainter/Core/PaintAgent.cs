@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using NekoPainter.UI;
 using System.IO;
-using NekoPainter.Nodes;
+using NekoPainter.Core.Nodes;
 using NekoPainter.Core.UndoCommand;
 using NekoPainter.Data;
 

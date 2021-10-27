@@ -2,11 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using NekoPainter.Nodes;
+using NekoPainter.Core.Nodes;
 
 namespace NekoPainter.Core
 {
-    public class PictureLayout : IDisposable
+    public class PictureLayout
     {
         public Guid guid;
 
@@ -45,11 +45,6 @@ namespace NekoPainter.Core
         public Dictionary<string, Vector4> f4Params;
         public Dictionary<string, bool> bParams;
         public Dictionary<string, string> sParams;
-
-        public void Dispose()
-        {
-
-        }
 
         static Dictionary<string, T> GetClone<T>(Dictionary<string, T> a)
         {

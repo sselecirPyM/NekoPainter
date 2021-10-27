@@ -10,13 +10,13 @@ using System.ComponentModel;
 using System.Numerics;
 using Newtonsoft.Json;
 using NekoPainter.Core.UndoCommand;
-using NekoPainter.Nodes;
+using NekoPainter.Core.Nodes;
 using NekoPainter.Data;
-using NekoPainter.Util;
+using NekoPainter.Core.Util;
 
 namespace NekoPainter.FileFormat
 {
-    public class NekoPainterDocument
+    public class NekoPainterDocument : IDisposable
     {
         public NekoPainterDocument(DirectoryInfo folder)
         {
@@ -31,7 +31,14 @@ namespace NekoPainter.FileFormat
         public DirectoryInfo nodeFolder;
         public DirectoryInfo shadersFolder;
 
-        Dictionary<Guid, FileInfo> layoutFileMap = new Dictionary<Guid, FileInfo>();
+        Dictionary<Guid, FileInfo> cacheFileMap = new Dictionary<Guid, FileInfo>();
+
+        public DeviceResources DeviceResources;
+        public RenderTexture Output;
+
+        public ViewRenderer ViewRenderer;
+        public PaintAgent PaintAgent { get; private set; } = new PaintAgent();
+        public UndoManager UndoManager = new UndoManager();
 
         public static JsonConverter[] jsonConverters = new JsonConverter[]
         {
@@ -41,13 +48,18 @@ namespace NekoPainter.FileFormat
 
         public void Create(DeviceResources deviceResources, int width, int height, string name)
         {
+            DeviceResources = deviceResources;
             FolderDefs();
             InitializeResource();
 
-            livedDocument = new LivedNekoPainterDocument(deviceResources, width, height, Folder.FullName);
+            livedDocument = new LivedNekoPainterDocument(width, height);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
-            livedDocument.PaintAgent.CurrentLayout = livedDocument.NewStandardLayout(0);
             livedDocument.Name = name;
+            ViewRenderer = new ViewRenderer(this);
+            Output = new RenderTexture(DeviceResources, width, height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
+            PaintAgent.CurrentLayout = NewLayout(0);
+            PaintAgent.document = livedDocument;
+            PaintAgent.UndoManager = UndoManager;
             Save();
             LoadDocRes();
         }
@@ -56,8 +68,95 @@ namespace NekoPainter.FileFormat
         {
             FolderDefs();
             LoadDocInfo(deviceResources);
-            LoadLayouts();
+            LoadCaches();
             LoadDocRes();
+        }
+
+        private void LoadDocInfo(DeviceResources deviceResources)
+        {
+            DeviceResources = deviceResources;
+            FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
+            Stream settingsStream = layoutSettingsFile.OpenRead();
+
+            _Document document = ReadJsonStream<_Document>(settingsStream);
+            livedDocument = new LivedNekoPainterDocument(document.Width, document.Height);
+            livedDocument.Name = document.Name;
+            livedDocument.Description = document.Description;
+            livedDocument.DefaultBlendMode = document.DefaultBlendMode;
+
+            ViewRenderer = new ViewRenderer(this);
+            Output = new RenderTexture(DeviceResources, livedDocument.Width, livedDocument.Height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
+            PaintAgent.document = livedDocument;
+            PaintAgent.UndoManager = UndoManager;
+
+            settingsStream.Dispose();
+        }
+
+        public void SetBlendMode(PictureLayout layout, BlendMode blendMode)
+        {
+            UndoManager.AddUndoData(new CMD_BlendModeChange(layout, layout.BlendMode));
+            layout.BlendMode = blendMode.guid;
+        }
+
+        public void SetActivatedLayout(int layoutIndex)
+        {
+            if (layoutIndex == -1)
+            {
+                livedDocument.ActivatedLayout = null;
+                PaintAgent.CurrentLayout = null;
+                return;
+            }
+            SetActivatedLayout(livedDocument.Layouts[layoutIndex]);
+        }
+
+        public void SetActivatedLayout(PictureLayout layout)
+        {
+            livedDocument.ActivatedLayout = layout;
+
+            PaintAgent.CurrentLayout = livedDocument.ActivatedLayout;
+        }
+
+        public void DeleteLayout(int index)
+        {
+            PictureLayout pictureLayout = livedDocument.Layouts[index];
+            if (PaintAgent.CurrentLayout == pictureLayout)
+            {
+                PaintAgent.CurrentLayout = null;
+            }
+            livedDocument.Layouts.RemoveAt(index);
+            UndoManager.AddUndoData(new CMD_RecoverLayout(pictureLayout, livedDocument, this, index));
+        }
+
+        public PictureLayout CopyLayout(int index)
+        {
+            PictureLayout pictureLayout = livedDocument.Layouts[index];
+            livedDocument.LayoutTex.TryGetValue(pictureLayout.guid, out var tiledTexture);
+
+            TiledTexture newTiledTexture = new TiledTexture(tiledTexture);
+
+            PictureLayout newPictureLayout = new PictureLayout(pictureLayout)
+            {
+                Name = string.Format("{0} 复制", pictureLayout.Name),
+            };
+
+            livedDocument.LayoutTex[newPictureLayout.guid] = newTiledTexture;
+            livedDocument.Layouts.Insert(index, newPictureLayout);
+            UndoManager.AddUndoData(new CMD_DeleteLayout(newPictureLayout, livedDocument, this, index));
+            return newPictureLayout;
+        }
+
+        public PictureLayout NewLayout(int insertIndex)
+        {
+            PictureLayout standardLayout = new PictureLayout()
+            {
+                BlendMode = livedDocument.DefaultBlendMode,
+                guid = System.Guid.NewGuid(),
+                Name = string.Format("图层 {0}", livedDocument.Layouts.Count + 1)
+            };
+            livedDocument.Layouts.Insert(insertIndex, standardLayout);
+            UndoManager.AddUndoData(new CMD_DeleteLayout(standardLayout, livedDocument, this, insertIndex));
+
+            return standardLayout;
         }
         private void FolderDefs()
         {
@@ -93,10 +192,10 @@ namespace NekoPainter.FileFormat
             {
                 if (!layout.saved)
                 {
-                    if (!layoutFileMap.TryGetValue(layout.guid, out var storageFile))
+                    if (!cacheFileMap.TryGetValue(layout.guid, out var storageFile))
                     {
                         storageFile = new FileInfo(Path.Combine(cachesFolder.FullName, string.Format("{0}.dclf", layout.guid.ToString())));
-                        layoutFileMap[layout.guid] = storageFile;
+                        cacheFileMap[layout.guid] = storageFile;
                     }
                     layout.SaveToFile(livedDocument, storageFile);
                 }
@@ -106,14 +205,14 @@ namespace NekoPainter.FileFormat
             {
                 existLayoutGuids.Add(layout.guid);
             }
-            foreach (var cmd in livedDocument.UndoManager.undoStack)
+            foreach (var cmd in UndoManager.undoStack)
             {
                 if (cmd is CMD_DeleteLayout delLCmd)
                     existLayoutGuids.Add(delLCmd.layout.guid);
                 else if (cmd is CMD_RecoverLayout recLCmd)
                     existLayoutGuids.Add(recLCmd.layout.guid);
             }
-            foreach (var cmd in livedDocument.UndoManager.redoStack)
+            foreach (var cmd in UndoManager.redoStack)
             {
                 if (cmd is CMD_DeleteLayout delLCmd)
                     existLayoutGuids.Add(delLCmd.layout.guid);
@@ -121,7 +220,7 @@ namespace NekoPainter.FileFormat
                     existLayoutGuids.Add(recLCmd.layout.guid);
             }
             List<Guid> delFileGuids = new List<Guid>();
-            foreach (var pair in layoutFileMap)
+            foreach (var pair in cacheFileMap)
             {
                 if (!existLayoutGuids.Contains(pair.Key))
                 {
@@ -131,19 +230,19 @@ namespace NekoPainter.FileFormat
             }
             foreach (Guid guid in delFileGuids)
             {
-                layoutFileMap.Remove(guid);
+                cacheFileMap.Remove(guid);
             }
         }
 
-        private void LoadLayouts()
+        private void LoadCaches()
         {
-            var layoutFiles = cachesFolder.GetFiles();
+            var cacheFiles = cachesFolder.GetFiles();
 
-            foreach (var layoutFile in layoutFiles)
+            foreach (var cacheFile in cacheFiles)
             {
-                if (!".dclf".Equals(layoutFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
-                Guid guid = CompressedTexFormat.LoadFromFile(livedDocument, layoutFile);
-                layoutFileMap[guid] = layoutFile;
+                if (!".dclf".Equals(cacheFile.Extension, StringComparison.CurrentCultureIgnoreCase)) continue;
+                Guid guid = CompressedTexFormat.LoadFromFile(livedDocument, cacheFile);
+                cacheFileMap[guid] = cacheFile;
             }
 
             FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.json");
@@ -200,8 +299,8 @@ namespace NekoPainter.FileFormat
                     livedDocument.brushes[file.FullName] = brush1;
                 }
             }
-            livedDocument.PaintAgent.brushes = new List<Brush>(livedDocument.brushes.Values);
-            foreach (var nodeDef in livedDocument.PaintAgent.brushes)
+            PaintAgent.brushes = new List<Brush>(livedDocument.brushes.Values);
+            foreach (var nodeDef in PaintAgent.brushes)
             {
                 GenerateDefaultVaue(nodeDef.parameters);
             }
@@ -303,26 +402,12 @@ namespace NekoPainter.FileFormat
             }
         }
 
-        private void LoadDocInfo(DeviceResources deviceResources)
-        {
-            FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
-            Stream settingsStream = layoutSettingsFile.OpenRead();
-
-            _DCDocument document = ReadJsonStream<_DCDocument>(settingsStream);
-            livedDocument = new LivedNekoPainterDocument(deviceResources, document.Width, document.Height, Folder.FullName);
-            livedDocument.Name = document.Name;
-            livedDocument.Description = document.Description;
-            livedDocument.DefaultBlendMode = document.DefaultBlendMode;
-
-            settingsStream.Dispose();
-        }
-
         private void SaveDocInfo()
         {
             FileInfo SettingsFile = new FileInfo(Folder + "/Document.json");
             Stream settingsStream = SettingsFile.OpenWrite();
 
-            WriteJsonStream(settingsStream, new _DCDocument()
+            WriteJsonStream(settingsStream, new _Document()
             {
                 Name = livedDocument.Name,
                 Description = livedDocument.Description,
@@ -402,8 +487,16 @@ namespace NekoPainter.FileFormat
                 jsonSerializer.Serialize(jsonWriter, serializingObject);
             }
         }
+
+        public void Dispose()
+        {
+            ViewRenderer.Dispose();
+            Output.Dispose();
+            livedDocument.Dispose();
+            UndoManager.Dispose();
+        }
     }
-    public class _DCDocument
+    public class _Document
     {
         public string Name;
         public string Description;

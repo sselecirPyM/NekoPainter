@@ -1,5 +1,5 @@
 ﻿using NekoPainter.Data;
-using NekoPainter.Nodes;
+using NekoPainter.Core.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;

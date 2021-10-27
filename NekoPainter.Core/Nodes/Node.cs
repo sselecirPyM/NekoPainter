@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace NekoPainter.Nodes
+namespace NekoPainter.Core.Nodes
 {
     public class Node
     {

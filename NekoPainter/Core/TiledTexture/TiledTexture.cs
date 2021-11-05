@@ -33,7 +33,7 @@ namespace NekoPainter
         public byte[] _BlocksOffsetsData;
         //public DeviceResources deviceResources;
 
-        public TileIndexCollection TilesStatus;
+        //public TileIndexCollection TilesStatus;
 
         public List<Int2> TilePositionList;
 
@@ -76,7 +76,7 @@ namespace NekoPainter
             Texture2TT.SetUAV(BlocksData, 0);
             Texture2TT.Dispatch(1, 1, (tilesCount + 15) / 16);
             tileRect = GetBouding(TilePositionList);
-            TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
+            //TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
         public TiledTexture(RenderTexture tex, List<Int2> tiles)
         {
@@ -91,7 +91,7 @@ namespace NekoPainter
 
             TilePositionList = new List<Int2>(tiles);
             tileRect = GetBouding(TilePositionList);
-            TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
+            //TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
 
         public TiledTexture(TiledTexture tiledTexture)
@@ -100,14 +100,14 @@ namespace NekoPainter
             if (tiledTexture.BlocksData == null)
             {
                 TilePositionList = new List<Int2>(1);
-                TilesStatus = new TileIndexCollection(new Rectangle());
+                //TilesStatus = new TileIndexCollection(new Rectangle());
                 tilesCount = 0;
             }
             else
             {
                 tilesCount = tiledTexture.tilesCount;
                 TilePositionList = new List<Int2>(tiledTexture.TilePositionList);
-                TilesStatus = new TileIndexCollection(tiledTexture.TilesStatus);
+                //TilesStatus = new TileIndexCollection(tiledTexture.TilesStatus);
                 BlocksData = new ComputeBuffer(tiledTexture.BlocksData);
                 BlocksOffsetsData = new ComputeBuffer(tiledTexture.BlocksOffsetsData);
                 _BlocksData = tiledTexture._BlocksData;
@@ -174,7 +174,7 @@ namespace NekoPainter
             //BlocksData = ComputeBuffer.New<byte>(deviceResources, tilesCount, 1024, data);
             //BlocksOffsetsData = ComputeBuffer.New<byte>(deviceResources, tilesCount, 8, offsetsData);
             tileRect = GetBouding(TilePositionList);
-            TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
+            //TilesStatus = new TileIndexCollection(tileRect, TilePositionList);
         }
 
         public void UnzipToTexture(RenderTexture tex)
@@ -212,7 +212,7 @@ namespace NekoPainter
             return oData;
         }
 
-        const int magicNumber = 0x40000000;
+        //const int magicNumber = 0x40000000;
         //public static TiledTexture ReplaceTiles(TiledTexture source, TiledTexture target)
         //{
         //    if (source.tilesCount != 0)

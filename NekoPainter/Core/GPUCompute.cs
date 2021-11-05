@@ -150,31 +150,45 @@ namespace NekoPainter.Core
             {
                 if (shaderParameter.TryGetValue(paramdef.Key, out object uav1))
                 {
+                    int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
                     if (uav1 is Texture2D tex2d)
                         shader.SetUAV(tex2d._texture, paramdef.Value);
+                    else if (uav1 is byte[] bbuffer)
+                    {
+                        var buf = GetBuffer(bbuffer, stride);
+                        shader.SetUAV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
+                    }
+                    else if (uav1 is float[] fbuffer)
+                    {
+                        var buf = GetBuffer(fbuffer, stride);
+                        shader.SetUAV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
+                    }
+                    else if (uav1 is int[] ibuffer)
+                    {
+                        var buf = GetBuffer(ibuffer, stride);
+                        shader.SetUAV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
+                    }
                 }
             }
             foreach (var paramdef in shaderCache.srv)
             {
                 if (shaderParameter.TryGetValue(paramdef.Key, out object srv1))
                 {
+                    int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
                     if (srv1 is Texture2D tex2d)
                         shader.SetSRV(tex2d._texture, paramdef.Value);
                     else if (srv1 is byte[] bbuffer)
                     {
-                        int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
                         var buf = GetBuffer(bbuffer, stride);
                         shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
                     }
                     else if (srv1 is float[] fbuffer)
                     {
-                        int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
                         var buf = GetBuffer(fbuffer, stride);
                         shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
                     }
                     else if (srv1 is int[] ibuffer)
                     {
-                        int stride = shaderDef.parameters.Find(u => u.name == paramdef.Key).stride;
                         var buf = GetBuffer(ibuffer, stride);
                         shader.SetSRV(buf.GetComputeBuffer(deviceResources, stride), paramdef.Value);
                     }

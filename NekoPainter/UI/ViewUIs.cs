@@ -13,6 +13,7 @@ using Vortice.DXGI;
 using NekoPainter.Core.Util;
 using NekoPainter.Core.Nodes;
 using NekoPainter.Core;
+using System.Collections.Concurrent;
 
 namespace NekoPainter.UI
 {
@@ -23,6 +24,8 @@ namespace NekoPainter.UI
         public static ConstantBuffer constantBuffer;
         public static Mesh mesh;
         public static int selectedIndex = -1;
+        public static ConcurrentQueue<PenInputData> penInputData1 = new ConcurrentQueue<PenInputData>();
+
         //public static long TimeCost;
         public static void InputProcess()
         {
@@ -31,33 +34,6 @@ namespace NekoPainter.UI
             Vector2 mouseMoveDelta = new Vector2();
             float mouseWheelDelta = 0.0f;
 
-            while (Input.inputDatas.TryDequeue(out InputData inputData))
-            {
-                if (inputData.inputType == InputType.MouseMove)
-                    io.MousePos = inputData.point;
-                else if (inputData.inputType == InputType.MouseLeftDown)
-                {
-                    io.MouseDown[0] = inputData.mouseDown;
-                    io.MousePos = inputData.point;
-                }
-                else if (inputData.inputType == InputType.MouseRightDown)
-                {
-                    io.MouseDown[1] = inputData.mouseDown;
-                    io.MousePos = inputData.point;
-                }
-                else if (inputData.inputType == InputType.MouseMiddleDown)
-                {
-                    io.MouseDown[2] = inputData.mouseDown;
-                }
-                else if (inputData.inputType == InputType.MouseWheelChanged)
-                {
-                    io.MouseWheel += inputData.mouseWheelDelta / 120.0f;
-                    mouseWheelDelta += inputData.mouseWheelDelta;
-                }
-                else if (inputData.inputType == InputType.MouseMoveDelta)
-                    mouseMoveDelta += inputData.point;
-            }
-            Input.deltaWheel = mouseWheelDelta;
         }
         public static void Draw()
         {
@@ -77,9 +53,9 @@ namespace NekoPainter.UI
             Popups();
             MainMenuBar();
 
-            while (Input.penInputData.TryDequeue(out var result))
+            while (ImguiInput.penInputData.TryDequeue(out var result))
             {
-                Input.penInputData1.Enqueue(result);
+                penInputData1.Enqueue(result);
             }
             //Input.penInputData.Clear();
             if (document != null)
@@ -98,8 +74,7 @@ namespace NekoPainter.UI
             }
 
             ImGui.Render();
-            Input.uiMouseCapture = io.WantCaptureMouse;
-            Input.mousePos = io.MousePos;
+            penInputData1.Clear();
         }
 
         static void LayoutsPanel()
@@ -287,7 +262,7 @@ namespace NekoPainter.UI
 
                 if (ImGui.IsItemActive() || (currentState == PenInputFlag.Drawing && ImGui.IsWindowFocused()))
                 {
-                    while (Input.penInputData1.TryDequeue(out var penInput))
+                    while (penInputData1.TryDequeue(out var penInput))
                     {
                         if (!(currentState == PenInputFlag.End && penInput.penInputFlag == PenInputFlag.Drawing))
                         {
@@ -1247,6 +1222,30 @@ namespace NekoPainter.UI
             }
             io.Fonts.TexID = new IntPtr(appcontroller.GetId("ImguiFont"));
             appcontroller.AddTexture("ImguiFont", FontAtlas);
+
+
+            io.KeyMap[(int)ImGuiKey.Tab] = (int)ImGuiKey.Tab;
+            io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)ImGuiKey.LeftArrow;
+            io.KeyMap[(int)ImGuiKey.RightArrow] = (int)ImGuiKey.RightArrow;
+            io.KeyMap[(int)ImGuiKey.UpArrow] = (int)ImGuiKey.UpArrow;
+            io.KeyMap[(int)ImGuiKey.DownArrow] = (int)ImGuiKey.DownArrow;
+            io.KeyMap[(int)ImGuiKey.PageUp] = (int)ImGuiKey.PageUp;
+            io.KeyMap[(int)ImGuiKey.PageDown] = (int)ImGuiKey.PageDown;
+            io.KeyMap[(int)ImGuiKey.Home] = (int)ImGuiKey.Home;
+            io.KeyMap[(int)ImGuiKey.End] = (int)ImGuiKey.End;
+            io.KeyMap[(int)ImGuiKey.Insert] = (int)ImGuiKey.Insert;
+            io.KeyMap[(int)ImGuiKey.Delete] = (int)ImGuiKey.Delete;
+            io.KeyMap[(int)ImGuiKey.Backspace] = (int)ImGuiKey.Backspace;
+            io.KeyMap[(int)ImGuiKey.Space] = (int)ImGuiKey.Space;
+            io.KeyMap[(int)ImGuiKey.Enter] = (int)ImGuiKey.Enter;
+            io.KeyMap[(int)ImGuiKey.Escape] = (int)ImGuiKey.Escape;
+            io.KeyMap[(int)ImGuiKey.KeyPadEnter] = (int)ImGuiKey.KeyPadEnter;
+            io.KeyMap[(int)ImGuiKey.A] = 'A';
+            io.KeyMap[(int)ImGuiKey.C] = 'C';
+            io.KeyMap[(int)ImGuiKey.V] = 'V';
+            io.KeyMap[(int)ImGuiKey.X] = 'X';
+            io.KeyMap[(int)ImGuiKey.Y] = 'Y';
+            io.KeyMap[(int)ImGuiKey.Z] = 'Z';
         }
 
         public static FileFormat.CreateDocumentParameters CreateDocumentParameters = new FileFormat.CreateDocumentParameters();

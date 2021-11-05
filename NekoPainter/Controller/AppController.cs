@@ -13,6 +13,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using NekoPainter.UI;
 using System.Threading;
+using System.Numerics;
 
 namespace NekoPainter.Controller
 {
@@ -138,10 +139,17 @@ namespace NekoPainter.Controller
             ViewUIs.Render();
 
             graphicsContext.Present();
-            Input.penInputData1.Clear();
         }
 
         public readonly GraphicsContext graphicsContext = new GraphicsContext();
+
+        public void SetSwapChain(IntPtr hwnd,Vector2 initSize)
+        {
+            graphicsContext.DeviceResources.SetSwapChainPanel(hwnd, initSize);
+            graphicsContext.SetClearColor(new Vector4(0.2f, 0.2f, 0.2f, 1));
+            graphicsContext.ClearScreen();
+            graphicsContext.Present();
+        }
 
         public Dictionary<string, LivedNekoPainterDocument> livedDocuments = new Dictionary<string, LivedNekoPainterDocument>();
         public Dictionary<string, NekoPainterDocument> documents = new Dictionary<string, NekoPainterDocument>();
@@ -166,13 +174,13 @@ namespace NekoPainter.Controller
         {
             var stream = new FileStream(path, FileMode.Open);
             BinaryReader reader = new BinaryReader(stream);
-            vertexShaders[name] = VertexShader.CompileAndCreate(graphicsContext.DeviceResources, reader.ReadBytes((int)stream.Length));
+            vertexShaders[name] = VertexShader.CompileAndCreate(reader.ReadBytes((int)stream.Length));
         }
         void LoadPS(string name, string path)
         {
             var stream = new FileStream(path, FileMode.Open);
             BinaryReader reader = new BinaryReader(stream);
-            pixelShaders[name] = PixelShader.CompileAndCreate(graphicsContext.DeviceResources, reader.ReadBytes((int)stream.Length));
+            pixelShaders[name] = PixelShader.CompileAndCreate(reader.ReadBytes((int)stream.Length));
         }
 
         void LoadCS(string name, string path)

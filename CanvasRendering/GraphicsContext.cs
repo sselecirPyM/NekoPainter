@@ -55,12 +55,12 @@ namespace CanvasRendering
         public void SetVertexShader(VertexShader vertexShader)
         {
             VertexShader = vertexShader;
-            DeviceResources.d3dContext.VSSetShader(vertexShader.vertexShader);
+            DeviceResources.d3dContext.VSSetShader(vertexShader.GetVertexShader(DeviceResources));
         }
         public void SetPixelShader(PixelShader pixelShader)
         {
             PixelShader = pixelShader;
-            DeviceResources.d3dContext.PSSetShader(pixelShader.pixelShader);
+            DeviceResources.d3dContext.PSSetShader(pixelShader.GetPixelShader(DeviceResources));
         }
         public void SetCBV(ConstantBuffer constantBuffer, int slot, int ofs, int size)
         {

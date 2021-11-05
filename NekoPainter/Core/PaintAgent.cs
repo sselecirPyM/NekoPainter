@@ -222,6 +222,18 @@ namespace NekoPainter
         public float ZDistance;
         public Vector2 Preserved;
     }
+    public enum PenInputFlag
+    {
+        End = 0,
+        Begin = 1,
+        Drawing = 2,
+    }
+    public struct PenInputData
+    {
+        public Vector2 point;
+        public Core.PointerPoint pointerPoint;
+        public PenInputFlag penInputFlag;
+    }
     public enum DrawMode
     {
         None = 0,

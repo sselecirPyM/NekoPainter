@@ -9,15 +9,14 @@ namespace CanvasRendering
 {
     public class VertexShader : IDisposable
     {
-        public static VertexShader CompileAndCreate(DeviceResources deviceResources, byte[] source)
+        public static VertexShader CompileAndCreate( byte[] source)
         {
-            return CompileAndCreate(deviceResources, source, "main");
+            return CompileAndCreate( source, "main");
         }
-        public static VertexShader CompileAndCreate(DeviceResources deviceResources, byte[] source, string entryPoint)
+        public static VertexShader CompileAndCreate( byte[] source, string entryPoint)
         {
             VertexShader vertexShader = new VertexShader();
             var hr = Compiler.Compile(source, entryPoint, null, "vs_5_0", out vertexShader.data, out Blob errorBlob);
-            vertexShader.vertexShader = deviceResources.device.CreateVertexShader(vertexShader.data);
 
             return vertexShader;
         }
@@ -33,6 +32,10 @@ namespace CanvasRendering
             inputLayout = deviceResources.device.CreateInputLayout(inputElementDescriptions, data);
             unnamedInputLayouts[unnamedInputLayout] = inputLayout;
             return inputLayout;
+        }
+        public ID3D11VertexShader GetVertexShader(DeviceResources deviceResources)
+        {
+            return vertexShader ??= deviceResources.device.CreateVertexShader(data);
         }
         public Blob data;
         public ID3D11VertexShader vertexShader;

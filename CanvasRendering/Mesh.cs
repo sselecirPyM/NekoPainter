@@ -22,7 +22,7 @@ namespace CanvasRendering
             this.unnamedInputLayout = unnamedInputLayout;
         }
 
-        public void Update(byte[] vertice, byte[] indice)
+        public void Update(Span<byte> vertice, Span<byte> indice)
         {
             vertexBuffer?.Dispose();
             indexBuffer?.Dispose();

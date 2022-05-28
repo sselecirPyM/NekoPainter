@@ -43,40 +43,37 @@ namespace CanvasRendering
         }
         public void ClearScreen()
         {
-            var deviceContext = DeviceResources.d3dContext;
+            var deviceContext = d3dContext;
             deviceContext.RSSetViewport(0, 0, DeviceResources.m_d3dRenderTargetSize.X, DeviceResources.m_d3dRenderTargetSize.Y);
             deviceContext.OMSetRenderTargets(DeviceResources.renderTargetView1);
-            deviceContext.ClearRenderTargetView(DeviceResources.renderTargetView1, color);
+            deviceContext.ClearRenderTargetView(DeviceResources.renderTargetView1, clearColor);
         }
         public void SetLogicSize(Vector2 size)
         {
             DeviceResources.SetLogicalSize(size);
         }
-        public void SetVertexShader(VertexShader vertexShader)
+        public void SetPipelineState(PipelineStateObject pso)
         {
-            VertexShader = vertexShader;
-            DeviceResources.d3dContext.VSSetShader(vertexShader.GetVertexShader(DeviceResources));
+            PipelineStateObject = pso;
+            d3dContext.VSSetShader(pso.GetVertexShader(DeviceResources));
+            d3dContext.PSSetShader(pso.GetPixelShader(DeviceResources));
         }
-        public void SetPixelShader(PixelShader pixelShader)
-        {
-            PixelShader = pixelShader;
-            DeviceResources.d3dContext.PSSetShader(pixelShader.GetPixelShader(DeviceResources));
-        }
+
         public void SetCBV(ConstantBuffer constantBuffer, int slot, int ofs, int size)
         {
             int[] ofs1 = { ofs / 16 };
             int[] size1 = { size / 16 };
-            DeviceResources.d3dContext.VSSetConstantBuffer1(slot, constantBuffer.m_buffer, ofs1, size1);
-            DeviceResources.d3dContext.PSSetConstantBuffer1(slot, constantBuffer.m_buffer, ofs1, size1);
+            d3dContext.VSSetConstantBuffer1(slot, constantBuffer.m_buffer, ofs1, size1);
+            d3dContext.PSSetConstantBuffer1(slot, constantBuffer.m_buffer, ofs1, size1);
         }
         public void SetCBV(ConstantBuffer constantBuffer, int slot)
         {
-            DeviceResources.d3dContext.VSSetConstantBuffer(slot, constantBuffer.m_buffer);
-            DeviceResources.d3dContext.PSSetConstantBuffer(slot, constantBuffer.m_buffer);
+            d3dContext.VSSetConstantBuffer(slot, constantBuffer.m_buffer);
+            d3dContext.PSSetConstantBuffer(slot, constantBuffer.m_buffer);
         }
         public void SetMesh(Mesh mesh)
         {
-            var deviceContext = DeviceResources.d3dContext;
+            var deviceContext = d3dContext;
             deviceContext.IASetPrimitiveTopology(Vortice.Direct3D.PrimitiveTopology.TriangleList);
             deviceContext.IASetVertexBuffer(0, mesh.vertexBuffer, mesh.stride, 0);
             deviceContext.IASetIndexBuffer(mesh.indexBuffer, Vortice.DXGI.Format.R16_UInt, 0);
@@ -88,24 +85,23 @@ namespace CanvasRendering
         }
         public void SetSRV(RenderTexture texture, int slot)
         {
-            DeviceResources.d3dContext.PSSetShaderResource(slot, texture.srv);
+            d3dContext.PSSetShaderResource(slot, texture.srv);
         }
         public void RSSetScissorRect(Vortice.RawRect rect)
         {
-            DeviceResources.d3dContext.RSSetScissorRect(rect);
+            d3dContext.RSSetScissorRect(rect);
         }
         public void SetScissorRectDefault()
         {
-            DeviceResources.d3dContext.RSSetScissorRect(new Vortice.RawRect(0, 0, (int)DeviceResources.m_d3dRenderTargetSize.X, (int)DeviceResources.m_d3dRenderTargetSize.Y));
+            d3dContext.RSSetScissorRect(new Vortice.RawRect(0, 0, (int)DeviceResources.m_d3dRenderTargetSize.X, (int)DeviceResources.m_d3dRenderTargetSize.Y));
         }
         public void SetSampler(SamplerState samplerState, int slot)
         {
-            var context = DeviceResources.d3dContext;
-            context.PSSetSampler(slot, DeviceResources.GetSamplerState(samplerState));
+            d3dContext.PSSetSampler(slot, DeviceResources.GetSamplerState(samplerState));
         }
         public void DrawIndexed(int indexCount, int startIndexLocation, int baseVertexLocation)
         {
-            var context = DeviceResources.d3dContext;
+            var context = d3dContext;
             context.OMSetBlendState(defaultBlendState);
             context.OMSetDepthStencilState(depthStencilState);
             if (samplerState == null)
@@ -118,21 +114,22 @@ namespace CanvasRendering
             }
             context.PSSetSampler(0, samplerState);
             context.RSSetState(rasterizerState);
-            context.IASetInputLayout(VertexShader.GetInputLayout(DeviceResources, unnamedInputLayout));
+            context.IASetInputLayout(PipelineStateObject.GetInputLayout(DeviceResources, unnamedInputLayout));
 
             context.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
         }
-        public void SetClearColor(Vector4 color) => this.color = new Vortice.Mathematics.Color4(color);
-        public Vortice.Mathematics.Color4 color;
+        public void SetClearColor(Vector4 color) => this.clearColor = new Vortice.Mathematics.Color4(color);
+        public Vortice.Mathematics.Color4 clearColor;
         public DeviceResources DeviceResources { get; private set; } = new DeviceResources();
         public ID3D11BlendState defaultBlendState;
         public ID3D11SamplerState samplerState;
         public UnnamedInputLayout unnamedInputLayout;
         ID3D11RasterizerState rasterizerState;
 
-        public VertexShader VertexShader;
-        public PixelShader PixelShader;
+        public PipelineStateObject PipelineStateObject;
 
         ID3D11DepthStencilState depthStencilState;
+
+        ID3D11DeviceContext3 d3dContext { get => DeviceResources.d3dContext; }
     }
 }

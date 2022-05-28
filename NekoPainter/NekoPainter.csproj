@@ -45,6 +45,7 @@
     <None Remove="DCResources\Plugin\BlendModes\ColorToNormalXI.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\LinearToSRGB.dcbm" />
     <None Remove="DCResources\Plugin\BlendModes\SRGBToLinear.dcbm" />
+    <None Remove="Shaders\Basic\Imgui.hlsl" />
     <None Remove="Strings\zh-cn\UITranslations.json" />
   </ItemGroup>
 
@@ -146,7 +147,7 @@
     <Content Include="DCResources\Plugin\Brushes\DC Ring2G.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Shaders\Basic\PSImgui.hlsl">
+    <Content Include="Shaders\Basic\Imgui.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\Basic\Texture2TT.hlsl">
@@ -165,9 +166,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Shaders\Basic\TTReplace.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Shaders\Basic\VSImgui.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Strings\zh-cn\UITranslations.json">

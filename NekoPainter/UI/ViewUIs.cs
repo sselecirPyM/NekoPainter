@@ -46,7 +46,7 @@ namespace NekoPainter.UI
             }
             var io = ImGui.GetIO();
             io.DisplaySize = device.m_d3dRenderTargetSize;
-            var document = AppController.Instance?.CurrentLivedDocument;
+            var document = appController?.CurrentLivedDocument;
 
             ImGui.NewFrame();
             ImGui.ShowDemoWindow();
@@ -67,7 +67,7 @@ namespace NekoPainter.UI
                 BrushParametersPanel(appController);
                 ThumbnailPanel();
                 NodesPanel();
-                foreach (var livedDocument in AppController.Instance.livedDocuments)
+                foreach (var livedDocument in appController.livedDocuments)
                 {
                     Canvas(livedDocument.Value, livedDocument.Key);
                 }
@@ -199,7 +199,7 @@ namespace NekoPainter.UI
             var controller = AppController.Instance;
             if (ImGuiExt.Begin("Thumbnail"))
             {
-                string path = controller.CurrentDCDocument.Folder.ToString();
+                string path = controller.CurrentDCDocument.folder.ToString();
                 controller.AddTexture(string.Format("{0}/Canvas", path), controller.CurrentDCDocument.Output);
                 string texPath = string.Format("{0}/Canvas", path);
                 IntPtr imageId = new IntPtr(controller.GetId(texPath));
@@ -239,11 +239,10 @@ namespace NekoPainter.UI
                 if (ImGui.IsWindowFocused())
                 {
                     controller.CurrentDCDocument = controller.documents[path];
-                    controller.CurrentLivedDocument = controller.livedDocuments[path];
 
                     for (int i = 0; i < 256; i++)
                     {
-                        controller.CurrentDCDocument.ViewRenderer.nodeContext.keyDown[i] = io.KeysDown[i];
+                        controller.documentRenderer.nodeContext.keyDown[i] = io.KeysDown[i];
                     }
                 }
                 controller.AddTexture(string.Format("{0}/Canvas", path), controller.documents[path].Output);
@@ -281,7 +280,7 @@ namespace NekoPainter.UI
                 }
                 if (ImGui.IsItemHovered())
                 {
-                    controller.CurrentDCDocument.ViewRenderer.nodeContext.mousePosition = (io.MousePos - pos) /  factor;
+                    controller.documentRenderer.nodeContext.mousePosition = (io.MousePos - pos) / factor;
                 }
             }
             ImGui.End();
@@ -297,9 +296,10 @@ namespace NekoPainter.UI
         static int[] selectedlinks = null;
         static void NodesPanel()
         {
-            var currentLayout = AppController.Instance.CurrentLivedDocument?.ActivatedLayout;
-            var document = AppController.Instance.CurrentLivedDocument;
-            var document1 = AppController.Instance?.CurrentDCDocument;
+            var appController = AppController.Instance;
+            var currentLayout = appController.CurrentLivedDocument?.ActivatedLayout;
+            var document = appController.CurrentLivedDocument;
+            var document1 = appController?.CurrentDCDocument;
             var graph = currentLayout?.graph;
             if (currentLayout == null)
             {
@@ -853,9 +853,9 @@ namespace NekoPainter.UI
 
             ImGui.SetNextWindowSize(new Vector2(200, 200), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowPos(new Vector2(0, 200), ImGuiCond.FirstUseEver);
-            if (ImGuiExt.Begin("Brushes"))
+            var brushes = paintAgent.brushes;
+            if (ImGuiExt.Begin("Brushes") && brushes != null)
             {
-                var brushes = paintAgent.brushes;
                 for (int i = 0; i < brushes.Count; i++)
                 {
                     Core.Brush brush = brushes[i];
@@ -1080,7 +1080,8 @@ namespace NekoPainter.UI
                 if (ImGuiExt.Button("Export") && !string.IsNullOrEmpty(UIHelper.exportImagePath))
                 {
                     ImGui.CloseCurrentPopup();
-                    AppController.Instance.ExportDocument(UIHelper.exportImagePath);
+                    if (AppController.Instance.CurrentDCDocument != null)
+                        AppController.Instance.CurrentDCDocument.ExportImage(UIHelper.exportImagePath);
                 }
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Cancel"))
@@ -1116,7 +1117,8 @@ namespace NekoPainter.UI
                 if (ImGuiExt.Button("Import") && !string.IsNullOrEmpty(UIHelper.importImagePath))
                 {
                     ImGui.CloseCurrentPopup();
-                    AppController.Instance.ImportDocument(UIHelper.importImagePath);
+                    if (AppController.Instance.CurrentDCDocument != null)
+                        AppController.Instance.CurrentDCDocument.ImportImage(UIHelper.importImagePath);
                 }
                 ImGui.SameLine();
                 if (ImGuiExt.Button("Cancel"))
@@ -1130,8 +1132,8 @@ namespace NekoPainter.UI
         public static void Render()
         {
             var data = ImGui.GetDrawData();
-            var context = AppController.Instance.graphicsContext;
-            var appcontroller = AppController.Instance;
+            var appController = AppController.Instance;
+            var context = appController.graphicsContext;
             float L = data.DisplayPos.X;
             float R = data.DisplayPos.X + data.DisplaySize.X;
             float T = data.DisplayPos.Y;
@@ -1144,19 +1146,18 @@ namespace NekoPainter.UI
                     (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f,
             };
             constantBuffer.UpdateResource(new Span<float>(mvp));
-            var vertexShader = AppController.Instance.vertexShaders["VSImgui"];
-            var pixelShader = AppController.Instance.pixelShaders["PSImgui"];
-            context.SetVertexShader(vertexShader);
-            context.SetPixelShader(pixelShader);
+            var pipelineStateObject = appController.psos["Imgui"];
+            context.SetPipelineState(pipelineStateObject);
+
             //context.SetCBV(constantBuffer, 0);
             context.SetCBV(constantBuffer, 0, 0, 256);
             Vector2 clip_off = data.DisplayPos;
-            byte[] vertexDatas;
-            byte[] indexDatas;
             unsafe
             {
-                vertexDatas = new byte[data.TotalVtxCount * sizeof(ImDrawVert)];
-                indexDatas = new byte[data.TotalIdxCount * sizeof(UInt16)];
+                int vertSize = data.TotalVtxCount * sizeof(ImDrawVert);
+                int indexSize = data.TotalIdxCount * sizeof(UInt16);
+                Span<byte> vertexDatas = vertSize <= 65536 ? stackalloc byte[vertSize] : new byte[vertSize];
+                Span<byte> indexDatas = indexSize <= 65536 ? stackalloc byte[indexSize] : new byte[indexSize];
                 int vtxByteOfs = 0;
                 int idxByteOfs = 0;
                 for (int i = 0; i < data.CmdListsCount; i++)
@@ -1164,8 +1165,8 @@ namespace NekoPainter.UI
                     var cmdList = data.CmdListsRange[i];
                     var vertBytes = cmdList.VtxBuffer.Size * sizeof(ImDrawVert);
                     var indexBytes = cmdList.IdxBuffer.Size * sizeof(UInt16);
-                    new Span<byte>(cmdList.VtxBuffer.Data.ToPointer(), vertBytes).CopyTo(new Span<byte>(vertexDatas, vtxByteOfs, vertBytes));
-                    new Span<byte>(cmdList.IdxBuffer.Data.ToPointer(), indexBytes).CopyTo(new Span<byte>(indexDatas, idxByteOfs, indexBytes));
+                    new Span<byte>(cmdList.VtxBuffer.Data.ToPointer(), vertBytes).CopyTo(vertexDatas.Slice(vtxByteOfs, vertBytes));
+                    new Span<byte>(cmdList.IdxBuffer.Data.ToPointer(), indexBytes).CopyTo(indexDatas.Slice(idxByteOfs, indexBytes));
                     vtxByteOfs += vertBytes;
                     idxByteOfs += indexBytes;
                 }
@@ -1185,7 +1186,7 @@ namespace NekoPainter.UI
                         var cmd = cmdList.CmdBuffer[j];
                         var rect = new Vortice.RawRect((int)(cmd.ClipRect.X - clip_off.X), (int)(cmd.ClipRect.Y - clip_off.Y), (int)(cmd.ClipRect.Z - clip_off.X), (int)(cmd.ClipRect.W - clip_off.Y));
                         context.RSSetScissorRect(rect);
-                        context.SetSRV(appcontroller.textures[(long)cmd.TextureId], 0);
+                        context.SetSRV(appController.textures[(long)cmd.TextureId], 0);
                         context.DrawIndexed((int)cmd.ElemCount, (int)cmd.IdxOffset + idxOfs, (int)cmd.VtxOffset + vtxOfs);
                     }
                     vtxOfs += cmdList.VtxBuffer.Size;
@@ -1198,14 +1199,14 @@ namespace NekoPainter.UI
         public static void Initialize()
         {
             Initialized = true;
-            var appcontroller = AppController.Instance;
+            var appController = AppController.Instance;
             var imguiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(imguiContext);
             imnodes.SetImGuiContext(imguiContext);
             imnodes.Initialize();
             var io = ImGui.GetIO();
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
-            var device = AppController.Instance.graphicsContext.DeviceResources;
+            var device = appController.graphicsContext.DeviceResources;
             constantBuffer = new ConstantBuffer(device, 64);
             mesh = new Mesh(device, 20, unnamedInputLayout);
             io.Fonts.AddFontFromFileTTF("c:\\Windows\\Fonts\\SIMHEI.ttf", 13, null, io.Fonts.GetGlyphRangesChineseFull());
@@ -1220,8 +1221,8 @@ namespace NekoPainter.UI
 
                 FontAtlas.Create2(device, width, height, Vortice.DXGI.Format.R8G8B8A8_UNorm, false, data);
             }
-            io.Fonts.TexID = new IntPtr(appcontroller.GetId("ImguiFont"));
-            appcontroller.AddTexture("ImguiFont", FontAtlas);
+            io.Fonts.TexID = new IntPtr(appController.GetId("ImguiFont"));
+            appController.AddTexture("ImguiFont", FontAtlas);
 
 
             io.KeyMap[(int)ImGuiKey.Tab] = (int)ImGuiKey.Tab;

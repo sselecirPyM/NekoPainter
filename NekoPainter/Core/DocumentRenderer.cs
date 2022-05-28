@@ -16,28 +16,27 @@ using NekoPainter.Core.Nodes;
 
 namespace NekoPainter
 {
-    public class ViewRenderer : IDisposable
+    public class DocumentRenderer : IDisposable
     {
-        public ViewRenderer(NekoPainterDocument doc)
-        {
-            this.nekoPainterDocument = doc;
-            this.livedDocument = doc.livedDocument;
-            gpuCompute.document = doc.livedDocument;
-            gpuCompute.deviceResources = nekoPainterDocument.DeviceResources;
-            nodeContext.gpuCompute = gpuCompute;
-        }
         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
         long prevTick = 0;
         float deltaTime = 0;
 
-        public void RenderAll()
+        public void RenderAll(NekoPainterDocument doc, RenderTexture output)
         {
+            this.nekoPainterDocument = doc;
+            this.livedDocument = doc.livedDocument;
+
             if (ManagedLayout.Count == 0) return;
+
+            gpuCompute.document = livedDocument;
+            gpuCompute.deviceResources = nekoPainterDocument.DeviceResources;
+            nodeContext.gpuCompute = gpuCompute;
 
             deltaTime = Math.Clamp((stopwatch.ElapsedTicks - prevTick) / 1e7f, 0, 1);
             prevTick = stopwatch.ElapsedTicks;
 
-            Output.Clear();
+            output.Clear();
             int ofs = 0;
             for (int i = ManagedLayout.Count - 1; i >= 0; i--)
             {
@@ -103,7 +102,7 @@ namespace NekoPainter
                         {
                             var texture1 = gpuCompute.GetTemporaryTexture();
                             tiledTexture2.UnzipToTexture(((Texture2D)texture1)._texture);
-                            BlendMode(blendMode1, selectedLayout, texture1);
+                            BlendMode(blendMode1, selectedLayout, texture1, output);
                             gpuCompute.RecycleTemplateTextures();
                         }
                         if (graph != null)
@@ -113,7 +112,7 @@ namespace NekoPainter
                     {
                         var texture1 = gpuCompute.GetTemporaryTexture();
                         tiledTexture.UnzipToTexture(((Texture2D)texture1)._texture);
-                        BlendMode(blendMode1, selectedLayout, texture1);
+                        BlendMode(blendMode1, selectedLayout, texture1, output);
                         gpuCompute.RecycleTemplateTextures();
                     }
                 }
@@ -121,15 +120,12 @@ namespace NekoPainter
             }
         }
 
-
-        RenderTexture Output { get { return nekoPainterDocument.Output; } }
-
         IReadOnlyList<PictureLayout> ManagedLayout { get { return livedDocument.Layouts; } }
 
         public NodeContext nodeContext = new NodeContext();
 
-        public readonly NekoPainterDocument nekoPainterDocument;
-        public readonly LivedNekoPainterDocument livedDocument;
+        NekoPainterDocument nekoPainterDocument;
+        LivedNekoPainterDocument livedDocument;
 
         public void ExecuteNodes(Graph graph, List<int> executeOrder)
         {
@@ -323,10 +319,10 @@ namespace NekoPainter
                 graph.NodeParamCaches.Remove(key);
         }
 
-        public void BlendMode(BlendMode blendMode, PictureLayout layout, ITexture2D tex1)
+        public void BlendMode(BlendMode blendMode, PictureLayout layout, ITexture2D tex1, RenderTexture output)
         {
             ScriptGlobal global = new ScriptGlobal { parameters = new Dictionary<string, object>(), context = nodeContext };
-            Texture2D tex0 = new Texture2D() { _texture = Output };
+            Texture2D tex0 = new Texture2D() { _texture = output };
             global.parameters["tex0"] = tex0;
             global.parameters["tex1"] = tex1;
 

@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using NekoPainter.Core;
 using System.IO;
 using CanvasRendering;
-using System.ComponentModel;
 using System.Numerics;
 using Newtonsoft.Json;
 using NekoPainter.Core.UndoCommand;
 using NekoPainter.Core.Nodes;
 using NekoPainter.Data;
 using NekoPainter.Core.Util;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace NekoPainter.FileFormat
 {
@@ -20,11 +21,11 @@ namespace NekoPainter.FileFormat
     {
         public NekoPainterDocument(DirectoryInfo folder)
         {
-            Folder = folder;
+            this.folder = folder;
         }
 
         public LivedNekoPainterDocument livedDocument;
-        public DirectoryInfo Folder;
+        public DirectoryInfo folder;
         public DirectoryInfo blendModesFolder;
         public DirectoryInfo brushesFolder;
         public DirectoryInfo cachesFolder;
@@ -36,7 +37,6 @@ namespace NekoPainter.FileFormat
         public DeviceResources DeviceResources;
         public RenderTexture Output;
 
-        public ViewRenderer ViewRenderer;
         public PaintAgent PaintAgent { get; private set; } = new PaintAgent();
         public UndoManager UndoManager = new UndoManager();
 
@@ -55,7 +55,6 @@ namespace NekoPainter.FileFormat
             livedDocument = new LivedNekoPainterDocument(width, height);
             livedDocument.DefaultBlendMode = Guid.Parse("9c9f90ac-752c-4db5-bcb5-0880c35c50bf");
             livedDocument.Name = name;
-            ViewRenderer = new ViewRenderer(this);
             Output = new RenderTexture(DeviceResources, width, height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
             PaintAgent.CurrentLayout = NewLayout(0);
             PaintAgent.document = livedDocument;
@@ -75,7 +74,7 @@ namespace NekoPainter.FileFormat
         private void LoadDocInfo(DeviceResources deviceResources)
         {
             DeviceResources = deviceResources;
-            FileInfo layoutSettingsFile = new FileInfo(Folder + "/Document.json");
+            FileInfo layoutSettingsFile = new FileInfo(folder + "/Document.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
             _Document document = ReadJsonStream<_Document>(settingsStream);
@@ -84,7 +83,6 @@ namespace NekoPainter.FileFormat
             livedDocument.Description = document.Description;
             livedDocument.DefaultBlendMode = document.DefaultBlendMode;
 
-            ViewRenderer = new ViewRenderer(this);
             Output = new RenderTexture(DeviceResources, livedDocument.Width, livedDocument.Height, Vortice.DXGI.Format.R32G32B32A32_Float, false);
             PaintAgent.document = livedDocument;
             PaintAgent.UndoManager = UndoManager;
@@ -160,11 +158,11 @@ namespace NekoPainter.FileFormat
         }
         private void FolderDefs()
         {
-            blendModesFolder = Folder.CreateSubdirectory("BlendModes");
-            brushesFolder = Folder.CreateSubdirectory("Brushes");
-            cachesFolder = Folder.CreateSubdirectory("Caches");
-            nodeFolder = Folder.CreateSubdirectory("Nodes");
-            shadersFolder = Folder.CreateSubdirectory("Shaders");
+            blendModesFolder = folder.CreateSubdirectory("BlendModes");
+            brushesFolder = folder.CreateSubdirectory("Brushes");
+            cachesFolder = folder.CreateSubdirectory("Caches");
+            nodeFolder = folder.CreateSubdirectory("Nodes");
+            shadersFolder = folder.CreateSubdirectory("Shaders");
         }
 
         private void LoadDocRes()
@@ -183,7 +181,7 @@ namespace NekoPainter.FileFormat
         {
             SaveDocInfo();
 
-            Stream layoutsInfoStream = new FileStream(Folder + "/Layouts.json", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            Stream layoutsInfoStream = new FileStream(folder + "/Layouts.json", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
             WriteJsonStream(layoutsInfoStream, livedDocument.Layouts);
             layoutsInfoStream.Dispose();
@@ -245,7 +243,7 @@ namespace NekoPainter.FileFormat
                 cacheFileMap[guid] = cacheFile;
             }
 
-            FileInfo layoutSettingsFile = new FileInfo(Folder.FullName + "/Layouts.json");
+            FileInfo layoutSettingsFile = new FileInfo(folder.FullName + "/Layouts.json");
             Stream settingsStream = layoutSettingsFile.OpenRead();
 
             List<PictureLayout> layouts = ReadJsonStream<List<PictureLayout>>(settingsStream);
@@ -404,7 +402,7 @@ namespace NekoPainter.FileFormat
 
         private void SaveDocInfo()
         {
-            FileInfo SettingsFile = new FileInfo(Folder + "/Document.json");
+            FileInfo SettingsFile = new FileInfo(folder + "/Document.json");
             Stream settingsStream = SettingsFile.OpenWrite();
 
             WriteJsonStream(settingsStream, new _Document()
@@ -434,7 +432,7 @@ namespace NekoPainter.FileFormat
                 file.CopyTo(shadersFolder.FullName + "/" + file.Name);
 
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NekoPainter/CustomData");
-            CopyDir(path, Folder.FullName);//Be careful,it may cause security problem.
+            CopyDir(path, folder.FullName);//Be careful,it may cause security problem.
         }
 
         void CopyDir(string source, string targetDir)
@@ -459,6 +457,59 @@ namespace NekoPainter.FileFormat
                     CopyDir(folder.FullName, targetPath);
                 }
             }
+        }
+
+
+        public void ImportImage( string path)
+        {
+            var document = this;
+            var livedNekoPainterDocument = document.livedDocument;
+            if (livedNekoPainterDocument?.ActivatedLayout == null) return;
+            var layout = livedNekoPainterDocument.ActivatedLayout;
+            if (layout.graph == null)
+            {
+                layout.graph = new Graph();
+                layout.graph.Initialize();
+            }
+            var fileNode = new Node();
+            fileNode.fileNode = new FileNode()
+            {
+                path = path
+            };
+            var scriptNode = new Node();
+            scriptNode.scriptNode = new ScriptNode();
+            scriptNode.scriptNode.nodeName = "ImageImport.json";
+
+            layout.graph.AddNodeToEnd(fileNode, new Vector2(10, -20));
+            layout.graph.AddNodeToEnd(scriptNode, new Vector2(70, 0));
+            layout.graph.Link(fileNode.Luid, "bytes", scriptNode.Luid, "file");
+            CMD_Remove_RecoverNodes cmd = new CMD_Remove_RecoverNodes();
+            cmd.BuildRemoveNodes(livedNekoPainterDocument, layout.graph, new List<int>() { fileNode.Luid, scriptNode.Luid }, layout.guid);
+            document.UndoManager.AddUndoData(cmd);
+        }
+
+        public void ExportImage( string path)
+        {
+            var document = this;
+            var output = document.Output;
+            var rawdata = output.GetData();
+            Image<RgbaVector> image = Image.WrapMemory<RgbaVector>(rawdata, output.width, output.height);
+            for (int y = 0; y < image.Height; y++)
+                for (int x = 0; x < image.Width; x++)
+                {
+                    var color = image[x, y];
+                    color.A = Math.Clamp(color.A, 0, 1);
+                    image[x, y] = color;
+                }
+            string extension = Path.GetExtension(path);
+            var ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+            if (".png".Equals(extension, ignoreCase))
+                image.SaveAsPng(path);
+            if (".jpg".Equals(extension, ignoreCase))
+                image.SaveAsJpeg(path);
+            if (".tga".Equals(extension, ignoreCase))
+                image.SaveAsTga(path);
+            image.Dispose();
         }
 
         public static T ReadJsonStream<T>(Stream stream)
@@ -490,7 +541,6 @@ namespace NekoPainter.FileFormat
 
         public void Dispose()
         {
-            ViewRenderer.Dispose();
             Output.Dispose();
             livedDocument.Dispose();
             UndoManager.Dispose();

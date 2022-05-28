@@ -19,7 +19,7 @@ namespace CanvasRendering
             var hr = Compiler.Compile(source, entryPoint, null, "cs_5_0", out Blob data, out Blob errorBlob);
             if (hr.Failure && errorBlob != null)
             {
-                string errorDebug = errorBlob.ConvertToString();
+                string errorDebug = errorBlob.AsString();
             }
             computeShader.computeShader = deviceResources.device.CreateComputeShader(data);
             computeShader.DeviceResources = deviceResources;
@@ -49,11 +49,6 @@ namespace CanvasRendering
         public void SetCBV(ConstantBuffer constantBuffer, int slot)
         {
             DeviceResources.d3dContext.CSSetConstantBuffer(slot, constantBuffer.m_buffer);
-        }
-
-        public void SetCBV(ConstantBuffer constantBuffer, int slot, int ofs, int size)
-        {
-            DeviceResources.d3dContext.CSSetConstantBuffer1(slot, constantBuffer.m_buffer, new[] { ofs / 16 }, new[] { size / 16 });
         }
 
         public void Dispatch(int x, int y, int z)

@@ -17,9 +17,9 @@ namespace CanvasRendering
         {
             DeviceResources.d3dContext.UpdateSubresource<T>(ts, m_buffer);
         }
-        public void UpdateResource<T>(ref T ts) where T : unmanaged
+        public void UpdateResource<T>(in T ts) where T : unmanaged
         {
-            DeviceResources.d3dContext.UpdateSubresource<T>(ref ts, m_buffer);
+            DeviceResources.d3dContext.UpdateSubresource<T>(in ts, m_buffer);
         }
         public void Dispose()
         {

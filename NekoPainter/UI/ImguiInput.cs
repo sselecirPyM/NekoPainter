@@ -71,42 +71,7 @@ namespace NekoPainter.UI
                 io.MouseDown[i] = mouseDown[i];
             io.MousePos = mousePos;
             #endregion
-
-            //mouseDrawCursor = ImGui.GetIO().MouseDrawCursor;
-            //var mouseCursor = mouseDrawCursor ? ImGuiMouseCursor.None : ImGui.GetMouseCursor();
-            //if (mouseCursor != lastCursor)
-            //{
-            //    lastCursor = mouseCursor;
-            //    UpdateMouseCursor();
-            //}
         }
-
-        //bool UpdateMouseCursor()
-        //{
-        //    var io = ImGui.GetIO();
-        //    if ((io.ConfigFlags & ImGuiConfigFlags.NoMouseCursorChange) != 0)
-        //        return false;
-
-        //    if (requestCursor == ImGuiMouseCursor.None || mouseDrawCursor)
-        //        cursor = 0;
-        //    else
-        //    {
-        //        cursor = SystemCursor.IDC_ARROW;
-        //        switch (requestCursor)
-        //        {
-        //            case ImGuiMouseCursor.Arrow: cursor = SystemCursor.IDC_ARROW; break;
-        //            case ImGuiMouseCursor.TextInput: cursor = SystemCursor.IDC_IBEAM; break;
-        //            case ImGuiMouseCursor.ResizeAll: cursor = SystemCursor.IDC_SIZEALL; break;
-        //            case ImGuiMouseCursor.ResizeEW: cursor = SystemCursor.IDC_SIZEWE; break;
-        //            case ImGuiMouseCursor.ResizeNS: cursor = SystemCursor.IDC_SIZENS; break;
-        //            case ImGuiMouseCursor.ResizeNESW: cursor = SystemCursor.IDC_SIZENESW; break;
-        //            case ImGuiMouseCursor.ResizeNWSE: cursor = SystemCursor.IDC_SIZENWSE; break;
-        //            case ImGuiMouseCursor.Hand: cursor = SystemCursor.IDC_HAND; break;
-        //            case ImGuiMouseCursor.NotAllowed: cursor = SystemCursor.IDC_NO; break;
-        //        }
-        //    }
-        //    return true;
-        //}
 
         public void InputChar(char c)
         {
@@ -118,89 +83,13 @@ namespace NekoPainter.UI
             mousePos = position;
         }
 
-        public void KeyDown()
+        public void KeyDown(int key)
         {
-
+            keydown[key] = true;
         }
-
-        //public IntPtr hwnd;
-        //public bool mouseDrawCursor;
-        //public bool mouseInRect;
-        //public bool isForegroundWindow;
-        //public bool isAnyMouseDown { get => mouseDown.All(u => u); }
-
-        //public bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
-        //{
-        //    switch (msg)
-        //    {
-        //        case WindowMessage.LButtonDown:
-        //        case WindowMessage.LButtonDoubleClick:
-        //        case WindowMessage.RButtonDown:
-        //        case WindowMessage.RButtonDoubleClick:
-        //        case WindowMessage.MButtonDown:
-        //        case WindowMessage.MButtonDoubleClick:
-        //        case WindowMessage.XButtonDown:
-        //        case WindowMessage.XButtonDoubleClick:
-        //            {
-        //                int button = 0;
-        //                if (msg == WindowMessage.LButtonDown || msg == WindowMessage.LButtonDoubleClick) { button = 0; }
-        //                if (msg == WindowMessage.RButtonDown || msg == WindowMessage.RButtonDoubleClick) { button = 1; }
-        //                if (msg == WindowMessage.MButtonDown || msg == WindowMessage.MButtonDoubleClick) { button = 2; }
-        //                if (msg == WindowMessage.XButtonDown || msg == WindowMessage.XButtonDoubleClick) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
-        //                if (mouseInRect || isAnyMouseDown)
-        //                {
-        //                    if (!isAnyMouseDown && User32.GetCapture() == IntPtr.Zero)
-        //                        User32.SetCapture(hwnd);
-        //                    mouseDown[button] = true;
-        //                }
-        //                return false;
-        //            }
-        //        case WindowMessage.LButtonUp:
-        //        case WindowMessage.RButtonUp:
-        //        case WindowMessage.MButtonUp:
-        //        case WindowMessage.XButtonUp:
-        //            {
-        //                int button = 0;
-        //                if (msg == WindowMessage.LButtonUp) { button = 0; }
-        //                if (msg == WindowMessage.RButtonUp) { button = 1; }
-        //                if (msg == WindowMessage.MButtonUp) { button = 2; }
-        //                if (msg == WindowMessage.XButtonUp) { button = (GET_XBUTTON_WPARAM(wParam) == 1) ? 3 : 4; }
-        //                mouseDown[button] = false;
-        //                if (!isAnyMouseDown && User32.GetCapture() == hwnd)
-        //                    User32.ReleaseCapture();
-        //                return false;
-        //            }
-        //        case WindowMessage.MouseWheel:
-        //            mouseWheelV += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
-        //            return false;
-        //        case WindowMessage.MouseHWheel:
-        //            mouseWheelH += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
-        //            return false;
-        //        case WindowMessage.KeyDown:
-        //        case WindowMessage.SysKeyDown:
-        //            if ((ulong)wParam < 256)
-        //            {
-        //                keydown[(int)wParam] = true;
-        //            }
-        //            return false;
-        //        case WindowMessage.KeyUp:
-        //        case WindowMessage.SysKeyUp:
-        //            if ((ulong)wParam < 256)
-        //            {
-        //                keydown[(int)wParam] = false;
-        //            }
-        //            return false;
-        //        case WindowMessage.Char:
-        //            inputChars.Enqueue((uint)wParam);
-        //            return false;
-        //        case WindowMessage.SetCursor:
-        //            if (Utils.Loword((int)(long)lParam) == 1 && mouseInRect)
-        //                return true;
-        //            return false;
-        //    }
-        //    return false;
-        //}
-
-        //static int WHEEL_DELTA = 120;
+        public void KeyUp(int key)
+        {
+            keydown[key] = false;
+        }
     }
 }

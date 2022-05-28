@@ -27,7 +27,7 @@ namespace CanvasRendering
             this.height = height;
             this.format = format;
             this.device = device;
-            texture2D = device.device.CreateTexture2D(new Texture2DDescription(format, width, height, 1, 1, BindFlags.ShaderResource | BindFlags.UnorderedAccess));
+            texture2D = device.device.CreateTexture2D(new Texture2DDescription(width, height, format, 1, 1, BindFlags.ShaderResource | BindFlags.UnorderedAccess));
             srv = device.device.CreateShaderResourceView(texture2D);
             uav = device.device.CreateUnorderedAccessView(texture2D);
         }
@@ -42,10 +42,10 @@ namespace CanvasRendering
 
             SubresourceData subresourceData = new SubresourceData();
             subresourceData.DataPointer = Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
-            subresourceData.Pitch = width * bytePerPixel;
+            subresourceData.RowPitch = width * bytePerPixel;
             subresourceData.SlicePitch = width * height * bytePerPixel;
 
-            texture2D = device.device.CreateTexture2D(new Texture2DDescription(format, width, height, 1, 1, BindFlags.ShaderResource | BindFlags.UnorderedAccess), new[] { subresourceData });
+            texture2D = device.device.CreateTexture2D(new Texture2DDescription(width, height, format, 1, 1, BindFlags.ShaderResource | BindFlags.UnorderedAccess), new[] { subresourceData });
             srv = device.device.CreateShaderResourceView(texture2D);
             uav = device.device.CreateUnorderedAccessView(texture2D);
         }
@@ -64,13 +64,13 @@ namespace CanvasRendering
 
         public void Clear()
         {
-            device.d3dContext.ClearUnorderedAccessView(uav, Color4.Transparent);
+            device.d3dContext.ClearUnorderedAccessView(uav, new Color4());
         }
 
         public byte[] GetData()
         {
             var context = device.d3dContext;
-            Texture2DDescription tex2dReadbackDesc = new Texture2DDescription(Format.R32G32B32A32_Float, width, height, 1, 1, 0, ResourceUsage.Staging, CpuAccessFlags.Read);
+            Texture2DDescription tex2dReadbackDesc = new Texture2DDescription(width, height, Format.R32G32B32A32_Float, 1, 1, 0, ResourceUsage.Staging, CpuAccessFlags.Read);
             ID3D11Texture2D tex2dReadBack = device.device.CreateTexture2D(tex2dReadbackDesc);
             context.CopyResource(tex2dReadBack, texture2D);
 

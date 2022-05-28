@@ -27,11 +27,12 @@ namespace NekoPainter.Controller
             Instance = this;
             LoadResources();
 
-            //graphicsContext.SetClearColor(new System.Numerics.Vector4(0.392156899f, 0.584313750f, 0.929411829f, 1.000000000f));
-            graphicsContext.SetClearColor(new System.Numerics.Vector4(0.2f, 0.2f, 0.2f, 1.0f));
-
-            //RenderTask = Task.Factory.StartNew(GameLoop, TaskCreationOptions.LongRunning);
+            graphicsContext.SetClearColor(new Vector4(0.2f, 0.2f, 0.2f, 1.0f));
         }
+
+        public ImguiInput imguiInput = new ImguiInput();
+
+        public string language = "zh-cn";
 
         public void CreateDocument(CreateDocumentParameters parameters)
         {
@@ -107,19 +108,6 @@ namespace NekoPainter.Controller
             image.Dispose();
         }
 
-        //Task RenderTask;
-
-        //public void GameLoop()
-        //{
-        //    while (true)
-        //    {
-        //        CanvasRender();
-        //        Thread.Sleep(1);
-        //    }
-        //}
-
-        public string language = "zh-cn";
-
         public void CanvasRender()
         {
             if (StringTranslations.current != language)
@@ -143,7 +131,7 @@ namespace NekoPainter.Controller
 
         public readonly GraphicsContext graphicsContext = new GraphicsContext();
 
-        public void SetSwapChain(IntPtr hwnd,Vector2 initSize)
+        public void SetSwapChain(IntPtr hwnd, Vector2 initSize)
         {
             graphicsContext.DeviceResources.SetSwapChainPanel(hwnd, initSize);
             graphicsContext.SetClearColor(new Vector4(0.2f, 0.2f, 0.2f, 1));
@@ -187,7 +175,7 @@ namespace NekoPainter.Controller
         {
             var stream = new FileStream(path, FileMode.Open);
             BinaryReader reader = new BinaryReader(stream);
-            computeShaders[name] = ComputeShader.CompileAndCreate(graphicsContext.DeviceResources, reader.ReadBytes((int)stream.Length));
+            computeShaders[name] = ComputeShader.CompileAndCreate(graphicsContext.DeviceResources, reader.ReadBytes((int)stream.Length), "main");
         }
 
         void ApplyAllResources()
@@ -196,8 +184,6 @@ namespace NekoPainter.Controller
             TiledTexture.TextureEmptyTest = computeShaders["TextureEmptyTest"];
             TiledTexture.TT2Texture = computeShaders["TT2Texture"];
             TiledTexture.TTPartCopy = computeShaders["TTPartCopy"];
-            TiledTexture.TTReplace = computeShaders["TTReplace"];
-            TiledTexture.TexturePartClear = computeShaders["TexturePartClear"];
         }
 
         public Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();

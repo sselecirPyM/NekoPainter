@@ -6,7 +6,9 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using static SDL2.SDL;
+using System.Diagnostics;
 using ImGuiNET;
 
 namespace NekoPainter
@@ -29,7 +31,7 @@ namespace NekoPainter
             IntPtr hwnd = info.info.win.window;
             appController.SetSwapChain(hwnd, new Vector2(Width, Height));
             ViewUIs.Initialize();
-            ImguiInput imguiInput = new ImguiInput();
+            ImguiInput imguiInput = appController.imguiInput;
             #region key map
             Dictionary<uint, int> sdlMouse2ImguiMouse = new Dictionary<uint, int>();
             sdlMouse2ImguiMouse[SDL_BUTTON_LEFT] = 0;
@@ -62,9 +64,45 @@ namespace NekoPainter
             sdlKeycode2ImguiKey[SDL_Keycode.SDLK_RIGHT] = (int)ImGuiKey.RightArrow;
             sdlKeycode2ImguiKey[SDL_Keycode.SDLK_INSERT] = (int)ImGuiKey.Insert;
             #endregion
+            #region cursors
+            Dictionary<ImGuiMouseCursor, IntPtr> cursors = new Dictionary<ImGuiMouseCursor, IntPtr>();
+            void createCursor(SDL_SystemCursor systemCursor, ImGuiMouseCursor imguiMouseCursor)
+            {
+                cursors[imguiMouseCursor] = SDL_CreateSystemCursor(systemCursor);
+            }
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW, ImGuiMouseCursor.Arrow);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM, ImGuiMouseCursor.TextInput);
+            //createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_WAIT);
+            //createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR);
+            //createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_WAITARROW);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE, ImGuiMouseCursor.ResizeNWSE);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW, ImGuiMouseCursor.ResizeNESW);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE, ImGuiMouseCursor.ResizeEW);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS, ImGuiMouseCursor.ResizeNS);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL, ImGuiMouseCursor.ResizeAll);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO, ImGuiMouseCursor.NotAllowed);
+            createCursor(SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND, ImGuiMouseCursor.Hand);
+            createCursor(SDL_SystemCursor.SDL_NUM_SYSTEM_CURSORS, ImGuiMouseCursor.COUNT);
+            #endregion
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    long current = stopwatch.ElapsedTicks;
+                    long delta = current - lastTime;
+                    lastTime = current;
+                    var graphicsDevice = appController.graphicsContext.DeviceResources;
+                    if (graphicsDevice.m_outputSize != new Vector2(Width, Height))
+                        graphicsDevice.SetLogicalSize(new Vector2(Width, Height));
+                    ImGui.GetIO().DeltaTime = delta / Stopwatch.Frequency;
+                    appController.CanvasRender();
+                    imguiInput.Update();
+                }
+            });
             while (!quitRequested)
             {
-                while (SDL_PollEvent(out var sdlEvent) == 1)
+                SDL_WaitEvent(out var sdlEvent);
+                do
                 {
                     switch (sdlEvent.type)
                     {
@@ -128,14 +166,14 @@ namespace NekoPainter
                             imguiInput.mouseWheelV += sdlEvent.wheel.y;
                             break;
                     }
-                }
+                } while (SDL_PollEvent(out sdlEvent) == 1);
 
                 var modState = SDL_GetModState();
                 imguiInput.KeyAlt = (int)(modState & SDL_Keymod.KMOD_ALT) != 0;
                 imguiInput.KeyShift = (int)(modState & SDL_Keymod.KMOD_SHIFT) != 0;
                 imguiInput.KeyControl = (int)(modState & SDL_Keymod.KMOD_CTRL) != 0;
 
-                imguiInput.Update();
+                SDL_SetCursor(cursors[imguiInput.requestCursor]);
 
                 if (imguiInput.WantTextInput)
                     SDL_StartTextInput();
@@ -143,15 +181,15 @@ namespace NekoPainter
                     SDL_StopTextInput();
                 SDL_CaptureMouse(imguiInput.WantCaptureMouse ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
 
-                long current = stopwatch.ElapsedTicks;
-                long delta = current - lastTime;
-                lastTime = current;
-                var graphicsDevice = appController.graphicsContext.DeviceResources;
-                if (graphicsDevice.m_outputSize != new Vector2(Width, Height))
-                    graphicsDevice.SetLogicalSize(new Vector2(Width, Height));
-                ImGuiNET.ImGui.GetIO().DeltaTime = delta / 10000000.0f;
+                //long current = stopwatch.ElapsedTicks;
+                //long delta = current - lastTime;
+                //lastTime = current;
+                //var graphicsDevice = appController.graphicsContext.DeviceResources;
+                //if (graphicsDevice.m_outputSize != new Vector2(Width, Height))
+                //    graphicsDevice.SetLogicalSize(new Vector2(Width, Height));
+                //ImGuiNET.ImGui.GetIO().DeltaTime = delta / 10000000.0f;
                 UIHelper.OnFrame();
-                appController.CanvasRender();
+                //appController.CanvasRender();
             }
         }
     }

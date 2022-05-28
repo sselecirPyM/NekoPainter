@@ -27,8 +27,8 @@ namespace CanvasRendering
             vertexBuffer?.Dispose();
             indexBuffer?.Dispose();
 
-            vertexBuffer = deviceResources.device.CreateBuffer(vertice, new BufferDescription(vertice.Length, BindFlags.VertexBuffer, ResourceUsage.Default));
-            indexBuffer = deviceResources.device.CreateBuffer(indice, new BufferDescription(indice.Length, BindFlags.IndexBuffer, ResourceUsage.Default));
+            vertexBuffer = deviceResources.device.CreateBuffer<byte>(vertice, new BufferDescription(vertice.Length, BindFlags.VertexBuffer, ResourceUsage.Default));
+            indexBuffer = deviceResources.device.CreateBuffer<byte>(indice, new BufferDescription(indice.Length, BindFlags.IndexBuffer, ResourceUsage.Default));
         }
 
 

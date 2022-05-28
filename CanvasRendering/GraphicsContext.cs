@@ -78,7 +78,7 @@ namespace CanvasRendering
         {
             var deviceContext = DeviceResources.d3dContext;
             deviceContext.IASetPrimitiveTopology(Vortice.Direct3D.PrimitiveTopology.TriangleList);
-            deviceContext.IASetVertexBuffers(0, new VertexBufferView(mesh.vertexBuffer, mesh.stride));
+            deviceContext.IASetVertexBuffer(0, mesh.vertexBuffer, mesh.stride, 0);
             deviceContext.IASetIndexBuffer(mesh.indexBuffer, Vortice.DXGI.Format.R16_UInt, 0);
             unnamedInputLayout = mesh.unnamedInputLayout;
         }

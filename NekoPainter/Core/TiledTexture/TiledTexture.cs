@@ -16,8 +16,6 @@ namespace NekoPainter
         public static ComputeShader TextureEmptyTest;
         public static ComputeShader TT2Texture;
         public static ComputeShader TTPartCopy;
-        public static ComputeShader TTReplace;
-        public static ComputeShader TexturePartClear;
 
         public void Dispose()
         {

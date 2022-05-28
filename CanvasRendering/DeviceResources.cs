@@ -71,7 +71,7 @@ namespace CanvasRendering
                         Count = 1,
                         Quality = 0,
                     },
-                    Usage = Usage.RenderTargetOutput,
+                    BufferUsage = Usage.RenderTargetOutput,
                     BufferCount = c_frameCount,
                     SwapEffect = SwapEffect.FlipSequential,
                     Flags = swapChainFlags,
